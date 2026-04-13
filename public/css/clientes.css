@@ -145,5 +145,56 @@ tbody tr:hover {
     background-color: #fee2e2;
     color: #ef4444;
 }
+/* =========================================
+   DISEÑO RESPONSIVO (Móviles y Tablets) 
+   ========================================= */
+@media (max-width: 768px) {
+    /* 1. Apilamos el layout: Nav arriba, Contenido abajo */
+    body {
+        flex-direction: column;
+    }
+
+    /* 2. El menú lateral se convierte en un menú superior */
+    .navbar {
+        width: 100%;
+        padding: 15px;
+    }
+
+    /* Ponemos los links uno al lado del otro */
+    .navbar ul {
+        display: flex;
+        justify-content: space-around;
+        gap: 10px;
+    }
+
+    .navbar ul li {
+        margin-bottom: 0;
+    }
+
+    .navbar h2 {
+        margin-bottom: 15px;
+    }
+
+    /* 3. Ajustamos la cabecera (Input y Botón) */
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .actions input {
+        width: 100%; /* El buscador ocupa todo el ancho */
+    }
+
+    /* 4. El salvavidas de las Tablas */
+    .table-container {
+        overflow-x: auto; /* Permite hacer scroll horizontal solo en la tabla */
+    }
+}
 
 /* Nota para revisión: Agregar clase .badge-aldia en la próxima iteración */
