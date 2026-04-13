@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda de Turnos - Estudio Jurídico</title>
+    <link rel="stylesheet" href="./css/clientes.css">
+    <link rel="stylesheet" href="./css/agenda.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+</head>
+<body>
+    
+    <nav class="navbar">
+        <h2>Estudio Jurídico</h2>
+        <ul>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="clientes.html">Clientes</a></li>
+            <li><a href="agenda.html" class="active">Agenda</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        
+        <header class="section-header">
+            <div>
+                <h1>Agenda de Turnos</h1>
+                <p class="subtitle">Turnos programados para hoy</p>
+            </div>
+            <div class="actions">
+                <input type="date" id="fechaAgenda" title="Seleccionar fecha">
+                <button id="btnNuevoTurno" class="btn-primary">+ Nuevo Turno</button>
+            </div>
+        </header>
+
+        <section class="turnos-grid">
+            
+            <article class="turno-card border-urgente">
+               <div class="turno-hora">
+                    <span class="material-symbols-outlined">schedule</span>
+                    <h3>09:00</h3>
+                    <span>AM</span>
+               </div>
+                <div class="turno-info">
+                    <h4>Carlos Gardel</h4>
+                    <p><strong>Motivo:</strong> Consulta Sucesión Familiar</p>
+                    <p class="notas">Trae los papeles de la casa.</p>
+                </div>
+                <div class="turno-estado">
+                    <span class="badge badge-pendiente">Pendiente</span>
+                </div>
+            </article>
+
+            <article class="turno-card border-normal">
+                <div class="turno-hora">
+                    <h3>11:30</h3>
+                    <span>AM</span>
+                </div>
+                <div class="turno-info">
+                    <h4>Marta Minujín</h4>
+                    <p><strong>Motivo:</strong> Revisión de Contrato Comercial</p>
+                </div>
+                <div class="turno-estado">
+                    <span class="badge badge-completado">Completado</span>
+                </div>
+            </article>
+
+        </section>
+    </main>
+        <div id="modalNuevoTurno" class="modal-overlay">
+            <div class="modal-content">
+                <header class="modal-header">
+                    <h2>Agendar Nuevo Turno</h2>
+                    <button class="btn-close" id="btnCerrarModalTurno">&times;</button>
+                </header>
+            
+                <form id="formNuevoTurno" class="modal-form">
+                    <div class="form-group">
+                     <label for="clienteTurno">Cliente *</label>
+                        <select id="clienteTurno" required>
+                            <option value="" disabled selected>Seleccione un cliente...</option>
+                            <option value="1">Carlos Gardel</option>
+                            <option value="2">Marta Minujín</option>
+                     </select>
+                    </div>
+                
+                    <div class="form-row">
+                        <div class="form-group">
+                         <label for="fecha">Fecha *</label>
+                         <input type="date" id="fecha" required>
+                        </div>
+                        <div class="form-group">
+                         <label for="hora">Hora *</label>
+                         <input type="time" id="hora" required>
+                     </div>
+                    </div>
+
+                    <div class="form-group">
+                     <label for="motivo">Motivo de la consulta *</label>
+                        <input type="text" id="motivo" required placeholder="Ej: Sucesión, Revisión de contrato...">
+                 </div>
+
+                    <footer class="modal-actions">
+                        <button type="button" class="btn-secondary">Cancelar</button>
+                        <button type="submit" class="btn-primary">Guardar Turno</button>
+                    </footer>
+             </form>
+            </div>
+     </div>
+</body>
+</html>

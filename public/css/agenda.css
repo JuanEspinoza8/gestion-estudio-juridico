@@ -1,0 +1,131 @@
+/* =========================================
+   AGENDA DE TURNOS - CSS Específico
+   ========================================= */
+
+/* La magia de la Grilla Responsiva Automática */
+.turnos-grid {
+    display: grid;
+    /* Crea columnas de mínimo 300px. Si sobra espacio, mete más. Si falta, manda abajo. */
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px; 
+    margin-top: 20px;
+}
+
+/* Diseño de la Tarjeta (Card) */
+.turno-card {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 15px; 
+    border-left: 5px solid #cbd5e1; 
+    transition: transform 0.2s ease, box-shadow 0.2s ease; 
+}
+
+/* Efecto al pasar el mouse por encima */
+.turno-card:hover {
+    transform: translateY(-5px); 
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Modificadores de Borde según el caso de la tarjeta */
+.border-urgente { border-left-color: #ef4444; } /* Rojo */
+.border-normal { border-left-color: #3b82f6; } /* Azul */
+
+/* =========================================
+   ALINEACIÓN DE ÍCONOS Y TEXTOS
+   ========================================= */
+
+/* Sección de la Hora */
+.turno-hora {
+    display: flex;
+    align-items: center; 
+    gap: 8px; 
+    color: #1e293b;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 10px;
+}
+
+.turno-hora h3 {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+/* Estilo para los íconos de Google */
+.material-symbols-outlined {
+    color: #64748b;
+    font-size: 28px; 
+}
+
+/* Información del Cliente adentro de la tarjeta */
+.turno-info h4 {
+    font-size: 1.2rem;
+    color: #0f172a;
+    margin-bottom: 5px;
+}
+
+.turno-info p {
+    font-size: 0.95rem;
+    color: #475569;
+    margin-bottom: 5px;
+}
+
+.turno-info .notas {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: #64748b;
+    background-color: #f8fafc;
+    padding: 8px;
+    border-radius: 4px;
+    margin-top: 10px;
+}
+
+/* Estados visuales (Badges) */
+.turno-estado {
+    margin-top: auto; 
+    display: flex;
+    justify-content: flex-end; 
+}
+
+.badge-pendiente {
+    background-color: #fef08a;
+    color: #854d0e;
+}
+
+.badge-completado {
+    background-color: #dcfce3;
+    color: #166534;
+}
+
+/* =========================================
+   DETALLES FINOS (UI/UX)
+   ========================================= */
+
+/* Estilizamos el input de fecha y selectores para que se vean modernos */
+input[type="date"], select {
+    font-family: inherit;
+    font-size: 1rem;
+    color: #334155;
+    padding: 10px 15px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background-color: white;
+    cursor: pointer;
+    outline: none; 
+    transition: all 0.2s ease;
+}
+
+input[type="date"]:focus, select:focus {
+    border-color: #3b82f6; 
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); 
+}
+
+/* En celulares, hacemos que los botones de acción ocupen todo el ancho */
+@media (max-width: 768px) {
+    .actions input[type="date"],
+    .actions button {
+        width: 100%;
+    }
+}
