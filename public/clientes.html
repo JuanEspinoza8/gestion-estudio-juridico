@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Clientes - Estudio Jurídico</title>
+    <link rel="stylesheet" href="./css/clientes.css">
+</head>
+<body>
+    
+    <nav class="navbar">
+        <h2>Estudio Jurídico</h2>
+        <ul>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="clientes.html" class="active">Clientes</a></li>
+            <li><a href="agenda.html">Agenda</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <header class="section-header">
+            <h1>Gestión de Clientes</h1>
+            <div class="actions">
+                <input type="text" id="searchInput" placeholder="Buscar por DNI o Apellido...">
+                <button id="btnNuevoCliente" class="btn-primary">+ Nuevo Cliente</button>
+            </div>
+        </header>
+
+        <section class="table-container">
+            <table id="tablaClientes">
+                <thead>
+                    <tr>
+                        <th>Nombre y Apellido</th>
+                        <th>DNI</th>
+                        <th>Teléfono</th>
+                        <th>Estado de Cuenta</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyClientes">
+                    <tr>
+                        <td>Carlos Gardel</td>
+                        <td>12.345.678</td>
+                        <td>11-5555-4444</td>
+                        <td><span class="badge badge-deuda">Con Deuda</span></td>
+                        <td>
+                            <button class="btn-secondary">Ver Cuenta</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    </body>
+</html>
