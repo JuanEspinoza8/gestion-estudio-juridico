@@ -51,6 +51,46 @@
             </table>
         </section>
     </main>
+    <div id="modalNuevoCliente" class="modal-overlay">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>Agregar Nuevo Cliente</h2>
+                <button class="btn-close" id="btnCerrarModal">&times;</button>
+            </header>
+            
+            <form id="formNuevoCliente" class="modal-form">
+                <div class="form-group">
+                    <label for="nombre">Nombre y Apellido *</label>
+                    <input type="text" id="nombre" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dni">DNI *</label>
+                        <input type="number" id="dni" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono *</label>
+                        <input type="tel" id="telefono" required>
+                    </div>
+                </div>
 
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email">
+                </div>
+
+                <div class="form-group">
+                    <label for="notas">Notas del Caso</label>
+                    <textarea id="notas" rows="3" placeholder="Breve descripción del expediente..."></textarea>
+                </div>
+
+                <footer class="modal-actions">
+                    <button type="button" class="btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Cliente</button>
+                </footer>
+            </form>
+        </div>
+    </div>
     </body>
 </html>
