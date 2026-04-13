@@ -1,0 +1,276 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f4f6f9;
+}
+
+/* Navegación Lateral (Sidebar) */
+.navbar {
+    width: 250px;
+    background-color: #1e293b;
+    color: white;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar h2 {
+    margin-bottom: 30px;
+    font-size: 1.5rem;
+    text-align: center;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 10px;
+}
+
+.navbar ul {
+    list-style-type: none;
+}
+
+.navbar ul li {
+    margin-bottom: 10px;
+}
+
+.navbar ul li a {
+    color: #cbd5e1;
+    text-decoration: none;
+    display: block;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.navbar ul li a:hover,
+.navbar ul li a.active {
+    background-color: #3b82f6;
+    color: white;
+}
+
+/* Contenedor Principal */
+.container {
+    flex: 1;
+    padding: 30px;
+    /* Agregamos el límite y el centrado */
+    max-width: 1200px;
+    margin: 0 auto; 
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.section-header h1 {
+    color: #334155;
+}
+
+/* Controles de Acción */
+.actions {
+    display: flex;
+    gap: 15px;
+}
+
+.actions input {
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    width: 250px;
+}
+
+.btn-primary {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-secondary {
+    background-color: #e2e8f0;
+    color: #334155;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Estilos de la Tabla */
+.table-container {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+thead {
+    background-color: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+th, td {
+    padding: 15px 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+tbody tr:hover {
+    background-color: #f1f5f9;
+}
+
+/* Etiquetas de Estado (Badges) */
+.badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+.badge-deuda {
+    background-color: #fee2e2;
+    color: #ef4444;
+}
+/* =========================================
+   DISEÑO RESPONSIVO (Móviles y Tablets) 
+   ========================================= */
+@media (max-width: 768px) {
+    /* 1. Apilamos el layout: Nav arriba, Contenido abajo */
+    body {
+        flex-direction: column;
+    }
+
+    /* 2. El menú lateral se convierte en un menú superior */
+    .navbar {
+        width: 100%;
+        padding: 15px;
+    }
+
+    /* Ponemos los links uno al lado del otro */
+    .navbar ul {
+        display: flex;
+        justify-content: space-around;
+        gap: 10px;
+    }
+
+    .navbar ul li {
+        margin-bottom: 0;
+    }
+
+    .navbar h2 {
+        margin-bottom: 15px;
+    }
+
+    /* 3. Ajustamos la cabecera (Input y Botón) */
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .actions input {
+        width: 100%; /* El buscador ocupa todo el ancho */
+    }
+
+    /* 4. El salvavidas de las Tablas */
+    .table-container {
+        overflow-x: auto; /* Permite hacer scroll horizontal solo en la tabla */
+    }
+}
+/* =========================================
+   VENTANA MODAL (Nuevo Cliente)
+   ========================================= */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(15, 23, 42, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    
+    /* TODO: En la Fase 3, Lucas usará JS para cambiar esto a display: flex cuando hagan clic en el botón */
+    display: none; 
+}
+
+.modal-content {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 500px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 10px;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #64748b;
+}
+
+.modal-form .form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+.modal-form .form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.modal-form label {
+    font-size: 0.9rem;
+    color: #334155;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.modal-form input, .modal-form textarea {
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    font-family: inherit;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+/* Nota para revisión: Agregar clase .badge-aldia en la próxima iteración */
