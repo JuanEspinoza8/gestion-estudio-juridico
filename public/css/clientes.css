@@ -57,6 +57,9 @@ body {
 .container {
     flex: 1;
     padding: 30px;
+    /* Agregamos el límite y el centrado */
+    max-width: 1200px;
+    margin: 0 auto; 
 }
 
 .section-header {
