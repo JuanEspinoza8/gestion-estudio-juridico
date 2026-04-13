@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuenta Corriente - Estudio Jurídico</title>
+    <link rel="stylesheet" href="./css/clientes.css">
+    <style>
+        /* Unos mini estilos extra solo para esta pantalla */
+        .saldo-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            border-left: 5px solid #ef4444; /* Rojo de deuda */
+        }
+        .saldo-card h3 { color: #64748b; font-size: 1rem; margin-bottom: 5px; }
+        .saldo-card .monto { font-size: 2rem; font-weight: bold; color: #1e293b; }
+    </style>
+</head>
+<body>
+    
+    <nav class="navbar">
+        <h2>Estudio Jurídico</h2>
+        <ul>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="clientes.html" class="active">Clientes</a></li>
+            <li><a href="agenda.html">Agenda</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        <header class="section-header">
+            <h1>Cuenta: Carlos Gardel</h1>
+            <div class="actions">
+                <button class="btn-secondary" onclick="window.location.href='clientes.html'">Volver a Clientes</button>
+                <button class="btn-primary">+ Registrar Pago</button>
+            </div>
+        </header>
+
+        <div class="saldo-card">
+            <h3>Saldo Deudor Total</h3>
+            <div class="monto">$ 150.000,00</div>
+        </div>
+
+        <h2 style="margin-bottom: 15px; color: #334155;">Historial de Pagos</h2>
+        
+        <section class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Monto Abonado</th>
+                        <th>Método de Pago</th>
+                        <th>Recibo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>10/04/2026</td>
+                        <td>$ 50.000,00</td>
+                        <td>Transferencia Bancaria</td>
+                        <td><a href="#" style="color: #3b82f6;">Ver PDF</a></td>
+                    </tr>
+                    <tr>
+                        <td>02/03/2026</td>
+                        <td>$ 100.000,00</td>
+                        <td>Efectivo</td>
+                        <td><a href="#" style="color: #3b82f6;">Ver PDF</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>
