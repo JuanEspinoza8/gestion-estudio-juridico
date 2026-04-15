@@ -1,34 +1,50 @@
-/**
- * Clase que representa a los profesionales (abogados/administrativos) que usan el sistema.
- */
+const db = require('../config/db');
+
 class Usuario {
-    constructor(id, nombre, email, passwordHash, rol = 'user', creadoEn = null) {
-        this.id = id;
-        this.nombre = nombre;
-        this.email = email;
-        this.passwordHash = passwordHash; // Almacena la contraseña ya encriptada
-        this.rol = rol;
-        this.creadoEn = creadoEn || new Date().toISOString();
+    constructor(usuario) {
+        this.id = usuario.id || null;
+        this.nombre = usuario.nombre;
+        this.email = usuario.email;
+        this.password_hash = usuario.password_hash;
+        this.rol = usuario.rol || 'abogado';
     }
 
-    // ==========================================
-    // MÉTODOS LÓGICOS (Preparados para Fase 3)
-    // ==========================================
-
-    async autenticar(password) {
-        // TODO: Lógica para comparar el password ingresado con el hash de la BD
-        console.log(`Intentando autenticar al usuario: ${this.email}`);
+    async guardar() {
+        try {
+            if (this.id) {
+                const query = `
+                    UPDATE usuarios 
+                    SET nombre = $1, email = $2, password_hash = $3, rol = $4
+                    WHERE id = $5 RETURNING *;
+                `;
+                const values = [this.nombre, this.email, this.password_hash, this.rol, this.id];
+                const { rows } = await db.query(query, values);
+                return rows[0];
+            } else {
+                const query = `
+                    INSERT INTO usuarios (nombre, email, password_hash, rol)
+                    VALUES ($1, $2, $3, $4) RETURNING *;
+                `;
+                const values = [this.nombre, this.email, this.password_hash, this.rol];
+                const { rows } = await db.query(query, values);
+                this.id = rows[0].id;
+                return rows[0];
+            }
+        } catch (error) {
+            throw error;
+        }
     }
 
-    guardar() {
-        console.log("Registrando nuevo usuario en el sistema...");
-    }
-
-    static obtenerPorEmail(email) {
-        // Útil para el proceso de Login
-        console.log(`Buscando usuario por email: ${email}`);
-        return null;
+    static async obtenerPorEmail(email) {
+        try {
+            const query = 'SELECT * FROM usuarios WHERE email = $1;';
+            const { rows } = await db.query(query, [email]);
+            if (rows.length === 0) return null;
+            return new Usuario(rows[0]);
+        } catch (error) {
+            throw error;
+        }
     }
 }
 
-export default Usuario;
+module.exports = Usuario;
