@@ -1,6 +1,7 @@
 // Importamos las librerías
 const express = require('express');
 const cors = require('cors');
+const db = require('./src/config/db'); // Esto disparará la conexión al iniciar
 require('dotenv').config(); // Carga las variables del .env
 
 // Inicializamos la app de Express
