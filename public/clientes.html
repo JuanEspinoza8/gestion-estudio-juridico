@@ -14,6 +14,7 @@
             <li><a href="dashboard.html">Dashboard</a></li>
             <li><a href="clientes.html" class="active">Clientes</a></li>
             <li><a href="agenda.html">Agenda</a></li>
+            <li style="margin-top: 20px;"><a href="#" onclick="cerrarSesion()" style="color: #ef4444;">Cerrar Sesión</a></li>
         </ul>
     </nav>
 
@@ -33,24 +34,16 @@
                         <th>Nombre y Apellido</th>
                         <th>DNI</th>
                         <th>Teléfono</th>
-                        <th>Estado de Cuenta</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="tbodyClientes">
-                    <tr>
-                        <td>Carlos Gardel</td>
-                        <td>12.345.678</td>
-                        <td>11-5555-4444</td>
-                        <td><span class="badge badge-deuda">Con Deuda</span></td>
-                        <td>
-                            <button class="btn-secondary">Ver Cuenta</button>
-                        </td>
-                    </tr>
+                    <tr><td colspan="4" style="text-align: center;">Cargando directorio de clientes...</td></tr>
                 </tbody>
             </table>
         </section>
     </main>
+
     <div id="modalNuevoCliente" class="modal-overlay">
         <div class="modal-content">
             <header class="modal-header">
@@ -67,7 +60,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="dni">DNI *</label>
-                        <input type="number" id="dni" required>
+                        <input type="text" id="dni" required>
                     </div>
                     <div class="form-group">
                         <label for="telefono">Teléfono *</label>
@@ -82,15 +75,17 @@
 
                 <div class="form-group">
                     <label for="notas">Notas del Caso</label>
-                    <textarea id="notas" rows="3" placeholder="Breve descripción del expediente..."></textarea>
+                    <textarea id="notas" rows="3" placeholder="Breve descripción..."></textarea>
                 </div>
 
                 <footer class="modal-actions">
-                    <button type="button" class="btn-secondary">Cancelar</button>
+                    <button type="button" class="btn-secondary" id="btnCancelarModal">Cancelar</button>
                     <button type="submit" class="btn-primary">Guardar Cliente</button>
                 </footer>
             </form>
         </div>
     </div>
-    </body>
+
+    <script src="./js/clientes.js"></script>
+</body>
 </html>
