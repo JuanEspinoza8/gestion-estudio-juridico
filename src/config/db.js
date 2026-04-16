@@ -18,9 +18,9 @@ const pool = new Pool({
 // Verificación inicial de conexión
 pool.query('SELECT NOW()', (err, res) => {
   if (err) {
-    console.error('❌ Error al conectar con la base de datos:', err.stack);
+    console.error('Error al conectar con la base de datos:', err.stack);
   } else {
-    console.log('✅ Conexión a la base de datos establecida correctamente');
+    console.log('Conexión a la base de datos establecida correctamente');
   }
 });
 
