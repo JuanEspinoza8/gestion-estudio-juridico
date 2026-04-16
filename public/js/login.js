@@ -23,6 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (respuesta.ok) {
                 // Si todo sale bien, guardamos la "llave" en el navegador
                 localStorage.setItem('estudio_token', data.token);
+                // Guardamos el ID del usuario dinámicamente
+                localStorage.setItem('usuario_id', data.usuario.id);
+                localStorage.setItem('usuario_nombre', data.usuario.nombre);
                 
                 // Redirigimos al panel principal
                 window.location.href = 'dashboard.html';

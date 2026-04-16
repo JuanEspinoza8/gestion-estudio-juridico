@@ -2,7 +2,9 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('estudio_token');
-    if (!token) {
+    const usuarioId = localStorage.getItem('usuario_id'); // <-- Verificamos que exista el ID
+
+    if (!token || !usuarioId) {
         window.location.href = 'login.html';
         return;
     }
@@ -25,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Armamos el objeto tal como lo espera Juan en el backend
         const nuevoTurno = {
             cliente_id: document.getElementById('clienteId').value,
+            usuario_id: localStorage.getItem('usuario_id'), // <-- Agregamos el abogado que crea el turno
             fecha: document.getElementById('fecha').value,
             hora: document.getElementById('hora').value,
             motivo: document.getElementById('motivo').value
@@ -58,10 +61,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function cargarTurnos() {
     const token = localStorage.getItem('estudio_token');
+    const usuarioId = localStorage.getItem('usuario_id'); // <-- Traemos el ID dinámico
     const contenedor = document.getElementById('contenedorTurnos');
 
     try {
-        const respuesta = await fetch('http://localhost:3000/api/turnos/proximos', {
+        // <-- CORRECCIÓN: Usamos la URL correcta del backend con el ID del abogado
+        const respuesta = await fetch(`http://localhost:3000/api/turnos/usuario/${usuarioId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -116,6 +121,6 @@ async function cargarDesplegableClientes() {
 }
 
 function cerrarSesion() {
-    localStorage.removeItem('estudio_token');
+    localStorage.clear(); // <-- CORRECCIÓN: Borra el token y también el ID del usuario
     window.location.href = 'login.html';
 }

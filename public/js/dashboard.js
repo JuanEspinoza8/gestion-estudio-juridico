@@ -2,9 +2,10 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
     const token = localStorage.getItem('estudio_token');
+    const usuarioId = localStorage.getItem('usuario_id'); // <-- Verificamos el ID
 
     // 1. Verificación de Seguridad (Machete de Juan)
-    if (!token) {
+    if (!token || !usuarioId) {
         window.location.href = 'login.html';
         return;
     }
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function cargarResumenGeneral() {
     const token = localStorage.getItem('estudio_token');
+    const usuarioId = localStorage.getItem('usuario_id'); // <-- ID dinámico
     const headers = { 
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json' 
@@ -24,7 +26,9 @@ async function cargarResumenGeneral() {
         // Pedir KPIs (Clientes, Deuda, Turnos)
         const resClientes = await fetch('http://localhost:3000/api/clientes', { headers });
         const resDeuda = await fetch('http://localhost:3000/api/clientes/deuda-total', { headers });
-        const resTurnos = await fetch('http://localhost:3000/api/turnos/proximos', { headers });
+        
+        // <-- CORRECCIÓN: Usamos la ruta de tu backend que requiere el usuarioId
+        const resTurnos = await fetch(`http://localhost:3000/api/turnos/usuario/${usuarioId}`, { headers });
         const resDeudores = await fetch('http://localhost:3000/api/clientes/deudores', { headers });
 
         const clientes = await resClientes.json();
@@ -68,6 +72,6 @@ async function cargarResumenGeneral() {
 
 // Función extra para el botón de cerrar sesión
 function cerrarSesion() {
-    localStorage.removeItem('estudio_token');
+    localStorage.clear(); // <-- CORRECCIÓN: Borra todo el rastro de la sesión
     window.location.href = 'login.html';
 }
