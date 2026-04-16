@@ -16,6 +16,7 @@
             <li><a href="dashboard.html" class="active">Dashboard</a></li>
             <li><a href="clientes.html">Clientes</a></li>
             <li><a href="agenda.html">Agenda</a></li>
+            <li style="margin-top: 20px;"><a href="#" onclick="cerrarSesion()" style="color: #ef4444;">Cerrar Sesión</a></li>
         </ul>
     </nav>
 
@@ -32,21 +33,21 @@
                 <div class="kpi-icon text-blue"><span class="material-symbols-outlined">group</span></div>
                 <div class="kpi-info">
                     <h3>Total Clientes</h3>
-                    <p class="kpi-number">42</p>
+                    <p class="kpi-number" id="kpiTotalClientes">...</p>
                 </div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-icon text-green"><span class="material-symbols-outlined">event_available</span></div>
                 <div class="kpi-info">
                     <h3>Turnos Hoy</h3>
-                    <p class="kpi-number">5</p>
+                    <p class="kpi-number" id="kpiTurnosHoy">...</p>
                 </div>
             </div>
             <div class="kpi-card border-danger">
                 <div class="kpi-icon text-red"><span class="material-symbols-outlined">account_balance_wallet</span></div>
                 <div class="kpi-info">
                     <h3>Deuda Total</h3>
-                    <p class="kpi-number">$ 350.000</p>
+                    <p class="kpi-number" id="kpiDeudaTotal">...</p>
                 </div>
             </div>
         </section>
@@ -57,21 +58,8 @@
                     <h3>Próximos Turnos (Hoy)</h3>
                     <a href="agenda.html" class="link-ver-mas">Ver agenda</a>
                 </div>
-                <ul class="mini-lista">
-                    <li>
-                        <span class="hora">09:00</span>
-                        <div class="detalle">
-                            <strong>Carlos Gardel</strong>
-                            <span>Sucesión</span>
-                        </div>
-                    </li>
-                    <li>
-                        <span class="hora">11:30</span>
-                        <div class="detalle">
-                            <strong>Marta Minujín</strong>
-                            <span>Contratos</span>
-                        </div>
-                    </li>
+                <ul class="mini-lista" id="listaTurnosHoy">
+                    <p style="color: #64748b; font-size: 0.9rem;">Cargando turnos...</p>
                 </ul>
             </div>
 
@@ -80,20 +68,14 @@
                     <h3>Deudas Urgentes</h3>
                     <a href="clientes.html" class="link-ver-mas">Ver clientes</a>
                 </div>
-                <ul class="mini-lista">
-                    <li>
-                        <span class="material-symbols-outlined text-red">warning</span>
-                        <div class="detalle">
-                            <strong>Carlos Gardel</strong>
-                            <span class="text-red">Debe: $ 150.000</span>
-                        </div>
-                        <button class="btn-secondary btn-sm">Reclamar</button>
-                    </li>
+                <ul class="mini-lista" id="listaDeudores">
+                    <p style="color: #64748b; font-size: 0.9rem;">Analizando deudas...</p>
                 </ul>
             </div>
         </section>
 
     </main>
 
+    <script src="./js/dashboard.js"></script>
 </body>
 </html>
