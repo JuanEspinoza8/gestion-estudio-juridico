@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const respuesta = await fetch('http://localhost:3000/api/turnos', {
+            const respuesta = await fetch('https://api-estudio-juridico-oma1.onrender.com/api/turnos', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ async function cargarTurnos() {
 
     try {
         // <-- CORRECCIÓN: Usamos la URL correcta del backend con el ID del abogado
-        const respuesta = await fetch(`http://localhost:3000/api/turnos/usuario/${usuarioId}`, {
+        const respuesta = await fetch(`https://api-estudio-juridico-oma1.onrender.com/api/turnos/usuario/${usuarioId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -106,7 +106,7 @@ async function cargarDesplegableClientes() {
     const select = document.getElementById('clienteId');
 
     try {
-        const respuesta = await fetch('http://localhost:3000/api/clientes', {
+        const respuesta = await fetch('https://api-estudio-juridico-oma1.onrender.com/api/clientes', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 

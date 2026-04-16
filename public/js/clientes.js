@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Hacemos un POST a la API de Juan
-            const respuesta = await fetch('http://localhost:3000/api/clientes', {
+            const respuesta = await fetch('https://api-estudio-juridico-oma1.onrender.com/api/clientes', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ async function cargarClientes() {
     const tbody = document.getElementById('tbodyClientes');
 
     try {
-        const respuesta = await fetch('http://localhost:3000/api/clientes', {
+        const respuesta = await fetch('https://api-estudio-juridico-oma1.onrender.com/api/clientes', {
             method: 'GET',
             headers: { 
                 'Authorization': `Bearer ${token}` 

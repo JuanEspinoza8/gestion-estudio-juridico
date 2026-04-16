@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // El machete de Juan: Hacemos el POST a la API
-            const respuesta = await fetch('http://localhost:3000/api/auth/login', {
+            const respuesta = await fetch('https://api-estudio-juridico-oma1.onrender.com/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
