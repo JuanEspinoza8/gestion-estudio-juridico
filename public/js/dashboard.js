@@ -24,12 +24,12 @@ async function cargarResumenGeneral() {
 
     try {
         // Pedir KPIs (Clientes, Deuda, Turnos)
-        const resClientes = await fetch('http://localhost:3000/api/clientes', { headers });
-        const resDeuda = await fetch('http://localhost:3000/api/clientes/deuda-total', { headers });
+        const resClientes = await fetch('https://api-estudio-juridico-oma1.onrender.com/api/clientes', { headers });
+        const resDeuda = await fetch('https://api-estudio-juridico-oma1.onrender.com/api/clientes/deuda-total', { headers });
         
         // <-- CORRECCIÓN: Usamos la ruta de tu backend que requiere el usuarioId
-        const resTurnos = await fetch(`http://localhost:3000/api/turnos/usuario/${usuarioId}`, { headers });
-        const resDeudores = await fetch('http://localhost:3000/api/clientes/deudores', { headers });
+        const resTurnos = await fetch(`https://api-estudio-juridico-oma1.onrender.com/api/turnos/usuario/${usuarioId}`, { headers });
+        const resDeudores = await fetch('https://api-estudio-juridico-oma1.onrender.com/api/clientes/deudores', { headers });
 
         const clientes = await resClientes.json();
         const deuda = await resDeuda.json();
