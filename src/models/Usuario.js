@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const bcrypt = require('bcryptjs');
 
 class Usuario {
     constructor(usuario) {
@@ -9,6 +10,16 @@ class Usuario {
         this.rol = usuario.rol || 'abogado';
     }
 
+    // Método que agregamos en la US3.1 para el Login
+    async autenticar(passwordPlano) {
+        try {
+            return await bcrypt.compare(passwordPlano, this.password_hash);
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // Método de la US2.4 que NO debemos borrar (crea/actualiza usuarios)
     async guardar() {
         try {
             if (this.id) {
@@ -35,6 +46,7 @@ class Usuario {
         }
     }
 
+    // Método de la US2.4 que busca al usuario para poder loguearlo
     static async obtenerPorEmail(email) {
         try {
             const query = 'SELECT * FROM usuarios WHERE email = $1;';
