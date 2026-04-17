@@ -13,10 +13,11 @@ router.get('/', async (req, res) => {
 });
 
 // GET: Obtener deuda total general (Para el KPI del Dashboard)
+// NOTA: La clave es deuda_total_calle para que coincida con el frontend
 router.get('/deuda-total', async (req, res) => {
     try {
         const deuda = await Cliente.obtenerDeudaTotalGeneral();
-        res.json({ deuda_total: deuda });
+        res.json({ deuda_total_calle: deuda });
     } catch (error) {
         res.status(500).json({ error: 'Error al calcular la deuda total' });
     }
@@ -46,7 +47,7 @@ router.get('/:id', async (req, res) => {
 // GET: Obtener el saldo deudor de un cliente específico
 router.get('/:id/saldo', async (req, res) => {
     try {
-        const cliente = new Cliente({ id: req.params.id }); 
+        const cliente = new Cliente({ id: req.params.id });
         const saldo = await cliente.obtenerSaldo();
         res.json({ saldo_deudor: saldo });
     } catch (error) {

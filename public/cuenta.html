@@ -6,17 +6,39 @@
     <title>Cuenta Corriente - Estudio Jurídico</title>
     <link rel="stylesheet" href="./css/clientes.css">
     <style>
-        /* Unos mini estilos extra solo para esta pantalla */
+        .saldo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 25px;
+        }
         .saldo-card {
             background-color: white;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            margin-bottom: 25px;
-            border-left: 5px solid #ef4444; /* Rojo de deuda */
         }
-        .saldo-card h3 { color: #64748b; font-size: 1rem; margin-bottom: 5px; }
-        .saldo-card .monto { font-size: 2rem; font-weight: bold; color: #1e293b; }
+        .saldo-card.deuda { border-left: 5px solid #ef4444; }
+        .saldo-card h3 { color: #64748b; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 8px; }
+        .saldo-card .monto { font-size: 1.8rem; font-weight: bold; color: #1e293b; }
+        .saldo-card .monto.rojo { color: #ef4444; }
+        .saldo-card .monto.verde { color: #10b981; }
+
+        .info-cliente {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .info-cliente span { color: #64748b; font-size: 0.9rem; }
+        .info-cliente strong { color: #1e293b; }
+        
+        /* Modal de pago */
+        .modal-overlay { display: none; }
     </style>
 </head>
 <body>
@@ -27,25 +49,34 @@
             <li><a href="dashboard.html">Dashboard</a></li>
             <li><a href="clientes.html" class="active">Clientes</a></li>
             <li><a href="agenda.html">Agenda</a></li>
+            <li style="margin-top: 20px;"><a href="#" onclick="cerrarSesion()" style="color: #ef4444;">Cerrar Sesión</a></li>
         </ul>
     </nav>
 
     <main class="container">
         <header class="section-header">
-            <h1>Cuenta: Carlos Gardel</h1>
+            <h1 id="tituloCliente">Cargando cuenta...</h1>
             <div class="actions">
-                <button class="btn-secondary" onclick="window.location.href='clientes.html'">Volver a Clientes</button>
-                <button class="btn-primary">+ Registrar Pago</button>
+                <button class="btn-secondary" onclick="window.location.href='clientes.html'">← Volver</button>
+                <button class="btn-primary" id="btnRegistrarPago">+ Registrar Pago</button>
             </div>
         </header>
 
-        <div class="saldo-card">
-            <h3>Saldo Deudor Total</h3>
-            <div class="monto">$ 150.000,00</div>
+        <!-- Info del cliente -->
+        <div class="info-cliente" id="infoCliente">
+            <p style="color: #64748b;">Cargando datos del cliente...</p>
         </div>
 
+        <!-- Cards de saldo -->
+        <div class="saldo-grid">
+            <div class="saldo-card deuda">
+                <h3>Saldo Deudor</h3>
+                <div class="monto rojo" id="saldoDeudor">$ ...</div>
+            </div>
+        </div>
+
+        <!-- Historial de pagos -->
         <h2 style="margin-bottom: 15px; color: #334155;">Historial de Pagos</h2>
-        
         <section class="table-container">
             <table>
                 <thead>
@@ -53,25 +84,155 @@
                         <th>Fecha</th>
                         <th>Monto Abonado</th>
                         <th>Método de Pago</th>
-                        <th>Recibo</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>10/04/2026</td>
-                        <td>$ 50.000,00</td>
-                        <td>Transferencia Bancaria</td>
-                        <td><a href="#" style="color: #3b82f6;">Ver PDF</a></td>
-                    </tr>
-                    <tr>
-                        <td>02/03/2026</td>
-                        <td>$ 100.000,00</td>
-                        <td>Efectivo</td>
-                        <td><a href="#" style="color: #3b82f6;">Ver PDF</a></td>
-                    </tr>
+                <tbody id="tbodyPagos">
+                    <tr><td colspan="3" style="text-align:center">Cargando historial...</td></tr>
                 </tbody>
             </table>
         </section>
     </main>
+
+    <!-- Modal: Registrar Pago -->
+    <div id="modalPago" class="modal-overlay">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>Registrar Pago</h2>
+                <button class="btn-close" id="btnCerrarModalPago">&times;</button>
+            </header>
+            <form id="formPago" class="modal-form">
+                <div class="form-group">
+                    <label for="montoPago">Monto *</label>
+                    <input type="number" id="montoPago" min="1" step="0.01" required placeholder="Ej: 50000">
+                </div>
+                <div class="form-group">
+                    <label for="metodoPago">Método de Pago *</label>
+                    <select id="metodoPago" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="Tarjeta de Débito">Tarjeta de Débito</option>
+                        <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="fechaPago">Fecha del Pago *</label>
+                    <input type="date" id="fechaPago" required>
+                </div>
+                <footer class="modal-actions">
+                    <button type="button" class="btn-secondary" id="btnCancelarPago">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar Pago</button>
+                </footer>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API = 'https://api-estudio-juridico-oma1.onrender.com';
+        const params = new URLSearchParams(window.location.search);
+        const clienteId = params.get('id');
+        const token = localStorage.getItem('estudio_token');
+
+        if (!token || !clienteId) {
+            window.location.href = 'clientes.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarDatos();
+
+            const modal = document.getElementById('modalPago');
+            document.getElementById('btnRegistrarPago').addEventListener('click', () => {
+                // Setear fecha de hoy por defecto
+                document.getElementById('fechaPago').value = new Date().toISOString().split('T')[0];
+                modal.style.display = 'flex';
+            });
+            document.getElementById('btnCerrarModalPago').addEventListener('click', () => modal.style.display = 'none');
+            document.getElementById('btnCancelarPago').addEventListener('click', () => modal.style.display = 'none');
+
+            document.getElementById('formPago').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nuevoPago = {
+                    cliente_id: clienteId,
+                    monto: document.getElementById('montoPago').value,
+                    metodo_pago: document.getElementById('metodoPago').value,
+                    fecha_pago: document.getElementById('fechaPago').value
+                };
+
+                try {
+                    const res = await fetch(`${API}/api/pagos`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify(nuevoPago)
+                    });
+
+                    if (res.ok) {
+                        modal.style.display = 'none';
+                        document.getElementById('formPago').reset();
+                        cargarDatos(); // Refresca saldo e historial
+                    } else {
+                        alert("Error al registrar el pago.");
+                    }
+                } catch (error) {
+                    alert("Error de conexión.");
+                }
+            });
+        });
+
+        async function cargarDatos() {
+            const headers = { 'Authorization': `Bearer ${token}` };
+
+            try {
+                const [resCliente, resSaldo, resPagos] = await Promise.all([
+                    fetch(`${API}/api/clientes/${clienteId}`, { headers }),
+                    fetch(`${API}/api/clientes/${clienteId}/saldo`, { headers }),
+                    fetch(`${API}/api/pagos/cliente/${clienteId}`, { headers })
+                ]);
+
+                // Datos del cliente
+                const cliente = await resCliente.json();
+                document.getElementById('tituloCliente').textContent = `Cuenta: ${cliente.nombre_completo}`;
+                document.getElementById('infoCliente').innerHTML = `
+                    <div><span>DNI</span><br><strong>${cliente.dni}</strong></div>
+                    <div><span>Teléfono</span><br><strong>${cliente.telefono || '-'}</strong></div>
+                    <div><span>Email</span><br><strong>${cliente.email || '-'}</strong></div>
+                    ${cliente.notas ? `<div style="flex:1"><span>Notas del caso</span><br><strong>${cliente.notas}</strong></div>` : ''}
+                `;
+
+                // Saldo deudor
+                const saldo = await resSaldo.json();
+                const montoSaldo = saldo.saldo_deudor || 0;
+                document.getElementById('saldoDeudor').textContent =
+                    `$ ${new Intl.NumberFormat('es-AR').format(montoSaldo)}`;
+
+                // Historial de pagos
+                const pagos = await resPagos.json();
+                const tbody = document.getElementById('tbodyPagos');
+
+                if (pagos.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b">No hay pagos registrados aún.</td></tr>`;
+                } else {
+                    tbody.innerHTML = pagos.map(p => {
+                        const fecha = new Date(p.fecha_pago + 'T00:00:00').toLocaleDateString('es-AR');
+                        return `
+                            <tr>
+                                <td>${fecha}</td>
+                                <td><strong>$ ${new Intl.NumberFormat('es-AR').format(p.monto)}</strong></td>
+                                <td>${p.metodo_pago || '-'}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+            } catch (error) {
+                console.error("Error cargando datos de la cuenta:", error);
+            }
+        }
+
+        function cerrarSesion() {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+    </script>
 </body>
 </html>
