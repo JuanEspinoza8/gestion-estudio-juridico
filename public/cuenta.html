@@ -6,94 +6,125 @@
     <title>Cuenta Corriente - Estudio Jurídico</title>
     <link rel="stylesheet" href="./css/clientes.css">
     <style>
-        .saldo-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 25px;
-        }
-        .saldo-card {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        }
-        .saldo-card.deuda { border-left: 5px solid #ef4444; }
-        .saldo-card h3 { color: #64748b; font-size: 0.9rem; text-transform: uppercase; margin-bottom: 8px; }
-        .saldo-card .monto { font-size: 1.8rem; font-weight: bold; color: #1e293b; }
-        .saldo-card .monto.rojo { color: #ef4444; }
-        .saldo-card .monto.verde { color: #10b981; }
+        .tabs { display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e2e8f0; }
+        .tab-btn { padding:10px 20px; border:none; background:none; cursor:pointer; font-size:0.95rem; color:#64748b; border-bottom:3px solid transparent; margin-bottom:-2px; font-weight:600; transition:color 0.2s; }
+        .tab-btn.activo { color:#3b82f6; border-bottom-color:#3b82f6; }
+        .tab-btn:hover { color:#1e293b; }
+        .tab-panel { display:none; }
+        .tab-panel.activo { display:block; }
 
-        .info-cliente {
-            background: white;
-            padding: 16px 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-            margin-bottom: 25px;
-            display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
-        .info-cliente span { color: #64748b; font-size: 0.9rem; }
-        .info-cliente strong { color: #1e293b; }
-        
-        /* Modal de pago */
-        .modal-overlay { display: none; }
+        .resumen-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:14px; margin-bottom:24px; }
+        .resumen-card { background:white; border-radius:8px; padding:16px 18px; box-shadow:0 2px 6px rgba(0,0,0,0.06); }
+        .resumen-card h4 { font-size:0.78rem; text-transform:uppercase; color:#94a3b8; margin-bottom:6px; letter-spacing:0.4px; }
+        .resumen-card .valor { font-size:1.45rem; font-weight:800; color:#1e293b; }
+        .resumen-card .valor.rojo { color:#ef4444; }
+        .resumen-card .valor.verde { color:#10b981; }
+
+        .info-cliente { background:white; padding:16px 20px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.05); margin-bottom:20px; display:flex; gap:28px; flex-wrap:wrap; }
+        .info-campo label { font-size:0.78rem; text-transform:uppercase; color:#94a3b8; letter-spacing:0.4px; }
+        .info-campo p { font-size:0.95rem; color:#1e293b; font-weight:600; margin-top:2px; }
+
+        .estado-vacio { text-align:center; padding:30px; color:#94a3b8; font-size:0.9rem; }
+
+        /* Expedientes */
+        .expediente-item { background:white; border-radius:8px; padding:14px 18px; margin-bottom:10px; box-shadow:0 1px 4px rgba(0,0,0,0.06); border-left:3px solid #ef4444; display:flex; align-items:center; gap:14px; }
+        .expediente-info { flex:1; }
+        .expediente-info strong { color:#1e293b; }
+        .expediente-info p { color:#94a3b8; font-size:0.82rem; margin-top:3px; }
+        .expediente-monto { font-size:1.1rem; font-weight:800; color:#ef4444; white-space:nowrap; }
+
+        /* Notas */
+        .notas-lista { list-style:none; padding:0; }
+        .nota-item { background:white; border-radius:8px; padding:14px 18px; margin-bottom:10px; box-shadow:0 1px 4px rgba(0,0,0,0.06); border-left:3px solid #3b82f6; display:flex; align-items:flex-start; gap:12px; }
+        .nota-contenido { flex:1; }
+        .nota-contenido p { color:#1e293b; font-size:0.95rem; line-height:1.55; white-space:pre-wrap; }
+        .nota-fecha { font-size:0.78rem; color:#94a3b8; margin-top:6px; }
+        .btn-eliminar-chico { border:none; background:none; cursor:pointer; color:#cbd5e1; font-size:1rem; padding:2px 4px; transition:color 0.2s; flex-shrink:0; }
+        .btn-eliminar-chico:hover { color:#ef4444; }
+
+        .add-nota-form { display:flex; gap:10px; margin-bottom:20px; }
+        .add-nota-form textarea { flex:1; padding:10px; border:1px solid #cbd5e1; border-radius:6px; font-family:inherit; font-size:0.9rem; resize:vertical; min-height:64px; outline:none; transition:border-color 0.2s; }
+        .add-nota-form textarea:focus { border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
+        .add-nota-form button { align-self:flex-end; white-space:nowrap; }
+
+        .acciones-grupo { display:flex; gap:8px; flex-wrap:wrap; }
+        .btn-rojo { background:#ef4444 !important; }
     </style>
 </head>
 <body>
-    
+
     <nav class="navbar">
         <h2>Estudio Jurídico</h2>
         <ul>
             <li><a href="dashboard.html">Dashboard</a></li>
             <li><a href="clientes.html" class="active">Clientes</a></li>
             <li><a href="agenda.html">Agenda</a></li>
-            <li style="margin-top: 20px;"><a href="#" onclick="cerrarSesion()" style="color: #ef4444;">Cerrar Sesión</a></li>
+            <li style="margin-top:20px"><a href="#" onclick="cerrarSesion()" style="color:#ef4444">Cerrar Sesión</a></li>
         </ul>
     </nav>
 
     <main class="container">
         <header class="section-header">
-            <h1 id="tituloCliente">Cargando cuenta...</h1>
-            <div class="actions">
+            <h1 id="tituloCliente">Cargando...</h1>
+            <div class="acciones-grupo">
                 <button class="btn-secondary" onclick="window.location.href='clientes.html'">← Volver</button>
+                <button class="btn-primary btn-rojo" id="btnAgregarDeuda">+ Agregar Deuda</button>
                 <button class="btn-primary" id="btnRegistrarPago">+ Registrar Pago</button>
             </div>
         </header>
 
-        <!-- Info del cliente -->
         <div class="info-cliente" id="infoCliente">
-            <p style="color: #64748b;">Cargando datos del cliente...</p>
+            <p style="color:#64748b">Cargando datos del cliente...</p>
         </div>
 
-        <!-- Cards de saldo -->
-        <div class="saldo-grid">
-            <div class="saldo-card deuda">
-                <h3>Saldo Deudor</h3>
-                <div class="monto rojo" id="saldoDeudor">$ ...</div>
+        <div class="resumen-grid">
+            <div class="resumen-card">
+                <h4>Total Honorarios</h4>
+                <div class="valor" id="totalHonorarios">$ ...</div>
+            </div>
+            <div class="resumen-card">
+                <h4>Total Pagado</h4>
+                <div class="valor verde" id="totalPagado">$ ...</div>
+            </div>
+            <div class="resumen-card">
+                <h4>Saldo Deudor</h4>
+                <div class="valor rojo" id="saldoDeudor">$ ...</div>
             </div>
         </div>
 
-        <!-- Historial de pagos -->
-        <h2 style="margin-bottom: 15px; color: #334155;">Historial de Pagos</h2>
-        <section class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Monto Abonado</th>
-                        <th>Método de Pago</th>
-                    </tr>
-                </thead>
-                <tbody id="tbodyPagos">
-                    <tr><td colspan="3" style="text-align:center">Cargando historial...</td></tr>
-                </tbody>
-            </table>
-        </section>
+        <div class="tabs">
+            <button class="tab-btn activo" onclick="cambiarTab('pagos', this)">💰 Historial de Pagos</button>
+            <button class="tab-btn" onclick="cambiarTab('deudas', this)">📄 Honorarios</button>
+            <button class="tab-btn" onclick="cambiarTab('notas', this)">📝 Notas del Caso</button>
+        </div>
+
+        <div class="tab-panel activo" id="tab-pagos">
+            <section class="table-container">
+                <table>
+                    <thead><tr><th>Fecha</th><th>Monto</th><th>Método</th></tr></thead>
+                    <tbody id="tbodyPagos">
+                        <tr><td colspan="3" class="estado-vacio">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+
+        <div class="tab-panel" id="tab-deudas">
+            <div id="listaExpedientes"><p class="estado-vacio">Cargando...</p></div>
+        </div>
+
+        <div class="tab-panel" id="tab-notas">
+            <div class="add-nota-form">
+                <textarea id="nuevaNota" placeholder="Escribí una nueva nota sobre el caso..."></textarea>
+                <button class="btn-primary" onclick="agregarNota()">Agregar nota</button>
+            </div>
+            <ul class="notas-lista" id="listaNota">
+                <li class="estado-vacio">Cargando notas...</li>
+            </ul>
+        </div>
     </main>
 
-    <!-- Modal: Registrar Pago -->
+    <!-- Modal Pago -->
     <div id="modalPago" class="modal-overlay">
         <div class="modal-content">
             <header class="modal-header">
@@ -109,20 +140,44 @@
                     <label for="metodoPago">Método de Pago *</label>
                     <select id="metodoPago" required>
                         <option value="">Seleccionar...</option>
-                        <option value="Efectivo">Efectivo</option>
-                        <option value="Transferencia Bancaria">Transferencia Bancaria</option>
-                        <option value="Cheque">Cheque</option>
-                        <option value="Tarjeta de Débito">Tarjeta de Débito</option>
-                        <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
+                        <option>Efectivo</option>
+                        <option>Transferencia Bancaria</option>
+                        <option>Cheque</option>
+                        <option>Tarjeta de Débito</option>
+                        <option>Tarjeta de Crédito</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="fechaPago">Fecha del Pago *</label>
+                    <label for="fechaPago">Fecha *</label>
                     <input type="date" id="fechaPago" required>
                 </div>
                 <footer class="modal-actions">
                     <button type="button" class="btn-secondary" id="btnCancelarPago">Cancelar</button>
                     <button type="submit" class="btn-primary">Guardar Pago</button>
+                </footer>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Deuda -->
+    <div id="modalDeuda" class="modal-overlay">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>Agregar Honorario / Deuda</h2>
+                <button class="btn-close" id="btnCerrarModalDeuda">&times;</button>
+            </header>
+            <form id="formDeuda" class="modal-form">
+                <div class="form-group">
+                    <label for="descripcionDeuda">Concepto *</label>
+                    <input type="text" id="descripcionDeuda" required placeholder="Ej: Honorarios juicio laboral, Consulta inicial...">
+                </div>
+                <div class="form-group">
+                    <label for="montoDeuda">Monto de Honorarios *</label>
+                    <input type="number" id="montoDeuda" min="1" step="0.01" required placeholder="Ej: 200000">
+                </div>
+                <footer class="modal-actions">
+                    <button type="button" class="btn-secondary" id="btnCancelarDeuda">Cancelar</button>
+                    <button type="submit" class="btn-primary btn-rojo">Agregar Deuda</button>
                 </footer>
             </form>
         </div>
@@ -134,105 +189,174 @@
         const clienteId = params.get('id');
         const token = localStorage.getItem('estudio_token');
 
-        if (!token || !clienteId) {
-            window.location.href = 'clientes.html';
+        if (!token || !clienteId) window.location.href = 'clientes.html';
+
+        function cambiarTab(nombre, btn) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('activo'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+            document.getElementById('tab-' + nombre).classList.add('activo');
+            btn.classList.add('activo');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            cargarDatos();
+            cargarTodo();
 
-            const modal = document.getElementById('modalPago');
-            document.getElementById('btnRegistrarPago').addEventListener('click', () => {
-                // Setear fecha de hoy por defecto
+            // --- Modal Pago ---
+            const modalPago = document.getElementById('modalPago');
+            document.getElementById('btnRegistrarPago').onclick = () => {
                 document.getElementById('fechaPago').value = new Date().toISOString().split('T')[0];
-                modal.style.display = 'flex';
-            });
-            document.getElementById('btnCerrarModalPago').addEventListener('click', () => modal.style.display = 'none');
-            document.getElementById('btnCancelarPago').addEventListener('click', () => modal.style.display = 'none');
-
+                modalPago.style.display = 'flex';
+            };
+            document.getElementById('btnCerrarModalPago').onclick = () => modalPago.style.display = 'none';
+            document.getElementById('btnCancelarPago').onclick = () => modalPago.style.display = 'none';
             document.getElementById('formPago').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const nuevoPago = {
+                await fetchPost(`${API}/api/pagos`, {
                     cliente_id: clienteId,
                     monto: document.getElementById('montoPago').value,
                     metodo_pago: document.getElementById('metodoPago').value,
                     fecha_pago: document.getElementById('fechaPago').value
-                };
+                });
+                modalPago.style.display = 'none';
+                document.getElementById('formPago').reset();
+                cargarTodo();
+            });
 
-                try {
-                    const res = await fetch(`${API}/api/pagos`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                        body: JSON.stringify(nuevoPago)
-                    });
-
-                    if (res.ok) {
-                        modal.style.display = 'none';
-                        document.getElementById('formPago').reset();
-                        cargarDatos(); // Refresca saldo e historial
-                    } else {
-                        alert("Error al registrar el pago.");
-                    }
-                } catch (error) {
-                    alert("Error de conexión.");
-                }
+            // --- Modal Deuda ---
+            const modalDeuda = document.getElementById('modalDeuda');
+            document.getElementById('btnAgregarDeuda').onclick = () => modalDeuda.style.display = 'flex';
+            document.getElementById('btnCerrarModalDeuda').onclick = () => modalDeuda.style.display = 'none';
+            document.getElementById('btnCancelarDeuda').onclick = () => modalDeuda.style.display = 'none';
+            document.getElementById('formDeuda').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await fetchPost(`${API}/api/expedientes`, {
+                    cliente_id: clienteId,
+                    descripcion: document.getElementById('descripcionDeuda').value,
+                    honorarios_totales: document.getElementById('montoDeuda').value
+                });
+                modalDeuda.style.display = 'none';
+                document.getElementById('formDeuda').reset();
+                cargarTodo();
             });
         });
 
-        async function cargarDatos() {
-            const headers = { 'Authorization': `Bearer ${token}` };
-
+        async function fetchPost(url, body) {
             try {
-                const [resCliente, resSaldo, resPagos] = await Promise.all([
-                    fetch(`${API}/api/clientes/${clienteId}`, { headers }),
-                    fetch(`${API}/api/clientes/${clienteId}/saldo`, { headers }),
-                    fetch(`${API}/api/pagos/cliente/${clienteId}`, { headers })
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(body)
+                });
+                if (!res.ok) { const e = await res.json(); alert(e.error || 'Error al guardar'); }
+            } catch { alert('Error de conexión'); }
+        }
+
+        async function cargarTodo() {
+            const h = { 'Authorization': `Bearer ${token}` };
+            try {
+                const [resC, resS, resP, resE, resN] = await Promise.all([
+                    fetch(`${API}/api/clientes/${clienteId}`, { headers: h }),
+                    fetch(`${API}/api/clientes/${clienteId}/saldo`, { headers: h }),
+                    fetch(`${API}/api/pagos/cliente/${clienteId}`, { headers: h }),
+                    fetch(`${API}/api/expedientes/cliente/${clienteId}`, { headers: h }),
+                    fetch(`${API}/api/notas/cliente/${clienteId}`, { headers: h })
                 ]);
 
-                // Datos del cliente
-                const cliente = await resCliente.json();
-                document.getElementById('tituloCliente').textContent = `Cuenta: ${cliente.nombre_completo}`;
+                // Cliente
+                const c = await resC.json();
+                document.getElementById('tituloCliente').textContent = c.nombre_completo;
                 document.getElementById('infoCliente').innerHTML = `
-                    <div><span>DNI</span><br><strong>${cliente.dni}</strong></div>
-                    <div><span>Teléfono</span><br><strong>${cliente.telefono || '-'}</strong></div>
-                    <div><span>Email</span><br><strong>${cliente.email || '-'}</strong></div>
-                    ${cliente.notas ? `<div style="flex:1"><span>Notas del caso</span><br><strong>${cliente.notas}</strong></div>` : ''}
+                    <div class="info-campo"><label>DNI</label><p>${c.dni}</p></div>
+                    <div class="info-campo"><label>Teléfono</label><p>${c.telefono || '—'}</p></div>
+                    <div class="info-campo"><label>Email</label><p>${c.email || '—'}</p></div>
                 `;
 
-                // Saldo deudor
-                const saldo = await resSaldo.json();
-                const montoSaldo = saldo.saldo_deudor || 0;
-                document.getElementById('saldoDeudor').textContent =
-                    `$ ${new Intl.NumberFormat('es-AR').format(montoSaldo)}`;
+                // Saldo
+                const s = await resS.json();
+                document.getElementById('saldoDeudor').textContent = '$ ' + fmt(s.saldo_deudor || 0);
 
-                // Historial de pagos
-                const pagos = await resPagos.json();
+                // Pagos
+                const pagos = await resP.json();
+                const totalPagado = pagos.reduce((sum, p) => sum + parseFloat(p.monto), 0);
+                document.getElementById('totalPagado').textContent = '$ ' + fmt(totalPagado);
                 const tbody = document.getElementById('tbodyPagos');
+                tbody.innerHTML = pagos.length === 0
+                    ? '<tr><td colspan="3" class="estado-vacio">No hay pagos registrados aún.</td></tr>'
+                    : pagos.map(p => `<tr>
+                        <td>${fmtFecha(p.fecha_pago)}</td>
+                        <td><strong>$ ${fmt(p.monto)}</strong></td>
+                        <td>${p.metodo_pago || '—'}</td>
+                      </tr>`).join('');
 
-                if (pagos.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#64748b">No hay pagos registrados aún.</td></tr>`;
-                } else {
-                    tbody.innerHTML = pagos.map(p => {
-                        const fecha = new Date(p.fecha_pago + 'T00:00:00').toLocaleDateString('es-AR');
-                        return `
-                            <tr>
-                                <td>${fecha}</td>
-                                <td><strong>$ ${new Intl.NumberFormat('es-AR').format(p.monto)}</strong></td>
-                                <td>${p.metodo_pago || '-'}</td>
-                            </tr>
-                        `;
-                    }).join('');
-                }
+                // Expedientes
+                const exps = await resE.json();
+                const totalHon = exps.reduce((sum, e) => sum + parseFloat(e.honorarios_totales), 0);
+                document.getElementById('totalHonorarios').textContent = '$ ' + fmt(totalHon);
+                document.getElementById('listaExpedientes').innerHTML = exps.length === 0
+                    ? '<p class="estado-vacio">No hay honorarios cargados. Usá "+ Agregar Deuda".</p>'
+                    : exps.map(exp => `
+                        <div class="expediente-item">
+                            <div class="expediente-info">
+                                <strong>${exp.descripcion || 'Sin descripción'}</strong>
+                                <p>Cargado el ${fmtFechaHora(exp.creado_en)}</p>
+                            </div>
+                            <span class="expediente-monto">$ ${fmt(exp.honorarios_totales)}</span>
+                            <button class="btn-eliminar-chico" onclick="eliminarExpediente(${exp.id})" title="Eliminar">🗑️</button>
+                        </div>`).join('');
 
-            } catch (error) {
-                console.error("Error cargando datos de la cuenta:", error);
-            }
+                // Notas
+                const notas = await resN.json();
+                renderizarNotas(notas);
+
+            } catch (err) { console.error('Error cargando datos:', err); }
         }
 
-        function cerrarSesion() {
-            localStorage.clear();
-            window.location.href = 'login.html';
+        function renderizarNotas(notas) {
+            document.getElementById('listaNota').innerHTML = notas.length === 0
+                ? '<li class="estado-vacio">No hay notas todavía. Agregá la primera arriba.</li>'
+                : notas.map(n => `
+                    <li class="nota-item">
+                        <div class="nota-contenido">
+                            <p>${n.contenido}</p>
+                            <div class="nota-fecha">🕐 ${fmtFechaHora(n.creado_en)}</div>
+                        </div>
+                        <button class="btn-eliminar-chico" onclick="eliminarNota(${n.id})" title="Eliminar nota">✕</button>
+                    </li>`).join('');
         }
+
+        async function agregarNota() {
+            const ta = document.getElementById('nuevaNota');
+            const contenido = ta.value.trim();
+            if (!contenido) { ta.focus(); return; }
+            await fetchPost(`${API}/api/notas`, { cliente_id: clienteId, contenido });
+            ta.value = '';
+            cargarTodo();
+        }
+
+        async function eliminarNota(id) {
+            if (!confirm('¿Eliminás esta nota?')) return;
+            await fetchDelete(`${API}/api/notas/${id}`);
+            cargarTodo();
+        }
+
+        async function eliminarExpediente(id) {
+            if (!confirm('¿Eliminás este honorario? Esto afectará el saldo del cliente.')) return;
+            await fetchDelete(`${API}/api/expedientes/${id}`);
+            cargarTodo();
+        }
+
+        async function fetchDelete(url) {
+            try {
+                await fetch(url, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            } catch { alert('Error de conexión'); }
+        }
+
+        function fmt(n) { return new Intl.NumberFormat('es-AR').format(parseFloat(n) || 0); }
+        function fmtFecha(str) { return new Date(str + 'T00:00:00').toLocaleDateString('es-AR'); }
+        function fmtFechaHora(str) {
+            return new Date(str).toLocaleString('es-AR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+        }
+        function cerrarSesion() { localStorage.clear(); window.location.href = 'login.html'; }
     </script>
 </body>
 </html>

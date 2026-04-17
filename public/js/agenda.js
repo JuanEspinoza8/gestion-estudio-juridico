@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     cargarTurnos();
-    cargarDesplegableClientes();
+    cargarDesplegableClientes('clienteId');
 
     // --- Modal NUEVO TURNO ---
     const modalNuevo = document.getElementById('modalNuevoTurno');
@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('formNuevoTurno').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('estudio_token');
         const nuevoTurno = {
             cliente_id: document.getElementById('clienteId').value,
             usuario_id: localStorage.getItem('usuario_id'),
@@ -32,18 +31,18 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const respuesta = await fetch(`${API}/api/turnos`, {
+            const res = await fetch(`${API}/api/turnos`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('estudio_token')}` },
                 body: JSON.stringify(nuevoTurno)
             });
 
-            if (respuesta.ok) {
+            if (res.ok) {
                 modalNuevo.style.display = 'none';
                 document.getElementById('formNuevoTurno').reset();
                 cargarTurnos();
             } else {
-                const err = await respuesta.json();
+                const err = await res.json();
                 alert("Error al agendar: " + (err.message || "Verifique los datos"));
             }
         } catch (error) {
@@ -58,9 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('formEditarTurno').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('estudio_token');
         const id = document.getElementById('editarTurnoId').value;
-
         const datos = {
             cliente_id: document.getElementById('editarClienteId').value,
             usuario_id: localStorage.getItem('usuario_id'),
@@ -71,20 +68,20 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const respuesta = await fetch(`${API}/api/turnos/${id}`, {
+            const res = await fetch(`${API}/api/turnos/${id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('estudio_token')}` },
                 body: JSON.stringify(datos)
             });
 
-            if (respuesta.ok) {
+            if (res.ok) {
                 modalEditar.style.display = 'none';
                 cargarTurnos();
             } else {
                 alert("Error al actualizar el turno.");
             }
-        } catch (error) {
-            alert("Error de conexión con el servidor.");
+        } catch {
+            alert("Error de conexión.");
         }
     });
 });
@@ -93,116 +90,131 @@ async function cargarTurnos() {
     const token = localStorage.getItem('estudio_token');
     const usuarioId = localStorage.getItem('usuario_id');
     const contenedor = document.getElementById('contenedorTurnos');
+    contenedor.innerHTML = '<p style="text-align:center;color:#64748b;padding:30px">Cargando agenda...</p>';
 
     try {
-        const respuesta = await fetch(`${API}/api/turnos/usuario/${usuarioId}`, {
+        const res = await fetch(`${API}/api/turnos/usuario/${usuarioId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (!respuesta.ok) throw new Error('Error del servidor');
-
-        const turnos = await respuesta.json();
+        if (!res.ok) throw new Error('Error del servidor');
+        const turnos = await res.json();
 
         if (turnos.length === 0) {
-            contenedor.innerHTML = `<p style="text-align: center; color: #64748b; padding: 30px;">No hay turnos agendados próximos.</p>`;
+            contenedor.innerHTML = '<div class="agenda-vacia"><div class="icono">📅</div><p>No hay turnos agendados próximos.</p></div>';
             return;
         }
 
-        contenedor.innerHTML = turnos.map(t => {
-            const fecha = new Date(t.fecha + 'T00:00:00'); // Evita desfase de zona horaria
-            const fechaFormateada = fecha.toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long' });
-            const esHoy = t.fecha === new Date().toISOString().split('T')[0];
-
-            return `
-                <li class="turno-card ${esHoy ? 'border-urgente' : 'border-normal'}">
-                    <div class="turno-fecha">
-                        <strong>${fechaFormateada}</strong>
-                        <span>${t.hora.substring(0, 5)} hs</span>
-                        ${esHoy ? '<span class="badge-hoy">HOY</span>' : ''}
-                    </div>
-                    <div class="turno-detalle">
-                        <h3>${t.nombre_completo}</h3>
-                        <p>${t.motivo}</p>
-                    </div>
-                    <div class="turno-acciones">
-                        <button class="btn-editar" onclick="abrirModalEditar(${t.id}, '${t.cliente_id}', '${t.fecha}', '${t.hora}', '${escapar(t.motivo)}', '${t.estado}')">
-                            ✏️ Editar
-                        </button>
-                        <button class="btn-eliminar" onclick="eliminarTurno(${t.id})">
-                            🗑️ Eliminar
-                        </button>
-                    </div>
-                </li>
-            `;
-        }).join('');
+        contenedor.innerHTML = renderizarAgenda(turnos);
 
     } catch (error) {
-        console.error("Error al cargar turnos:", error);
-        contenedor.innerHTML = `<p style="color: red; text-align: center;">Error al cargar la agenda.</p>`;
+        contenedor.innerHTML = '<p style="color:red;text-align:center;padding:20px">Error al cargar la agenda.</p>';
     }
 }
 
-function escapar(texto) {
-    return texto.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+function renderizarAgenda(turnos) {
+    const hoy = new Date().toISOString().split('T')[0];
+
+    const grupos = {};
+    turnos.forEach(t => {
+        if (!grupos[t.fecha]) grupos[t.fecha] = [];
+        grupos[t.fecha].push(t);
+    });
+
+    return Object.entries(grupos).map(([fecha, turnosDia]) => {
+        const esHoy = fecha === hoy;
+        const fechaObj = new Date(fecha + 'T00:00:00');
+        const etiquetaFecha = esHoy
+            ? '🔵 Hoy — ' + fechaObj.toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long' })
+            : fechaObj.toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+
+        const tarjetas = turnosDia.map(t => renderizarTarjeta(t, esHoy)).join('');
+
+        return `
+            <div class="fecha-grupo">
+                <span class="fecha-label ${esHoy ? 'hoy' : ''}">${etiquetaFecha}</span>
+                <div class="fecha-linea"></div>
+            </div>
+            ${tarjetas}
+        `;
+    }).join('');
+}
+
+function renderizarTarjeta(t, esHoy) {
+    const hora = t.hora.substring(0, 5);
+    const estadoClase = t.estado === 'completado' ? 'completado' : t.estado === 'cancelado' ? 'cancelado' : esHoy ? 'hoy' : '';
+    const badgeClase = 'badge-' + t.estado;
+    const motivoEscapado = String(t.motivo).replace(/'/g, "\\'");
+
+    return `
+        <li class="turno-card ${estadoClase}">
+            <div class="turno-hora-bloque">
+                <div class="hora-grande">${hora}</div>
+                <div class="hora-sufijo">hs</div>
+            </div>
+            <div class="turno-divisor"></div>
+            <div class="turno-info">
+                <div class="cliente-nombre">${t.nombre_completo}</div>
+                <div class="turno-motivo">📋 ${t.motivo}</div>
+            </div>
+            <span class="badge-estado ${badgeClase}">${t.estado}</span>
+            <div class="turno-acciones">
+                <button class="btn-icono editar" title="Editar"
+                    onclick="abrirModalEditar(${t.id}, '${t.cliente_id}', '${t.fecha}', '${t.hora}', '${motivoEscapado}', '${t.estado}')">
+                    ✏️
+                </button>
+                <button class="btn-icono eliminar" title="Eliminar"
+                    onclick="eliminarTurno(${t.id})">
+                    🗑️
+                </button>
+            </div>
+        </li>
+    `;
 }
 
 async function abrirModalEditar(id, clienteId, fecha, hora, motivo, estado) {
-    // Cargar el select de clientes si no está poblado
     const select = document.getElementById('editarClienteId');
     if (select.options.length <= 1) {
-        await cargarDesplegableClientesEnSelect('editarClienteId');
+        await cargarDesplegableClientes('editarClienteId');
     }
-
     document.getElementById('editarTurnoId').value = id;
     document.getElementById('editarClienteId').value = clienteId;
     document.getElementById('editarFecha').value = fecha;
     document.getElementById('editarHora').value = hora.substring(0, 5);
     document.getElementById('editarMotivo').value = motivo;
     document.getElementById('editarEstado').value = estado;
-
     document.getElementById('modalEditarTurno').style.display = 'flex';
 }
 
 async function eliminarTurno(id) {
-    if (!confirm('¿Estás seguro de que querés eliminar este turno?')) return;
-
+    if (!confirm('¿Eliminás este turno?')) return;
     const token = localStorage.getItem('estudio_token');
     try {
-        const respuesta = await fetch(`${API}/api/turnos/${id}`, {
+        const res = await fetch(`${API}/api/turnos/${id}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
-
-        if (respuesta.ok) {
-            cargarTurnos();
-        } else {
-            alert("No se pudo eliminar el turno.");
-        }
-    } catch (error) {
+        if (res.ok) cargarTurnos();
+        else alert("No se pudo eliminar el turno.");
+    } catch {
         alert("Error de conexión.");
     }
 }
 
-async function cargarDesplegableClientes() {
-    await cargarDesplegableClientesEnSelect('clienteId');
-}
-
-async function cargarDesplegableClientesEnSelect(selectId) {
+async function cargarDesplegableClientes(selectId) {
     const token = localStorage.getItem('estudio_token');
     const select = document.getElementById(selectId);
-
     try {
-        const respuesta = await fetch(`${API}/api/clientes`, {
+        const res = await fetch(`${API}/api/clientes`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-
-        if (respuesta.ok) {
-            const clientes = await respuesta.json();
+        if (res.ok) {
+            const clientes = await res.json();
             select.innerHTML = '<option value="">Seleccione un cliente...</option>' +
-                clientes.map(c => `<option value="${c.id}">${c.nombre_completo} (DNI: ${c.dni})</option>`).join('');
+                clientes.map(c => '<option value="' + c.id + '">' + c.nombre_completo + ' (DNI: ' + c.dni + ')</option>').join('');
         }
     } catch (error) {
-        console.error("Error al cargar clientes en el select:", error);
+        console.error("Error al cargar clientes:", error);
     }
 }
 
