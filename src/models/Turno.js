@@ -37,7 +37,6 @@ class Turno {
         }
     }
 
-    // Unifica la actualización de estados en un solo método reutilizable
     async cambiarEstado(nuevoEstado) {
         try {
             const query = 'UPDATE turnos SET estado = $1 WHERE id = $2 RETURNING *;';
@@ -49,15 +48,61 @@ class Turno {
         }
     }
 
+    static async eliminar(id) {
+        try {
+            const query = 'DELETE FROM turnos WHERE id = $1 RETURNING *;';
+            const { rows } = await db.query(query, [id]);
+            return rows[0];
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    static async obtenerPorId(id) {
+        try {
+            const query = `
+                SELECT t.*, c.nombre_completo
+                FROM turnos t
+                JOIN clientes c ON t.cliente_id = c.id
+                WHERE t.id = $1;
+            `;
+            const { rows } = await db.query(query, [id]);
+            if (rows.length === 0) return null;
+            return rows[0];
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // Todos los turnos futuros (agenda completa)
     static async obtenerProximos(usuarioId) {
         try {
             const query = `
-                SELECT * FROM turnos 
-                WHERE usuario_id = $1 AND fecha >= CURRENT_DATE AND estado = 'pendiente'
-                ORDER BY fecha ASC, hora ASC;
+                SELECT t.*, c.nombre_completo
+                FROM turnos t
+                JOIN clientes c ON t.cliente_id = c.id
+                WHERE t.usuario_id = $1 AND t.fecha >= CURRENT_DATE AND t.estado = 'pendiente'
+                ORDER BY t.fecha ASC, t.hora ASC;
             `;
             const { rows } = await db.query(query, [usuarioId]);
-            return rows.map(row => new Turno(row));
+            return rows;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // Solo los turnos de HOY (para el dashboard)
+    static async obtenerHoy(usuarioId) {
+        try {
+            const query = `
+                SELECT t.*, c.nombre_completo
+                FROM turnos t
+                JOIN clientes c ON t.cliente_id = c.id
+                WHERE t.usuario_id = $1 AND t.fecha = CURRENT_DATE AND t.estado = 'pendiente'
+                ORDER BY t.hora ASC;
+            `;
+            const { rows } = await db.query(query, [usuarioId]);
+            return rows;
         } catch (error) {
             throw error;
         }
