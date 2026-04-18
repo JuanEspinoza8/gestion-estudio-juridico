@@ -38,9 +38,14 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const token = localStorage.getItem('estudio_token');
 
+        // --- MEJORA UX-01: Aspiradora de puntos para el DNI ---
+        const dniCrudo = document.getElementById('dni').value;
+        const dniLimpio = dniCrudo.replace(/\./g, ''); // Elimina todos los puntos
+        // ------------------------------------------------------
+
         const nuevoCliente = {
             nombre_completo: document.getElementById('nombre').value,
-            dni: document.getElementById('dni').value,
+            dni: dniLimpio, // Enviamos el DNI limpio a la base de datos
             telefono: document.getElementById('telefono').value,
             email: document.getElementById('email').value,
             notas: document.getElementById('notas').value
@@ -70,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("No se pudo conectar con el servidor.");
         }
     });
-});
+}); // <--- Ahora sí, cerramos el bloque principal donde corresponde
 
 async function cargarClientes() {
     const token = localStorage.getItem('estudio_token');
