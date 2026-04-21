@@ -12,7 +12,10 @@ const pagosRoutes = require('./src/routes/pagosRoutes');
 
 // Rutas nuevas
 const expedientesRoutes = require('./src/routes/expedientesRoutes');
+const causasRoutes = require('./src/routes/causasRoutes');
+const documentosRoutes = require('./src/routes/documentosRoutes');
 const notasRoutes = require('./src/routes/notasRoutes');
+const actividadRoutes = require('./src/routes/actividadRoutes');
 
 const verificarToken = require('./src/middlewares/authMiddleware');
 
@@ -29,8 +32,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/clientes', verificarToken, clientesRoutes);
 app.use('/api/turnos', verificarToken, turnosRoutes);
 app.use('/api/pagos', verificarToken, pagosRoutes);
-app.use('/api/expedientes', verificarToken, expedientesRoutes);
+app.use('/api/expedientes', verificarToken, expedientesRoutes); // Honorarios viejos
+app.use('/api/causas', verificarToken, causasRoutes); // Nuevos Expedientes
+app.use('/api/documentos', verificarToken, documentosRoutes); // PDFs
 app.use('/api/notas', verificarToken, notasRoutes);
+app.use('/api/actividad', verificarToken, actividadRoutes);
 
 app.get('/', (req, res) => {
     res.json({ mensaje: 'Servidor del Estudio Jurídico funcionando', estado: 'OK' });

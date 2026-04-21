@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Cliente = require('../models/Cliente');
+const { logActividad } = require('../utils/logger');
 
 // GET: Obtener todos los clientes activos
 router.get('/', async (req, res) => {
@@ -60,6 +61,9 @@ router.post('/', async (req, res) => {
     try {
         const nuevoCliente = new Cliente(req.body);
         const clienteGuardado = await nuevoCliente.guardar();
+        
+        logActividad(req.usuario ? req.usuario.id : 1, clienteGuardado.id, 'NUEVO_CLIENTE', `Cliente registrado: ${clienteGuardado.nombre_completo}`);
+        
         res.status(201).json(clienteGuardado);
     } catch (error) {
         if (error.code === '23505') {
