@@ -75,6 +75,22 @@ class Turno {
         }
     }
 
+    static async obtenerPorCliente(clienteId) {
+        try {
+            const query = `
+                SELECT t.*, c.nombre_completo
+                FROM turnos t
+                LEFT JOIN clientes c ON t.cliente_id = c.id
+                WHERE t.cliente_id = $1
+                ORDER BY t.fecha DESC, t.hora DESC;
+            `;
+            const { rows } = await db.query(query, [clienteId]);
+            return rows;
+        } catch (error) {
+            throw error;
+        }
+    }
+
     static async obtenerProximos(usuarioId) {
         try {
             const query = `

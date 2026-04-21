@@ -29,23 +29,22 @@ async function cargarResumenGeneral() {
     };
 
     try {
-        const [resClientes, resDeuda, resTurnosHoy, resDeudores] = await Promise.all([
+        const [resClientes, resTurnosHoy, resIngresos, resVencimientos] = await Promise.all([
             fetch('https://api-estudio-juridico-oma1.onrender.com/api/clientes', { headers }),
-            fetch('https://api-estudio-juridico-oma1.onrender.com/api/clientes/deuda-total', { headers }),
-            // Usamos el endpoint /hoy para que solo cuente los turnos de hoy
             fetch(`https://api-estudio-juridico-oma1.onrender.com/api/turnos/usuario/${usuarioId}/hoy`, { headers }),
-            fetch('https://api-estudio-juridico-oma1.onrender.com/api/clientes/deudores', { headers })
+            fetch('https://api-estudio-juridico-oma1.onrender.com/api/pagos/mes-actual', { headers }),
+            fetch('https://api-estudio-juridico-oma1.onrender.com/api/notas/proximos', { headers })
         ]);
 
         const clientes = await resClientes.json();
-        const deuda = await resDeuda.json();
         const turnosHoy = await resTurnosHoy.json();
-        const deudores = await resDeudores.json();
+        const ingresos = await resIngresos.json();
+        const vencimientos = await resVencimientos.json();
 
         // KPIs
         document.getElementById('kpiTotalClientes').textContent = clientes.length;
-        document.getElementById('kpiDeudaTotal').textContent =
-            `$ ${new Intl.NumberFormat('es-AR').format(deuda.deuda_total_calle || 0)}`;
+        document.getElementById('kpiIngresosMes').textContent =
+            `$ ${new Intl.NumberFormat('es-AR').format(ingresos.total_ingresos || 0)}`;
         document.getElementById('kpiTurnosHoy').textContent = turnosHoy.length;
 
         // Panel: Próximos Turnos de HOY
@@ -64,20 +63,24 @@ async function cargarResumenGeneral() {
             `).join('');
         }
 
-        // Panel: Deudores Urgentes
-        const listaDeudas = document.getElementById('listaDeudores');
-        if (deudores.length === 0) {
-            listaDeudas.innerHTML = `<li style="color: #64748b; font-size: 0.9rem; padding: 10px 0;">No hay deudores pendientes.</li>`;
+        // Panel: Próximos Vencimientos
+        const listaVencimientosEl = document.getElementById('listaVencimientos');
+        if (vencimientos.length === 0) {
+            listaVencimientosEl.innerHTML = `<li style="color: #64748b; font-size: 0.9rem; padding: 10px 0;">No hay vencimientos próximos.</li>`;
         } else {
-            listaDeudas.innerHTML = deudores.slice(0, 3).map(d => `
+            listaVencimientosEl.innerHTML = vencimientos.map(v => {
+                const fecha = new Date(v.fecha_vencimiento + 'T00:00:00');
+                const esVencida = fecha < new Date() && v.estado !== 'completado';
+                return `
                 <li>
-                    <span class="material-symbols-outlined text-red">warning</span>
+                    <span class="material-symbols-outlined text-red">${esVencida ? 'warning' : 'event'}</span>
                     <div class="detalle">
-                        <strong>${d.nombre_completo}</strong>
-                        <span style="color: #ef4444;">Debe: $ ${new Intl.NumberFormat('es-AR').format(d.deuda_actual)}</span>
+                        <strong>${v.nombre_completo}</strong>
+                        <span>${v.contenido}</span>
+                        <span style="${esVencida ? 'color:#ef4444; font-weight:bold;' : 'color:#f59e0b;'}">Vence: ${fecha.toLocaleDateString('es-AR')}</span>
                     </div>
-                </li>
-            `).join('');
+                </li>`;
+            }).join('');
         }
 
     } catch (error) {

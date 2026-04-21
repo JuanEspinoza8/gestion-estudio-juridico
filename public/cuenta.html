@@ -93,12 +93,19 @@
         </div>
 
         <div class="tabs">
-            <button class="tab-btn activo" onclick="cambiarTab('pagos', this)">💰 Historial de Pagos</button>
+            <button class="tab-btn activo" onclick="cambiarTab('historial', this)">🕒 Línea de Tiempo</button>
+            <button class="tab-btn" onclick="cambiarTab('pagos', this)">💰 Pagos</button>
             <button class="tab-btn" onclick="cambiarTab('deudas', this)">📄 Honorarios</button>
-            <button class="tab-btn" onclick="cambiarTab('notas', this)">📝 Notas del Caso</button>
+            <button class="tab-btn" onclick="cambiarTab('notas', this)">📝 Notas</button>
         </div>
 
-        <div class="tab-panel activo" id="tab-pagos">
+        <div class="tab-panel activo" id="tab-historial">
+            <ul class="notas-lista" id="listaHistorial">
+                <li class="estado-vacio">Cargando...</li>
+            </ul>
+        </div>
+
+        <div class="tab-panel" id="tab-pagos">
             <section class="table-container">
                 <table>
                     <thead><tr><th>Fecha</th><th>Monto</th><th>Método</th></tr></thead>
@@ -116,6 +123,7 @@
         <div class="tab-panel" id="tab-notas">
             <div class="add-nota-form">
                 <textarea id="nuevaNota" placeholder="Escribí una nueva nota sobre el caso..."></textarea>
+                <input type="date" id="fechaVencimientoNota" title="Fecha límite (Opcional)" style="border:1px solid #cbd5e1; border-radius:6px; padding:0 10px;">
                 <button class="btn-primary" onclick="agregarNota()">Agregar nota</button>
             </div>
             <ul class="notas-lista" id="listaNota">
@@ -254,12 +262,13 @@
         async function cargarTodo() {
             const h = { 'Authorization': `Bearer ${token}` };
             try {
-                const [resC, resS, resP, resE, resN] = await Promise.all([
+                const [resC, resS, resP, resE, resN, resT] = await Promise.all([
                     fetch(`${API}/api/clientes/${clienteId}`, { headers: h }),
                     fetch(`${API}/api/clientes/${clienteId}/saldo`, { headers: h }),
                     fetch(`${API}/api/pagos/cliente/${clienteId}`, { headers: h }),
                     fetch(`${API}/api/expedientes/cliente/${clienteId}`, { headers: h }),
-                    fetch(`${API}/api/notas/cliente/${clienteId}`, { headers: h })
+                    fetch(`${API}/api/notas/cliente/${clienteId}`, { headers: h }),
+                    fetch(`${API}/api/turnos/cliente/${clienteId}`, { headers: h })
                 ]);
 
                 // Cliente
@@ -308,29 +317,93 @@
                 const notas = await resN.json();
                 renderizarNotas(notas);
 
+                // Timeline
+                const turnos = await resT.json();
+                const timeline = [];
+                pagos.forEach(p => timeline.push({
+                    fecha: p.fecha_pago,
+                    icono: '💰',
+                    titulo: 'Pago recibido: ' + (p.metodo_pago || ''),
+                    monto: p.monto,
+                    color: '#10b981'
+                }));
+                exps.forEach(e => timeline.push({
+                    fecha: e.creado_en.split('T')[0],
+                    icono: '📄',
+                    titulo: 'Deuda/Honorario: ' + (e.descripcion || ''),
+                    monto: e.honorarios_totales,
+                    color: '#ef4444'
+                }));
+                turnos.forEach(t => timeline.push({
+                    fecha: t.fecha,
+                    icono: '📅',
+                    titulo: 'Turno (' + t.estado + '): ' + (t.tipo_evento || t.motivo),
+                    monto: null,
+                    color: '#3b82f6'
+                }));
+                
+                timeline.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+                document.getElementById('listaHistorial').innerHTML = timeline.length === 0
+                    ? '<li class="estado-vacio">No hay historial para este cliente.</li>'
+                    : timeline.map(item => `
+                        <li class="nota-item" style="border-left-color: ${item.color}">
+                            <div style="font-size: 1.5rem; margin-right: 10px;">${item.icono}</div>
+                            <div class="nota-contenido">
+                                <p><strong>${item.titulo}</strong></p>
+                                <div class="nota-fecha">${fmtFecha(item.fecha)}</div>
+                            </div>
+                            ${item.monto !== null ? `<div style="font-size: 1.1rem; font-weight: bold; color: ${item.color};">$ ${fmt(item.monto)}</div>` : ''}
+                        </li>
+                    `).join('');
+
             } catch (err) { console.error('Error cargando datos:', err); }
         }
 
         function renderizarNotas(notas) {
+            const hoy = new Date();
             document.getElementById('listaNota').innerHTML = notas.length === 0
                 ? '<li class="estado-vacio">No hay notas todavía. Agregá la primera arriba.</li>'
-                : notas.map(n => `
-                    <li class="nota-item">
+                : notas.map(n => {
+                    const vencida = n.fecha_vencimiento && new Date(n.fecha_vencimiento + 'T00:00:00') < hoy && n.estado !== 'completado';
+                    return `
+                    <li class="nota-item" style="${n.estado === 'completado' ? 'opacity:0.6;' : ''}">
                         <div class="nota-contenido">
                             <p>${n.contenido}</p>
-                            <div class="nota-fecha">🕐 ${fmtFechaHora(n.creado_en)}</div>
+                            <div class="nota-fecha">
+                                🕐 Creado: ${fmtFechaHora(n.creado_en)}
+                                ${n.fecha_vencimiento ? `<br>⚠️ Vence: <strong style="${vencida ? 'color:#ef4444;' : 'color:#f59e0b;'}">${fmtFecha(n.fecha_vencimiento)}</strong>` : ''}
+                            </div>
                         </div>
-                        <button class="btn-eliminar-chico" onclick="eliminarNota(${n.id})" title="Eliminar nota">✕</button>
-                    </li>`).join('');
+                        <div style="display:flex; flex-direction:column; gap:6px;">
+                            ${n.estado !== 'completado' ? `<button class="btn-eliminar-chico" style="color:#10b981;" onclick="completarNota(${n.id})" title="Marcar completada">✔️</button>` : `<span title="Completada" style="text-align:center;">✅</span>`}
+                            <button class="btn-eliminar-chico" onclick="eliminarNota(${n.id})" title="Eliminar nota">✕</button>
+                        </div>
+                    </li>`;
+                }).join('');
         }
 
         async function agregarNota() {
             const ta = document.getElementById('nuevaNota');
+            const dateInput = document.getElementById('fechaVencimientoNota');
             const contenido = ta.value.trim();
             if (!contenido) { ta.focus(); return; }
-            await fetchPost(`${API}/api/notas`, { cliente_id: clienteId, contenido });
+            const payload = { cliente_id: clienteId, contenido };
+            if (dateInput && dateInput.value) payload.fecha_vencimiento = dateInput.value;
+            await fetchPost(`${API}/api/notas`, payload);
             ta.value = '';
+            if (dateInput) dateInput.value = '';
             cargarTodo();
+        }
+
+        async function completarNota(id) {
+            try {
+                await fetch(`${API}/api/notas/${id}/estado`, { 
+                    method: 'PUT', 
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ estado: 'completado' })
+                });
+                cargarTodo();
+            } catch { alert('Error al completar'); }
         }
 
         async function eliminarNota(id) {
