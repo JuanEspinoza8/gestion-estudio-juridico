@@ -62,6 +62,9 @@ router.post('/', async (req, res) => {
         const clienteGuardado = await nuevoCliente.guardar();
         res.status(201).json(clienteGuardado);
     } catch (error) {
+        if (error.code === '23505') {
+            return res.status(400).json({ error: 'El DNI o Email ya se encuentra registrado en el sistema.' });
+        }
         res.status(500).json({ error: 'Error al guardar el cliente' });
     }
 });
@@ -74,6 +77,9 @@ router.put('/:id', async (req, res) => {
         const resultado = await clienteActualizado.guardar();
         res.json(resultado);
     } catch (error) {
+        if (error.code === '23505') {
+            return res.status(400).json({ error: 'El DNI o Email ya se encuentra registrado en el sistema.' });
+        }
         res.status(500).json({ error: 'Error al actualizar el cliente' });
     }
 });
