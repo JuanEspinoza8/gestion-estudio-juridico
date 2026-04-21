@@ -1,16 +1,26 @@
 // public/js/dashboard.js
 
-document.addEventListener('DOMContentLoaded', async () => {
-    const token = localStorage.getItem('estudio_token');
-    const usuarioId = localStorage.getItem('usuario_id');
+    document.addEventListener('DOMContentLoaded', async () => {
+        const token = localStorage.getItem('estudio_token');
+        const usuarioId = localStorage.getItem('usuario_id');
 
-    if (!token || !usuarioId) {
-        window.location.href = 'login.html';
-        return;
-    }
+        if (!token || !usuarioId) {
+         window.location.href = 'login.html';
+         return;
+        }
 
-    cargarResumenGeneral();
-});
+        // --- MEJORA UI-01: Saludo Dinámico ---
+        const usuario = obtenerUsuarioDelToken();
+        if (usuario && usuario.nombre) {
+         const subtitle = document.querySelector('.subtitle');
+         if (subtitle) {
+                subtitle.textContent = `Bienvenido, ${usuario.nombre}`;
+            }
+        }
+        // -------------------------------------
+
+        cargarResumenGeneral();
+    });
 
 async function cargarResumenGeneral() {
     const token = localStorage.getItem('estudio_token');
@@ -80,4 +90,23 @@ async function cargarResumenGeneral() {
 function cerrarSesion() {
     localStorage.clear();
     window.location.href = 'login.html';
+}
+// Función para decodificar el payload del JWT sin librerías externas
+function obtenerUsuarioDelToken() {
+    const token = localStorage.getItem('estudio_token');
+    if (!token) return null;
+
+    try {
+        // El JWT es: Header.Payload.Signature. Tomamos el Payload [1]
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        console.error("Error al decodificar el token:", e);
+        return null;
+    }
 }
