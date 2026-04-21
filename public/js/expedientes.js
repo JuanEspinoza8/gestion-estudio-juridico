@@ -66,7 +66,7 @@ async function seleccionarExpediente(id, element) {
     if (element) element.classList.add('activo');
 
     // Buscar en el array
-    expedienteSeleccionado = expedientesActuales.find(c => c.id === id);
+    expedienteSeleccionado = expedientesActuales.find(c => String(c.id) === String(id));
     if (!expedienteSeleccionado) return;
 
     // Llenar datos
@@ -87,17 +87,24 @@ async function seleccionarExpediente(id, element) {
 
 async function guardarExpediente(e) {
     e.preventDefault();
+    const estadoSel = document.getElementById('estado').value;
+    const estadoReal = estadoSel === 'Otro' ? (document.getElementById('estadoOtro').value || 'Otro') : estadoSel;
+
     const datos = {
         cliente_id: document.getElementById('clienteId').value,
         caratula: document.getElementById('caratula').value,
         nro_expediente: document.getElementById('nroExpediente').value,
         juzgado: document.getElementById('juzgado').value,
-        estado: document.getElementById('estado').value
+        estado: estadoReal
     };
 
+    const idEdit = document.getElementById('expedienteIdForm').value;
+    const url = idEdit ? `${API}/api/causas/${idEdit}` : `${API}/api/causas`;
+    const method = idEdit ? 'PUT' : 'POST';
+
     try {
-        const res = await fetch(`${API}/api/causas`, {
-            method: 'POST',
+        const res = await fetch(url, {
+            method,
             headers,
             body: JSON.stringify(datos)
         });
@@ -105,6 +112,10 @@ async function guardarExpediente(e) {
         if (res.ok) {
             cerrarModal();
             document.getElementById('formNuevoExp').reset();
+            if (idEdit) {
+                document.getElementById('estadoVacioDetalle').style.display = 'block';
+                document.getElementById('contenidoDetalle').style.display = 'none';
+            }
             cargarExpedientes();
         } else {
             alert('Error al guardar el expediente');
@@ -112,6 +123,63 @@ async function guardarExpediente(e) {
     } catch (error) {
         console.error('Error:', error);
     }
+}
+
+async function eliminarExpediente() {
+    if (!expedienteSeleccionado) return;
+    if (!confirm('¿Seguro que deseas eliminar este expediente? Esta acción borrará todos sus documentos.')) return;
+    try {
+        const res = await fetch(`${API}/api/causas/${expedienteSeleccionado.id}`, {
+            method: 'DELETE',
+            headers
+        });
+        if (res.ok) {
+            document.getElementById('estadoVacioDetalle').style.display = 'block';
+            document.getElementById('contenidoDetalle').style.display = 'none';
+            cargarExpedientes();
+        } else {
+            alert('Error al eliminar');
+        }
+    } catch (e) {
+        alert('Error de conexión');
+    }
+}
+
+function editarExpediente() {
+    if (!expedienteSeleccionado) return;
+    document.getElementById('expedienteIdForm').value = expedienteSeleccionado.id;
+    document.getElementById('clienteId').value = expedienteSeleccionado.cliente_id;
+    document.getElementById('caratula').value = expedienteSeleccionado.caratula;
+    document.getElementById('nroExpediente').value = expedienteSeleccionado.nro_expediente;
+    document.getElementById('juzgado').value = expedienteSeleccionado.juzgado;
+    
+    const opcionesEstado = ['Iniciado', 'Mediación', 'Prueba', 'Sentencia', 'Cerrado'];
+    if (opcionesEstado.includes(expedienteSeleccionado.estado)) {
+        document.getElementById('estado').value = expedienteSeleccionado.estado;
+        document.getElementById('estadoOtro').style.display = 'none';
+        document.getElementById('estadoOtro').value = '';
+    } else {
+        document.getElementById('estado').value = 'Otro';
+        document.getElementById('estadoOtro').style.display = 'block';
+        document.getElementById('estadoOtro').value = expedienteSeleccionado.estado;
+    }
+    
+    document.querySelector('#modalNuevoExp h2').textContent = 'Editar Expediente';
+    abrirModal();
+}
+
+function abrirModal() {
+    if (!document.getElementById('expedienteIdForm').value) {
+        document.querySelector('#modalNuevoExp h2').textContent = 'Nuevo Expediente';
+        document.getElementById('estadoOtro').style.display = 'none';
+    }
+    document.getElementById('modalNuevoExp').style.display = 'flex';
+}
+
+function cerrarModal() {
+    document.getElementById('modalNuevoExp').style.display = 'none';
+    document.getElementById('formNuevoExp').reset();
+    document.getElementById('expedienteIdForm').value = '';
 }
 
 // ==========================================
@@ -189,7 +257,5 @@ async function subirDocumento(e) {
     }
 }
 
-// Modal functions
-function abrirModal() { document.getElementById('modalNuevoExp').style.display = 'flex'; }
-function cerrarModal() { document.getElementById('modalNuevoExp').style.display = 'none'; }
+// Modal functions (reemplazadas arriba)
 function cerrarSesion() { localStorage.clear(); window.location.href = 'login.html'; }

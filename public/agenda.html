@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="stylesheet" href="./css/clientes.css">
     <link rel="stylesheet" href="./css/agenda.css">
+    <script src="./js/theme.js"></script>
     <style>
         /* Estilos para la tarjeta de turno actualizada */
         .turno-card {
@@ -147,7 +148,7 @@
                 </div>
                 <div class="form-group">
                     <label for="tipoEvento">Tipo de Evento *</label>
-                    <select id="tipoEvento" required>
+                    <select id="tipoEvento" required onchange="document.getElementById('tipoEventoOtro').style.display = this.value === 'Otro' ? 'block' : 'none';">
                         <option value="">Seleccionar...</option>
                         <option value="Audiencia">Audiencia</option>
                         <option value="Mediación">Mediación</option>
@@ -155,6 +156,7 @@
                         <option value="Reunión Cliente">Reunión Cliente</option>
                         <option value="Otro">Otro</option>
                     </select>
+                    <input type="text" id="tipoEventoOtro" style="display:none; margin-top:10px;" placeholder="Especifique el evento...">
                 </div>
                 <footer class="modal-actions">
                     <button type="button" class="btn-secondary" id="btnCancelarModalTurno">Cancelar</button>
@@ -191,7 +193,7 @@
                 </div>
                 <div class="form-group">
                     <label for="editarTipoEvento">Tipo de Evento *</label>
-                    <select id="editarTipoEvento" required>
+                    <select id="editarTipoEvento" required onchange="document.getElementById('editarTipoEventoOtro').style.display = this.value === 'Otro' ? 'block' : 'none';">
                         <option value="">Seleccionar...</option>
                         <option value="Audiencia">Audiencia</option>
                         <option value="Mediación">Mediación</option>
@@ -199,6 +201,7 @@
                         <option value="Reunión Cliente">Reunión Cliente</option>
                         <option value="Otro">Otro</option>
                     </select>
+                    <input type="text" id="editarTipoEventoOtro" style="display:none; margin-top:10px;" placeholder="Especifique el evento...">
                 </div>
                 <div class="form-group">
                     <label for="editarEstado">Estado</label>

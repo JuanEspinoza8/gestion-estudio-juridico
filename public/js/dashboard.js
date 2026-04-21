@@ -92,12 +92,13 @@ async function cargarResumenGeneral() {
         } else {
             listaActividadEl.innerHTML = actividad.map(a => {
                 const f = new Date(a.fecha);
-                const fechaFormateada = f.toLocaleDateString('es-AR') + ' ' + f.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'});
+                const fechaFormateada = isNaN(f.getTime()) ? 'Fecha desconocida' : f.toLocaleDateString('es-AR') + ' ' + f.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'});
+                const accionLimpia = a.accion.replace(/_/g, ' ');
                 return `
                 <li style="align-items:flex-start;">
                     <span class="material-symbols-outlined" style="color:#3b82f6;">notifications_active</span>
                     <div class="detalle">
-                        <strong>${a.accion} ${a.cliente_nombre ? `(${a.cliente_nombre})` : ''}</strong>
+                        <strong>${accionLimpia} ${a.cliente_nombre ? `(${a.cliente_nombre})` : ''}</strong>
                         <span>${a.detalles || ''}</span>
                         <span style="color:#94a3b8; font-size:0.8rem;">${fechaFormateada}</span>
                     </div>

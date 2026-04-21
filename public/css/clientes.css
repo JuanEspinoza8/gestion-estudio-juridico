@@ -274,3 +274,105 @@ tbody tr:hover {
 }
 
 /* Nota para revisión: Agregar clase .badge-aldia en la próxima iteración */
+/* Modo Oscuro - Reglas Globales */
+body.dark-mode {
+    background-color: #0f172a;
+    color: #f1f5f9;
+}
+body.dark-mode .table-container,
+body.dark-mode .modal-content,
+body.dark-mode .resumen-card,
+body.dark-mode .info-cliente,
+body.dark-mode .expediente-item,
+body.dark-mode .nota-item,
+body.dark-mode .panel,
+body.dark-mode .lista-maestra,
+body.dark-mode .vista-detalle,
+body.dark-mode .detalle-info,
+body.dark-mode .dropzone,
+body.dark-mode .doc-item,
+body.dark-mode .lista-header {
+    background-color: #1e293b !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.5) !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode h1, 
+body.dark-mode h2, 
+body.dark-mode h3, 
+body.dark-mode h4,
+body.dark-mode strong {
+    color: #f8fafc !important;
+}
+
+body.dark-mode p,
+body.dark-mode span,
+body.dark-mode label,
+body.dark-mode td {
+    color: #cbd5e1;
+}
+
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+    border: 1px solid #334155 !important;
+}
+
+body.dark-mode thead th {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+    border-bottom: 2px solid #334155 !important;
+}
+
+body.dark-mode tbody td {
+    border-bottom: 1px solid #334155 !important;
+}
+
+body.dark-mode tbody tr:hover,
+body.dark-mode .item-exp:hover,
+body.dark-mode .item-exp.activo {
+    background-color: #334155 !important;
+}
+
+body.dark-mode .btn-secondary,
+body.dark-mode .btn-secundario {
+    background-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+body.dark-mode .navbar {
+    background-color: #020617;
+}
+
+/* Fix espec�fico de estado badge */
+body.dark-mode .estado-badge {
+    background-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+/* Fix valor rojo / verde */
+body.dark-mode .valor.rojo { color: #f87171 !important; }
+body.dark-mode .valor.verde { color: #34d399 !important; }
+
+/* Boton Modo Oscuro */
+.theme-toggle-btn {
+    background: none;
+    border: 1px solid #334155;
+    color: #cbd5e1;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+.theme-toggle-btn:hover {
+    background-color: #334155;
+    color: white;
+}
