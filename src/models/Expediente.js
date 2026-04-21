@@ -5,8 +5,11 @@ class Expediente {
     constructor(exp) {
         this.id = exp.id || null;
         this.cliente_id = exp.cliente_id;
-        this.descripcion = exp.descripcion || null;
+        // La DB tiene la columna 'caratula', pero el frontend manda 'descripcion'
+        this.descripcion = exp.descripcion || exp.caratula || null;
         this.honorarios_totales = parseFloat(exp.honorarios_totales) || 0;
+        this.estado = exp.estado || 'Activo';
+        this.creado_en = exp.creado_en || null;
     }
 
     async guardar() {
@@ -14,19 +17,19 @@ class Expediente {
             if (this.id) {
                 const query = `
                     UPDATE expedientes
-                    SET descripcion = $1, honorarios_totales = $2
-                    WHERE id = $3 RETURNING *;
+                    SET caratula = $1, honorarios_totales = $2, estado = $3
+                    WHERE id = $4 RETURNING *;
                 `;
-                const { rows } = await db.query(query, [this.descripcion, this.honorarios_totales, this.id]);
-                return rows[0];
+                const { rows } = await db.query(query, [this.descripcion, this.honorarios_totales, this.estado, this.id]);
+                return new Expediente(rows[0]);
             } else {
                 const query = `
-                    INSERT INTO expedientes (cliente_id, descripcion, honorarios_totales)
-                    VALUES ($1, $2, $3) RETURNING *;
+                    INSERT INTO expedientes (cliente_id, caratula, honorarios_totales, estado)
+                    VALUES ($1, $2, $3, $4) RETURNING *;
                 `;
-                const { rows } = await db.query(query, [this.cliente_id, this.descripcion, this.honorarios_totales]);
+                const { rows } = await db.query(query, [this.cliente_id, this.descripcion, this.honorarios_totales, this.estado]);
                 this.id = rows[0].id;
-                return rows[0];
+                return new Expediente(rows[0]);
             }
         } catch (error) {
             console.error('Error al guardar expediente:', error);
@@ -42,7 +45,8 @@ class Expediente {
                 ORDER BY creado_en DESC;
             `;
             const { rows } = await db.query(query, [clienteId]);
-            return rows;
+            // Retornamos instancias para que tengan exp.descripcion y el frontend lo pueda leer
+            return rows.map(row => new Expediente(row));
         } catch (error) {
             console.error('Error al obtener expedientes:', error);
             throw error;
@@ -53,7 +57,7 @@ class Expediente {
         try {
             const query = 'DELETE FROM expedientes WHERE id = $1 RETURNING *;';
             const { rows } = await db.query(query, [id]);
-            return rows[0];
+            return rows.length ? new Expediente(rows[0]) : null;
         } catch (error) {
             throw error;
         }
