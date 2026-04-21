@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('formNuevoTurno').addEventListener('submit', async (e) => {
         e.preventDefault();
         const nuevoTurno = {
-            cliente_id: document.getElementById('clienteId').value,
+            cliente_id: document.getElementById('clienteId').value || null,
             usuario_id: localStorage.getItem('usuario_id'),
             fecha: document.getElementById('fecha').value,
             hora: document.getElementById('hora').value,
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const id = document.getElementById('editarTurnoId').value;
         const datos = {
-            cliente_id: document.getElementById('editarClienteId').value,
+            cliente_id: document.getElementById('editarClienteId').value || null,
             usuario_id: localStorage.getItem('usuario_id'),
             fecha: document.getElementById('editarFecha').value,
             hora: document.getElementById('editarHora').value,
@@ -156,7 +156,7 @@ function renderizarTarjeta(t, esHoy) {
             </div>
             <div class="turno-divisor"></div>
             <div class="turno-info">
-                <div class="cliente-nombre">${t.nombre_completo}</div>
+                <div class="cliente-nombre">${t.nombre_completo || 'Tarea del Estudio'}</div>
                 <div class="turno-motivo">📋 ${t.tipo_evento || t.motivo}</div>
             </div>
             <span class="badge-estado ${badgeClase}">${t.estado}</span>
@@ -180,7 +180,7 @@ async function abrirModalEditar(id, clienteId, fecha, hora, tipoEvento, estado) 
         await cargarDesplegableClientes('editarClienteId');
     }
     document.getElementById('editarTurnoId').value = id;
-    document.getElementById('editarClienteId').value = clienteId;
+    document.getElementById('editarClienteId').value = clienteId === 'null' ? '' : clienteId;
     document.getElementById('editarFecha').value = fecha;
     document.getElementById('editarHora').value = hora.substring(0, 5);
     
@@ -215,7 +215,7 @@ async function cargarDesplegableClientes(selectId) {
         });
         if (res.ok) {
             const clientes = await res.json();
-            select.innerHTML = '<option value="">Seleccione un cliente...</option>' +
+            select.innerHTML = '<option value="">Sin cliente asociado</option>' +
                 clientes.map(c => '<option value="' + c.id + '">' + c.nombre_completo + ' (DNI: ' + c.dni + ')</option>').join('');
         }
     } catch (error) {

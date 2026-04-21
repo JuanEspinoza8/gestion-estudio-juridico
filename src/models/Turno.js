@@ -3,7 +3,7 @@ const db = require('../config/db');
 class Turno {
     constructor(turno) {
         this.id = turno.id || null;
-        this.cliente_id = turno.cliente_id;
+        this.cliente_id = (turno.cliente_id === '' || turno.cliente_id === 'null' || !turno.cliente_id) ? null : turno.cliente_id;
         this.usuario_id = turno.usuario_id;
         this.fecha = turno.fecha;
         this.hora = turno.hora;
@@ -64,7 +64,7 @@ class Turno {
             const query = `
                 SELECT t.*, c.nombre_completo
                 FROM turnos t
-                JOIN clientes c ON t.cliente_id = c.id
+                LEFT JOIN clientes c ON t.cliente_id = c.id
                 WHERE t.id = $1;
             `;
             const { rows } = await db.query(query, [id]);
@@ -81,7 +81,7 @@ class Turno {
             const query = `
                 SELECT t.*, c.nombre_completo
                 FROM turnos t
-                JOIN clientes c ON t.cliente_id = c.id
+                LEFT JOIN clientes c ON t.cliente_id = c.id
                 WHERE t.usuario_id = $1 AND t.fecha >= CURRENT_DATE AND t.estado = 'pendiente'
                 ORDER BY t.fecha ASC, t.hora ASC;
             `;
@@ -98,7 +98,7 @@ class Turno {
             const query = `
                 SELECT t.*, c.nombre_completo
                 FROM turnos t
-                JOIN clientes c ON t.cliente_id = c.id
+                LEFT JOIN clientes c ON t.cliente_id = c.id
                 WHERE t.usuario_id = $1 AND t.fecha = CURRENT_DATE AND t.estado = 'pendiente'
                 ORDER BY t.hora ASC;
             `;
