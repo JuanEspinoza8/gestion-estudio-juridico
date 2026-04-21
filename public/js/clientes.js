@@ -112,7 +112,7 @@ function renderizarTabla(clientes) {
                 <strong>${c.nombre_completo}</strong>
                 ${c.email ? `<br><small style="color:#64748b">${c.email}</small>` : ''}
             </td>
-            <td>${c.dni}</td>
+            <td>${c.dni ? String(c.dni).replace(/\B(?=(\d{3})+(?!\d))/g, ".") : '-'}</td>
             <td>${c.telefono || '-'}</td>
             <td>
                 <button class="btn-secondary" onclick="verCuenta(${c.id})">Ver Cuenta</button>

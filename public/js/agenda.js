@@ -22,13 +22,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('formNuevoTurno').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const tipoEventoSel = document.getElementById('tipoEvento').value;
+        const motivoReal = tipoEventoSel === 'Otro' ? document.getElementById('tipoEventoOtro').value || 'Otro' : tipoEventoSel;
+
         const nuevoTurno = {
             cliente_id: document.getElementById('clienteId').value || null,
             usuario_id: localStorage.getItem('usuario_id'),
             fecha: document.getElementById('fecha').value,
             hora: document.getElementById('hora').value,
-            motivo: document.getElementById('tipoEvento').value,
-            tipo_evento: document.getElementById('tipoEvento').value
+            motivo: motivoReal,
+            tipo_evento: motivoReal
         };
 
         try {
@@ -59,13 +62,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('formEditarTurno').addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = document.getElementById('editarTurnoId').value;
+        const tipoEventoSel = document.getElementById('editarTipoEvento').value;
+        const motivoReal = tipoEventoSel === 'Otro' ? document.getElementById('editarTipoEventoOtro').value || 'Otro' : tipoEventoSel;
+
         const datos = {
             cliente_id: document.getElementById('editarClienteId').value || null,
             usuario_id: localStorage.getItem('usuario_id'),
             fecha: document.getElementById('editarFecha').value,
             hora: document.getElementById('editarHora').value,
-            motivo: document.getElementById('editarTipoEvento').value,
-            tipo_evento: document.getElementById('editarTipoEvento').value,
+            motivo: motivoReal,
+            tipo_evento: motivoReal,
             estado: document.getElementById('editarEstado').value
         };
 
@@ -129,8 +135,10 @@ function renderizarAgenda(turnos, esHistorial) {
 
     const grupos = {};
     turnos.forEach(t => {
-        if (!grupos[t.fecha]) grupos[t.fecha] = [];
-        grupos[t.fecha].push(t);
+        const fechaLimpia = t.fecha ? t.fecha.split('T')[0] : '';
+        if (!fechaLimpia) return;
+        if (!grupos[fechaLimpia]) grupos[fechaLimpia] = [];
+        grupos[fechaLimpia].push(t);
     });
 
     return Object.entries(grupos).map(([fecha, turnosDia]) => {
@@ -222,11 +230,19 @@ async function abrirModalEditar(id, clienteId, fecha, hora, tipoEvento, estado) 
     }
     document.getElementById('editarTurnoId').value = id;
     document.getElementById('editarClienteId').value = clienteId === 'null' ? '' : clienteId;
-    document.getElementById('editarFecha').value = fecha;
+    document.getElementById('editarFecha').value = fecha.split('T')[0];
     document.getElementById('editarHora').value = hora.substring(0, 5);
     
     const opcionesPermitidas = ['Audiencia', 'Mediación', 'Presentar Escrito', 'Reunión Cliente', 'Otro'];
-    document.getElementById('editarTipoEvento').value = opcionesPermitidas.includes(tipoEvento) ? tipoEvento : 'Otro';
+    if (opcionesPermitidas.includes(tipoEvento) && tipoEvento !== 'Otro') {
+        document.getElementById('editarTipoEvento').value = tipoEvento;
+        document.getElementById('editarTipoEventoOtro').style.display = 'none';
+        document.getElementById('editarTipoEventoOtro').value = '';
+    } else {
+        document.getElementById('editarTipoEvento').value = 'Otro';
+        document.getElementById('editarTipoEventoOtro').style.display = 'block';
+        document.getElementById('editarTipoEventoOtro').value = tipoEvento === 'Otro' ? '' : tipoEvento;
+    }
     
     document.getElementById('editarEstado').value = estado;
     document.getElementById('modalEditarTurno').style.display = 'flex';

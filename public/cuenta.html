@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cuenta Corriente - Estudio Jurídico</title>
     <link rel="stylesheet" href="./css/clientes.css">
+    <script src="./js/theme.js"></script>
     <style>
         .tabs { display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e2e8f0; }
         .tab-btn { padding:10px 20px; border:none; background:none; cursor:pointer; font-size:0.95rem; color:#64748b; border-bottom:3px solid transparent; margin-bottom:-2px; font-weight:600; transition:color 0.2s; }
@@ -160,6 +161,10 @@
                     <label for="fechaPago">Fecha *</label>
                     <input type="date" id="fechaPago" required>
                 </div>
+                <div class="form-group" style="flex-direction:row; align-items:center; gap:8px;">
+                    <input type="checkbox" id="generarDeudaMismoMonto" style="width:auto;">
+                    <label for="generarDeudaMismoMonto" style="margin:0; font-weight:normal; cursor:pointer;">Generar honorario automáticamente para balancear este pago</label>
+                </div>
                 <footer class="modal-actions">
                     <button type="button" class="btn-secondary" id="btnCancelarPago">Cancelar</button>
                     <button type="submit" class="btn-primary">Guardar Pago</button>
@@ -220,12 +225,24 @@
             document.getElementById('btnCancelarPago').onclick = () => modalPago.style.display = 'none';
             document.getElementById('formPago').addEventListener('submit', async (e) => {
                 e.preventDefault();
+                const monto = document.getElementById('montoPago').value;
+                const generarDeuda = document.getElementById('generarDeudaMismoMonto').checked;
+                
+                if (generarDeuda) {
+                    await fetchPost(`${API}/api/expedientes`, {
+                        cliente_id: clienteId,
+                        descripcion: 'Honorario autogenerado por pago ingresado',
+                        honorarios_totales: monto
+                    });
+                }
+
                 await fetchPost(`${API}/api/pagos`, {
                     cliente_id: clienteId,
-                    monto: document.getElementById('montoPago').value,
+                    monto: monto,
                     metodo_pago: document.getElementById('metodoPago').value,
                     fecha_pago: document.getElementById('fechaPago').value
                 });
+                
                 modalPago.style.display = 'none';
                 document.getElementById('formPago').reset();
                 cargarTodo();
@@ -276,7 +293,7 @@
                 const c = await resC.json();
                 document.getElementById('tituloCliente').textContent = c.nombre_completo;
                 document.getElementById('infoCliente').innerHTML = `
-                    <div class="info-campo"><label>DNI</label><p>${c.dni}</p></div>
+                    <div class="info-campo"><label>DNI</label><p>${c.dni ? String(c.dni).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ".") : '-'}</p></div>
                     <div class="info-campo"><label>Teléfono</label><p>${c.telefono || '—'}</p></div>
                     <div class="info-campo"><label>Email</label><p>${c.email || '—'}</p></div>
                 `;

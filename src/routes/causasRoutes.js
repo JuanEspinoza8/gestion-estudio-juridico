@@ -54,4 +54,25 @@ router.put('/:id', async (req, res) => {
     }
 });
 
+// DELETE: Eliminar una causa
+router.delete('/:id', async (req, res) => {
+    try {
+        const query = 'DELETE FROM causas_judiciales WHERE id = $1 RETURNING *;';
+        const { rows } = await db.query(query, [req.params.id]);
+        if (rows.length === 0) return res.status(404).json({ error: 'Causa no encontrada' });
+        
+        logActividad(
+            req.usuario ? req.usuario.id : 1, 
+            rows[0].cliente_id, 
+            'EXPEDIENTE_ELIMINADO', 
+            `Se eliminó el expediente Nro: ${rows[0].nro_expediente}`
+        );
+
+        res.json({ message: 'Expediente eliminado con éxito' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error al eliminar el expediente' });
+    }
+});
+
 module.exports = router;
