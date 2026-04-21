@@ -16,6 +16,7 @@
             <li><a href="dashboard.html" class="active">Dashboard</a></li>
             <li><a href="clientes.html">Clientes</a></li>
             <li><a href="agenda.html">Agenda</a></li>
+            <li><a href="expedientes.html">Expedientes</a></li>
             <li style="margin-top: 20px;"><a href="#" onclick="cerrarSesion()" style="color: #ef4444;">Cerrar Sesión</a></li>
         </ul>
     </nav>
@@ -70,6 +71,15 @@
                 </div>
                 <ul class="mini-lista" id="listaVencimientos">
                     <p style="color: #64748b; font-size: 0.9rem;">Analizando vencimientos...</p>
+                </ul>
+            </div>
+
+            <div class="panel" style="grid-column: 1 / -1;">
+                <div class="panel-header">
+                    <h3>Actividad Reciente (Timeline Global)</h3>
+                </div>
+                <ul class="mini-lista" id="listaActividad">
+                    <p style="color: #64748b; font-size: 0.9rem;">Cargando actividad...</p>
                 </ul>
             </div>
         </section>

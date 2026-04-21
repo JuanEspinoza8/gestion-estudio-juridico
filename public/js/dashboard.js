@@ -29,17 +29,19 @@ async function cargarResumenGeneral() {
     };
 
     try {
-        const [resClientes, resTurnosHoy, resIngresos, resVencimientos] = await Promise.all([
+        const [resClientes, resTurnosHoy, resIngresos, resVencimientos, resActividad] = await Promise.all([
             fetch('https://api-estudio-juridico-oma1.onrender.com/api/clientes', { headers }),
             fetch(`https://api-estudio-juridico-oma1.onrender.com/api/turnos/usuario/${usuarioId}/hoy`, { headers }),
             fetch('https://api-estudio-juridico-oma1.onrender.com/api/pagos/mes-actual', { headers }),
-            fetch('https://api-estudio-juridico-oma1.onrender.com/api/notas/proximos', { headers })
+            fetch('https://api-estudio-juridico-oma1.onrender.com/api/notas/proximos', { headers }),
+            fetch(`https://api-estudio-juridico-oma1.onrender.com/api/actividad/usuario/${usuarioId}`, { headers })
         ]);
 
         const clientes = await resClientes.json();
         const turnosHoy = await resTurnosHoy.json();
         const ingresos = await resIngresos.json();
         const vencimientos = await resVencimientos.json();
+        const actividad = resActividad.ok ? await resActividad.json() : [];
 
         // KPIs
         document.getElementById('kpiTotalClientes').textContent = clientes.length;
@@ -78,6 +80,26 @@ async function cargarResumenGeneral() {
                         <strong>${v.nombre_completo}</strong>
                         <span>${v.contenido}</span>
                         <span style="${esVencida ? 'color:#ef4444; font-weight:bold;' : 'color:#f59e0b;'}">Vence: ${fecha.toLocaleDateString('es-AR')}</span>
+                    </div>
+                </li>`;
+            }).join('');
+        }
+
+        // Panel: Actividad Reciente
+        const listaActividadEl = document.getElementById('listaActividad');
+        if (!actividad || actividad.length === 0) {
+            listaActividadEl.innerHTML = `<li style="color: #64748b; font-size: 0.9rem; padding: 10px 0;">No hay actividad reciente registrada.</li>`;
+        } else {
+            listaActividadEl.innerHTML = actividad.map(a => {
+                const f = new Date(a.fecha);
+                const fechaFormateada = f.toLocaleDateString('es-AR') + ' ' + f.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'});
+                return `
+                <li style="align-items:flex-start;">
+                    <span class="material-symbols-outlined" style="color:#3b82f6;">notifications_active</span>
+                    <div class="detalle">
+                        <strong>${a.accion} ${a.cliente_nombre ? `(${a.cliente_nombre})` : ''}</strong>
+                        <span>${a.detalles || ''}</span>
+                        <span style="color:#94a3b8; font-size:0.8rem;">${fechaFormateada}</span>
                     </div>
                 </li>`;
             }).join('');

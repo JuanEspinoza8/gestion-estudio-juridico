@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Turno = require('../models/Turno');
+const { logActividad } = require('../utils/logger');
 
 // GET: Turnos de HOY de un usuario (para el dashboard)
 router.get('/usuario/:usuarioId/hoy', async (req, res) => {
@@ -84,6 +85,12 @@ router.put('/:id/estado', async (req, res) => {
         const { estado } = req.body;
         const turno = new Turno({ id: req.params.id });
         const resultado = await turno.cambiarEstado(estado);
+        
+        if (estado === 'completado') {
+            // Buscamos detalles del turno para un log más rico, o al menos anotamos el ID
+            logActividad(req.usuario.id, null, 'TURNO_COMPLETADO', `Se completó un turno de la agenda`);
+        }
+        
         res.json(resultado);
     } catch (error) {
         res.status(500).json({ error: 'Error al actualizar el estado del turno' });
