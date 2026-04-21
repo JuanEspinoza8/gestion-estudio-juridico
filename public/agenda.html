@@ -127,8 +127,15 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="motivo">Motivo de la consulta *</label>
-                    <input type="text" id="motivo" required placeholder="Ej: Sucesión, Divorcio, Contrato...">
+                    <label for="tipoEvento">Tipo de Evento *</label>
+                    <select id="tipoEvento" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="Audiencia">Audiencia</option>
+                        <option value="Mediación">Mediación</option>
+                        <option value="Presentar Escrito">Presentar Escrito</option>
+                        <option value="Reunión Cliente">Reunión Cliente</option>
+                        <option value="Otro">Otro</option>
+                    </select>
                 </div>
                 <footer class="modal-actions">
                     <button type="button" class="btn-secondary" id="btnCancelarModalTurno">Cancelar</button>
@@ -164,8 +171,15 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="editarMotivo">Motivo de la consulta *</label>
-                    <input type="text" id="editarMotivo" required>
+                    <label for="editarTipoEvento">Tipo de Evento *</label>
+                    <select id="editarTipoEvento" required>
+                        <option value="">Seleccionar...</option>
+                        <option value="Audiencia">Audiencia</option>
+                        <option value="Mediación">Mediación</option>
+                        <option value="Presentar Escrito">Presentar Escrito</option>
+                        <option value="Reunión Cliente">Reunión Cliente</option>
+                        <option value="Otro">Otro</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="editarEstado">Estado</label>

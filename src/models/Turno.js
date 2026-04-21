@@ -8,6 +8,7 @@ class Turno {
         this.fecha = turno.fecha;
         this.hora = turno.hora;
         this.motivo = turno.motivo;
+        this.tipo_evento = turno.tipo_evento || 'Otro';
         this.estado = turno.estado || 'pendiente';
     }
 
@@ -16,18 +17,18 @@ class Turno {
             if (this.id) {
                 const query = `
                     UPDATE turnos 
-                    SET cliente_id = $1, usuario_id = $2, fecha = $3, hora = $4, motivo = $5, estado = $6
-                    WHERE id = $7 RETURNING *;
+                    SET cliente_id = $1, usuario_id = $2, fecha = $3, hora = $4, motivo = $5, estado = $6, tipo_evento = $7
+                    WHERE id = $8 RETURNING *;
                 `;
-                const values = [this.cliente_id, this.usuario_id, this.fecha, this.hora, this.motivo, this.estado, this.id];
+                const values = [this.cliente_id, this.usuario_id, this.fecha, this.hora, this.motivo, this.estado, this.tipo_evento, this.id];
                 const { rows } = await db.query(query, values);
                 return rows[0];
             } else {
                 const query = `
-                    INSERT INTO turnos (cliente_id, usuario_id, fecha, hora, motivo, estado)
-                    VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;
+                    INSERT INTO turnos (cliente_id, usuario_id, fecha, hora, motivo, estado, tipo_evento)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;
                 `;
-                const values = [this.cliente_id, this.usuario_id, this.fecha, this.hora, this.motivo, this.estado];
+                const values = [this.cliente_id, this.usuario_id, this.fecha, this.hora, this.motivo, this.estado, this.tipo_evento];
                 const { rows } = await db.query(query, values);
                 this.id = rows[0].id;
                 return rows[0];

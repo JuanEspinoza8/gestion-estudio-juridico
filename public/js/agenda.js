@@ -27,7 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
             usuario_id: localStorage.getItem('usuario_id'),
             fecha: document.getElementById('fecha').value,
             hora: document.getElementById('hora').value,
-            motivo: document.getElementById('motivo').value
+            motivo: document.getElementById('tipoEvento').value,
+            tipo_evento: document.getElementById('tipoEvento').value
         };
 
         try {
@@ -63,7 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
             usuario_id: localStorage.getItem('usuario_id'),
             fecha: document.getElementById('editarFecha').value,
             hora: document.getElementById('editarHora').value,
-            motivo: document.getElementById('editarMotivo').value,
+            motivo: document.getElementById('editarTipoEvento').value,
+            tipo_evento: document.getElementById('editarTipoEvento').value,
             estado: document.getElementById('editarEstado').value
         };
 
@@ -155,12 +157,12 @@ function renderizarTarjeta(t, esHoy) {
             <div class="turno-divisor"></div>
             <div class="turno-info">
                 <div class="cliente-nombre">${t.nombre_completo}</div>
-                <div class="turno-motivo">📋 ${t.motivo}</div>
+                <div class="turno-motivo">📋 ${t.tipo_evento || t.motivo}</div>
             </div>
             <span class="badge-estado ${badgeClase}">${t.estado}</span>
             <div class="turno-acciones">
                 <button class="btn-icono editar" title="Editar"
-                    onclick="abrirModalEditar(${t.id}, '${t.cliente_id}', '${t.fecha}', '${t.hora}', '${motivoEscapado}', '${t.estado}')">
+                    onclick="abrirModalEditar(${t.id}, '${t.cliente_id}', '${t.fecha}', '${t.hora}', '${t.tipo_evento || motivoEscapado}', '${t.estado}')">
                     ✏️
                 </button>
                 <button class="btn-icono eliminar" title="Eliminar"
@@ -172,7 +174,7 @@ function renderizarTarjeta(t, esHoy) {
     `;
 }
 
-async function abrirModalEditar(id, clienteId, fecha, hora, motivo, estado) {
+async function abrirModalEditar(id, clienteId, fecha, hora, tipoEvento, estado) {
     const select = document.getElementById('editarClienteId');
     if (select.options.length <= 1) {
         await cargarDesplegableClientes('editarClienteId');
@@ -181,7 +183,10 @@ async function abrirModalEditar(id, clienteId, fecha, hora, motivo, estado) {
     document.getElementById('editarClienteId').value = clienteId;
     document.getElementById('editarFecha').value = fecha;
     document.getElementById('editarHora').value = hora.substring(0, 5);
-    document.getElementById('editarMotivo').value = motivo;
+    
+    const opcionesPermitidas = ['Audiencia', 'Mediación', 'Presentar Escrito', 'Reunión Cliente', 'Otro'];
+    document.getElementById('editarTipoEvento').value = opcionesPermitidas.includes(tipoEvento) ? tipoEvento : 'Otro';
+    
     document.getElementById('editarEstado').value = estado;
     document.getElementById('modalEditarTurno').style.display = 'flex';
 }

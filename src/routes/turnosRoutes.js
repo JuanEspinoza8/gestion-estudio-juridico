@@ -36,6 +36,12 @@ router.get('/:id', async (req, res) => {
 // POST: Crear un nuevo turno
 router.post('/', async (req, res) => {
     try {
+        const { tipo_evento } = req.body;
+        const eventosPermitidos = ['Audiencia', 'Mediación', 'Presentar Escrito', 'Reunión Cliente', 'Otro'];
+        if (tipo_evento && !eventosPermitidos.includes(tipo_evento)) {
+            return res.status(400).json({ error: 'Tipo de evento no válido' });
+        }
+
         const nuevoTurno = new Turno(req.body);
         const turnoGuardado = await nuevoTurno.guardar();
         res.status(201).json(turnoGuardado);
@@ -47,6 +53,12 @@ router.post('/', async (req, res) => {
 // PUT: Editar un turno completo
 router.put('/:id', async (req, res) => {
     try {
+        const { tipo_evento } = req.body;
+        const eventosPermitidos = ['Audiencia', 'Mediación', 'Presentar Escrito', 'Reunión Cliente', 'Otro'];
+        if (tipo_evento && !eventosPermitidos.includes(tipo_evento)) {
+            return res.status(400).json({ error: 'Tipo de evento no válido' });
+        }
+
         const datos = { ...req.body, id: req.params.id };
         const turnoActualizado = new Turno(datos);
         const resultado = await turnoActualizado.guardar();
