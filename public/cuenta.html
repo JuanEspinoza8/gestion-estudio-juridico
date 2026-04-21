@@ -443,7 +443,12 @@
         }
 
         function fmt(n) { return new Intl.NumberFormat('es-AR').format(parseFloat(n) || 0); }
-        function fmtFecha(str) { return new Date(str + 'T00:00:00').toLocaleDateString('es-AR'); }
+        function fmtFecha(str) {
+            if (!str) return '—';
+            const cleanStr = str.includes('T') ? str.split('T')[0] : str;
+            const d = new Date(cleanStr + 'T00:00:00');
+            return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('es-AR');
+        }
         function fmtFechaHora(str) {
             return new Date(str).toLocaleString('es-AR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
         }

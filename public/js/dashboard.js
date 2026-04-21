@@ -71,15 +71,16 @@ async function cargarResumenGeneral() {
             listaVencimientosEl.innerHTML = `<li style="color: #64748b; font-size: 0.9rem; padding: 10px 0;">No hay vencimientos próximos.</li>`;
         } else {
             listaVencimientosEl.innerHTML = vencimientos.map(v => {
-                const fecha = new Date(v.fecha_vencimiento + 'T00:00:00');
-                const esVencida = fecha < new Date() && v.estado !== 'completado';
+                const fecha = v.fecha_vencimiento ? new Date(v.fecha_vencimiento + 'T00:00:00') : null;
+                const esVencida = fecha && fecha < new Date() && v.estado !== 'completado';
+                const fechaStr = fecha && !isNaN(fecha.getTime()) ? fecha.toLocaleDateString('es-AR') : 'Sin fecha';
                 return `
                 <li>
                     <span class="material-symbols-outlined text-red">${esVencida ? 'warning' : 'event'}</span>
                     <div class="detalle">
                         <strong>${v.nombre_completo}</strong>
                         <span>${v.contenido}</span>
-                        <span style="${esVencida ? 'color:#ef4444; font-weight:bold;' : 'color:#f59e0b;'}">Vence: ${fecha.toLocaleDateString('es-AR')}</span>
+                        <span style="${esVencida ? 'color:#ef4444; font-weight:bold;' : 'color:#f59e0b;'}">Vence: ${fechaStr}</span>
                     </div>
                 </li>`;
             }).join('');
@@ -91,7 +92,7 @@ async function cargarResumenGeneral() {
             listaActividadEl.innerHTML = `<li style="color: #64748b; font-size: 0.9rem; padding: 10px 0;">No hay actividad reciente registrada.</li>`;
         } else {
             listaActividadEl.innerHTML = actividad.map(a => {
-                const f = new Date(a.fecha);
+                const f = a.fecha ? new Date(a.fecha) : new Date(NaN);
                 const fechaFormateada = isNaN(f.getTime()) ? 'Fecha desconocida' : f.toLocaleDateString('es-AR') + ' ' + f.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'});
                 const accionLimpia = a.accion.replace(/_/g, ' ');
                 return `

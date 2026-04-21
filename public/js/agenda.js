@@ -144,9 +144,15 @@ function renderizarAgenda(turnos, esHistorial) {
     return Object.entries(grupos).map(([fecha, turnosDia]) => {
         const esHoy = fecha === hoy && !esHistorial;
         const fechaObj = new Date(fecha + 'T00:00:00');
-        const etiquetaFecha = esHoy
+        let etiquetaFecha = esHoy
             ? '🔵 Hoy — ' + fechaObj.toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long' })
             : fechaObj.toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+
+        const hoyObj = new Date();
+        hoyObj.setHours(0, 0, 0, 0);
+        if (esHistorial && fechaObj > hoyObj) {
+            etiquetaFecha += ' (Completado por adelantado)';
+        }
 
         // Si es historial ordenamos descendente la hora
         turnosDia.sort((a,b) => esHistorial ? b.hora.localeCompare(a.hora) : a.hora.localeCompare(b.hora));
