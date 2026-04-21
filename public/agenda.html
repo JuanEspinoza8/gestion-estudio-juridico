@@ -67,7 +67,15 @@
         .btn-editar:hover, .btn-eliminar:hover { opacity: 0.8; }
 
         /* Lista sin estilos de lista */
-        #contenedorTurnos { list-style: none; padding: 0; }
+        #contenedorTurnos, #contenedorCompletados { list-style: none; padding: 0; }
+
+        /* Estilos de Tabs */
+        .tabs { display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e2e8f0; }
+        .tab-btn { padding:10px 20px; border:none; background:none; cursor:pointer; font-size:0.95rem; color:#64748b; border-bottom:3px solid transparent; margin-bottom:-2px; font-weight:600; transition:color 0.2s; }
+        .tab-btn.activo { color:#3b82f6; border-bottom-color:#3b82f6; }
+        .tab-btn:hover { color:#1e293b; }
+        .tab-panel { display:none; }
+        .tab-panel.activo { display:block; }
 
         @media (max-width: 600px) {
             .turno-card { flex-direction: column; align-items: flex-start; }
@@ -95,9 +103,19 @@
             </div>
         </header>
 
-        <section class="agenda-container">
+        <div class="tabs">
+            <button class="tab-btn activo" onclick="cambiarTabAgenda('pendientes', this)">Pendientes</button>
+            <button class="tab-btn" onclick="cambiarTabAgenda('completados', this)">Historial (Completados)</button>
+        </div>
+
+        <section class="agenda-container tab-panel activo" id="tab-pendientes">
             <ul class="lista-turnos" id="contenedorTurnos">
                 <p style="text-align: center; color: #64748b; padding: 20px;">Cargando calendario...</p>
+            </ul>
+        </section>
+
+        <section class="agenda-container tab-panel" id="tab-completados">
+            <ul class="lista-turnos" id="contenedorCompletados">
             </ul>
         </section>
     </main>

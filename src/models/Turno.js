@@ -75,15 +75,14 @@ class Turno {
         }
     }
 
-    // Todos los turnos futuros (agenda completa)
     static async obtenerProximos(usuarioId) {
         try {
             const query = `
                 SELECT t.*, c.nombre_completo
                 FROM turnos t
                 LEFT JOIN clientes c ON t.cliente_id = c.id
-                WHERE t.usuario_id = $1 AND t.fecha >= CURRENT_DATE AND t.estado = 'pendiente'
-                ORDER BY t.fecha ASC, t.hora ASC;
+                WHERE t.usuario_id = $1
+                ORDER BY t.fecha DESC, t.hora DESC;
             `;
             const { rows } = await db.query(query, [usuarioId]);
             return rows;

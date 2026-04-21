@@ -92,7 +92,9 @@ async function cargarTurnos() {
     const token = localStorage.getItem('estudio_token');
     const usuarioId = localStorage.getItem('usuario_id');
     const contenedor = document.getElementById('contenedorTurnos');
+    const contenedorComp = document.getElementById('contenedorCompletados');
     contenedor.innerHTML = '<p style="text-align:center;color:#64748b;padding:30px">Cargando agenda...</p>';
+    contenedorComp.innerHTML = '<p style="text-align:center;color:#64748b;padding:30px">Cargando historial...</p>';
 
     try {
         const res = await fetch(`${API}/api/turnos/usuario/${usuarioId}`, {
@@ -102,19 +104,27 @@ async function cargarTurnos() {
         if (!res.ok) throw new Error('Error del servidor');
         const turnos = await res.json();
 
-        if (turnos.length === 0) {
+        const pendientes = turnos.filter(t => t.estado === 'pendiente');
+        const completados = turnos.filter(t => t.estado === 'completado' || t.estado === 'cancelado');
+
+        if (pendientes.length === 0) {
             contenedor.innerHTML = '<div class="agenda-vacia"><div class="icono">📅</div><p>No hay turnos agendados próximos.</p></div>';
-            return;
+        } else {
+            contenedor.innerHTML = renderizarAgenda(pendientes, false);
         }
 
-        contenedor.innerHTML = renderizarAgenda(turnos);
+        if (completados.length === 0) {
+            contenedorComp.innerHTML = '<div class="agenda-vacia"><div class="icono">📜</div><p>No hay registro de turnos pasados.</p></div>';
+        } else {
+            contenedorComp.innerHTML = renderizarAgenda(completados, true);
+        }
 
     } catch (error) {
         contenedor.innerHTML = '<p style="color:red;text-align:center;padding:20px">Error al cargar la agenda.</p>';
     }
 }
 
-function renderizarAgenda(turnos) {
+function renderizarAgenda(turnos, esHistorial) {
     const hoy = new Date().toISOString().split('T')[0];
 
     const grupos = {};
@@ -124,12 +134,14 @@ function renderizarAgenda(turnos) {
     });
 
     return Object.entries(grupos).map(([fecha, turnosDia]) => {
-        const esHoy = fecha === hoy;
+        const esHoy = fecha === hoy && !esHistorial;
         const fechaObj = new Date(fecha + 'T00:00:00');
         const etiquetaFecha = esHoy
             ? '🔵 Hoy — ' + fechaObj.toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long' })
             : fechaObj.toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
 
+        // Si es historial ordenamos descendente la hora
+        turnosDia.sort((a,b) => esHistorial ? b.hora.localeCompare(a.hora) : a.hora.localeCompare(b.hora));
         const tarjetas = turnosDia.map(t => renderizarTarjeta(t, esHoy)).join('');
 
         return `
@@ -161,6 +173,12 @@ function renderizarTarjeta(t, esHoy) {
             </div>
             <span class="badge-estado ${badgeClase}">${t.estado}</span>
             <div class="turno-acciones">
+                ${t.estado === 'pendiente' ? `
+                <button class="btn-icono" title="Marcar Completado" style="color: #10b981; background: #d1fae5; border-radius: 5px; padding: 6px;"
+                    onclick="marcarCompletado(${t.id})">
+                    ✔️
+                </button>
+                ` : ''}
                 <button class="btn-icono editar" title="Editar"
                     onclick="abrirModalEditar(${t.id}, '${t.cliente_id}', '${t.fecha}', '${t.hora}', '${t.tipo_evento || motivoEscapado}', '${t.estado}')">
                     ✏️
@@ -172,6 +190,29 @@ function renderizarTarjeta(t, esHoy) {
             </div>
         </li>
     `;
+}
+
+function cambiarTabAgenda(nombre, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('activo'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+    document.getElementById('tab-' + nombre).classList.add('activo');
+    btn.classList.add('activo');
+}
+
+async function marcarCompletado(id) {
+    if (!confirm('¿Marcar este turno como completado?')) return;
+    const token = localStorage.getItem('estudio_token');
+    try {
+        const res = await fetch(`${API}/api/turnos/${id}/estado`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ estado: 'completado' })
+        });
+        if (res.ok) cargarTurnos();
+        else alert("No se pudo completar el turno.");
+    } catch {
+        alert("Error de conexión.");
+    }
 }
 
 async function abrirModalEditar(id, clienteId, fecha, hora, tipoEvento, estado) {

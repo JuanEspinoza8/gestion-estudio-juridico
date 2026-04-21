@@ -68,8 +68,8 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-// PATCH: Cambiar el estado de un turno (completado, cancelado)
-router.patch('/:id/estado', async (req, res) => {
+// PUT: Cambiar el estado de un turno (completado, cancelado)
+router.put('/:id/estado', async (req, res) => {
     try {
         const { estado } = req.body;
         const turno = new Turno({ id: req.params.id });
