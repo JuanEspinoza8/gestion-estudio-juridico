@@ -46,6 +46,22 @@ class Pago {
             throw error;
         }
     }
+
+    static async obtenerIngresosDelMes() {
+        try {
+            const query = `
+                SELECT COALESCE(SUM(monto), 0) AS total_ingresos
+                FROM pagos
+                WHERE EXTRACT(MONTH FROM fecha_pago) = EXTRACT(MONTH FROM CURRENT_DATE)
+                  AND EXTRACT(YEAR FROM fecha_pago) = EXTRACT(YEAR FROM CURRENT_DATE);
+            `;
+            const { rows } = await db.query(query);
+            return parseFloat(rows[0].total_ingresos);
+        } catch (error) {
+            console.error('Error al calcular ingresos del mes:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = Pago;

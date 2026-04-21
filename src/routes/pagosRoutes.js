@@ -2,6 +2,16 @@ const express = require('express');
 const router = express.Router();
 const Pago = require('../models/Pago');
 
+// GET: Obtener el total de ingresos del mes actual
+router.get('/mes-actual', async (req, res) => {
+    try {
+        const total = await Pago.obtenerIngresosDelMes();
+        res.json({ total_ingresos: total });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener ingresos del mes' });
+    }
+});
+
 // GET: Obtener historial de pagos de un cliente
 router.get('/cliente/:clienteId', async (req, res) => {
     try {

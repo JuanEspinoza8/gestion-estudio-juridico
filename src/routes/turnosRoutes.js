@@ -33,6 +33,16 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// GET: Todos los turnos de un cliente
+router.get('/cliente/:clienteId', async (req, res) => {
+    try {
+        const turnos = await Turno.obtenerPorCliente(req.params.clienteId);
+        res.json(turnos);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener turnos del cliente' });
+    }
+});
+
 // POST: Crear un nuevo turno
 router.post('/', async (req, res) => {
     try {
