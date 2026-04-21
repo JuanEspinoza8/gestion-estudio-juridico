@@ -24,6 +24,9 @@ router.post('/', async (req, res) => {
         const guardado = await nuevo.guardar();
         res.status(201).json(guardado);
     } catch (error) {
+        if (error.code === '23505') {
+            return res.status(400).json({ error: 'Ya existe un expediente/deuda idéntico para este cliente (posible clic duplicado).' });
+        }
         res.status(500).json({ error: 'Error al crear el expediente' });
     }
 });

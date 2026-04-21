@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 cargarClientes();
             } else {
                 const errorData = await respuesta.json();
-                alert("Error al guardar: " + (errorData.message || "Verifique los datos"));
+                alert("Error al guardar: " + (errorData.error || errorData.message || "Verifique los datos"));
             }
         } catch (error) {
             alert("No se pudo conectar con el servidor.");
