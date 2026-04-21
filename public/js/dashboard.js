@@ -10,12 +10,10 @@
         }
 
         // --- MEJORA UI-01: Saludo Dinámico ---
-        const usuario = obtenerUsuarioDelToken();
-        if (usuario && usuario.nombre) {
-         const subtitle = document.querySelector('.subtitle');
-         if (subtitle) {
-                subtitle.textContent = `Bienvenido, ${usuario.nombre}`;
-            }
+        const usuarioNombre = localStorage.getItem('usuario_nombre');
+        const subtitle = document.querySelector('.subtitle');
+        if (subtitle) {
+            subtitle.textContent = `Bienvenido, ${usuarioNombre || 'Usuario'}`;
         }
         // -------------------------------------
 
