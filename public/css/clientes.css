@@ -376,3 +376,9 @@ body.dark-mode .valor.verde { color: #34d399 !important; }
     background-color: #334155;
     color: white;
 }
+
+/* Correcciones Dark Mode Auditoria */
+body.dark-mode .kpi-card { background-color: #1e293b; border: 1px solid #334155; }
+body.dark-mode .kpi-number { color: #f8fafc; }
+body.dark-mode .doc-item a { color: #e2e8f0; }
+body.dark-mode .dropzone { background-color: #1e293b !important; color: #f8fafc !important; border-color: #334155 !important; }

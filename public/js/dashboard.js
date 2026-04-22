@@ -71,7 +71,7 @@ async function cargarResumenGeneral() {
             listaVencimientosEl.innerHTML = `<li style="color: #64748b; font-size: 0.9rem; padding: 10px 0;">No hay vencimientos próximos.</li>`;
         } else {
             listaVencimientosEl.innerHTML = vencimientos.map(v => {
-                const fecha = v.fecha_vencimiento ? new Date(v.fecha_vencimiento + 'T00:00:00') : null;
+                const fecha = v.fecha_vencimiento ? new Date(v.fecha_vencimiento) : null;
                 const esVencida = fecha && fecha < new Date() && v.estado !== 'completado';
                 const fechaStr = fecha && !isNaN(fecha.getTime()) ? fecha.toLocaleDateString('es-AR') : 'Sin fecha';
                 return `

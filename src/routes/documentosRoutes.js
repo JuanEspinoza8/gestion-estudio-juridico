@@ -42,6 +42,9 @@ router.post('/', upload.single('pdf'), async (req, res) => {
             return res.status(400).json({ error: 'No se envió ningún archivo' });
         }
 
+        // Convertir el nombre del archivo para solucionar el problema de las tildes corruptas
+        req.file.originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+
         const { causa_id } = req.body;
         if (!causa_id) {
             return res.status(400).json({ error: 'Se requiere el ID de la causa' });
