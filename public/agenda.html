@@ -70,11 +70,25 @@
         /* Lista sin estilos de lista */
         #contenedorTurnos, #contenedorCompletados { list-style: none; padding: 0; }
 
-        /* Dark Mode Agenda */
-        body.dark-mode .turno-card { background: #1e293b; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
-        body.dark-mode .turno-fecha strong, body.dark-mode .turno-detalle h3 { color: #f8fafc; }
-        body.dark-mode .turno-fecha span { color: #60a5fa; }
-        body.dark-mode .turno-detalle p { color: #cbd5e1; }
+        /* Dark Mode Agenda Fixes */
+        body.dark-mode .turno-card { background: #1e293b; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border-left-color: #334155; }
+        body.dark-mode .turno-card.hoy { border-left-color: #38bdf8; }
+        body.dark-mode .turno-card.completado { border-left-color: #34d399; }
+        body.dark-mode .turno-card.cancelado { border-left-color: #475569; }
+        body.dark-mode .turno-card.urgente { border-left-color: #f87171; }
+        body.dark-mode .turno-hora-bloque .hora-grande, body.dark-mode .turno-info .cliente-nombre { color: #f8fafc !important; }
+        body.dark-mode .turno-hora-bloque .hora-sufijo, body.dark-mode .turno-info .turno-motivo { color: #cbd5e1 !important; }
+        
+        body.dark-mode .btn-icono.completar { background-color: rgba(16, 185, 129, 0.2) !important; color: #34d399 !important; }
+        body.dark-mode .btn-icono.editar { background-color: rgba(3, 105, 161, 0.3) !important; color: #38bdf8 !important; }
+        body.dark-mode .btn-icono.eliminar { background-color: rgba(185, 28, 28, 0.3) !important; color: #f87171 !important; }
+        
+        body.dark-mode .badge-pendiente { background-color: rgba(133, 77, 14, 0.3) !important; color: #fde047 !important; }
+        body.dark-mode .badge-completado { background-color: rgba(22, 101, 52, 0.3) !important; color: #86efac !important; }
+        
+        body.dark-mode .modal-form select, body.dark-mode .modal-form input[type="date"], body.dark-mode .modal-form input[type="time"] {
+            background-color: #1e293b !important; border-color: #334155 !important; color: #f8fafc !important;
+        }
 
         /* Estilos de Tabs */
         .tabs { display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e2e8f0; }

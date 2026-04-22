@@ -188,7 +188,7 @@ function renderizarTarjeta(t, esHoy) {
             <span class="badge-estado ${badgeClase}">${t.estado}</span>
             <div class="turno-acciones">
                 ${t.estado === 'pendiente' ? `
-                <button class="btn-icono" title="Marcar Completado" style="color: #10b981; background: #d1fae5; border-radius: 5px; padding: 6px;"
+                <button class="btn-icono completar" title="Marcar Completado"
                     onclick="marcarCompletado(${t.id})">
                     ✔️
                 </button>
