@@ -122,6 +122,10 @@
             cursor: pointer;
             margin-bottom: 20px;
             transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         .dropzone:hover {
             border-color: #3b82f6;
@@ -261,7 +265,7 @@
                         
                         <label class="dropzone" id="dropzoneLabel" for="fileInput">
                             <span class="material-symbols-outlined" style="font-size:32px; display:block; margin-bottom:10px;">cloud_upload</span>
-                            Clic aquí para subir un archivo PDF
+                            Clic aquí para subir un archivo PDF (Máx. 5MB)
                         </label>
                         <input type="file" id="fileInput" accept="application/pdf" style="display:none;">
                         <div id="uploadProgress" style="display:none; color:#3b82f6; font-size:0.9rem; text-align:center; margin-bottom:15px;">Subiendo archivo... por favor esperá.</div>
