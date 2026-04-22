@@ -203,6 +203,7 @@ async function cargarDocumentos(causaId) {
                     <span class="material-symbols-outlined">picture_as_pdf</span>
                     <a href="${d.url_archivo}" target="_blank">${d.nombre_archivo}</a>
                     <span style="font-size:0.8rem; color:#94a3b8; margin-left:10px;">${new Date(d.subido_en).toLocaleDateString('es-AR')}</span>
+                    <button class="btn-eliminar-chico" style="margin-left:auto; cursor:pointer; color:#ef4444; background:none; border:none;" onclick="eliminarDocumento(${d.id})" title="Eliminar archivo">✕</button>
                 </li>
             `).join('');
         }
@@ -254,6 +255,24 @@ async function subirDocumento(e) {
         e.target.value = '';
         document.getElementById('dropzoneLabel').style.display = 'block';
         document.getElementById('uploadProgress').style.display = 'none';
+    }
+}
+
+
+async function eliminarDocumento(id) {
+    if (!confirm('¿Seguro que querés eliminar este archivo?')) return;
+    try {
+        const res = await fetch(`${API}/api/documentos/${id}`, {
+            method: 'DELETE',
+            headers
+        });
+        if (res.ok) {
+            cargarDocumentos(expedienteSeleccionado.id);
+        } else {
+            alert('Error al eliminar documento');
+        }
+    } catch (e) {
+        alert('Error de conexión al eliminar');
     }
 }
 

@@ -95,4 +95,30 @@ router.post('/', upload.single('pdf'), async (req, res) => {
     }
 });
 
+// DELETE: Eliminar un documento
+router.delete('/:id', async (req, res) => {
+    try {
+        const docId = req.params.id;
+        
+        const { rows: docs } = await db.query('SELECT * FROM documentos_causa WHERE id = $1', [docId]);
+        if (docs.length === 0) {
+            return res.status(404).json({ error: 'Documento no encontrado' });
+        }
+        
+        const doc = docs[0];
+        const urlParts = doc.url_archivo.split('/documentos/');
+        if (urlParts.length > 1) {
+            const filePath = urlParts[1];
+            await supabase.storage.from('documentos').remove([filePath]);
+        }
+        
+        await db.query('DELETE FROM documentos_causa WHERE id = $1', [docId]);
+        
+        res.json({ mensaje: 'Documento eliminado correctamente' });
+    } catch (error) {
+        console.error('Error al eliminar documento:', error);
+        res.status(500).json({ error: 'Error interno del servidor al eliminar el archivo' });
+    }
+});
+
 module.exports = router;
