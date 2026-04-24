@@ -68,11 +68,21 @@
 
             <div class="panel">
                 <div class="panel-header">
-                    <h3>Próximos Vencimientos</h3>
-                    <a href="clientes.html" class="link-ver-mas">Ver clientes</a>
+                    <h3>Anotaciones Rápidas</h3>
+                    <span class="material-symbols-outlined" style="cursor: pointer; color: #64748b;">edit_note</span>
                 </div>
-                <ul class="mini-lista" id="listaVencimientos">
-                    <p style="color: #64748b; font-size: 0.9rem;">Analizando vencimientos...</p>
+                
+                <div class="nota-input-container" style="margin-bottom: 15px; display: flex; gap: 10px;">
+                    <input type="text" id="nuevaNota" placeholder="Escribir recordatorio..." 
+                           style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; background: var(--bg-input, #ffffff); color: var(--text-color, #0f172a);">
+                    <button onclick="guardarNotaRapida()" 
+                            style="background: #3b82f6; color: white; border: none; border-radius: 6px; padding: 0 15px; cursor: pointer; font-weight: bold;">
+                        +
+                    </button>
+                </div>
+
+                <ul class="mini-lista" id="listaAnotaciones" style="max-height: 200px; overflow-y: auto;">
+                    <p style="color: #64748b; font-size: 0.9rem;">No hay anotaciones pendientes.</p>
                 </ul>
             </div>
 

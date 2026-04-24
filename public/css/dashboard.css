@@ -129,3 +129,11 @@
         grid-template-columns: 1fr;
     }
 }
+.dashboard-content .panel {
+    min-height: 350px; 
+    display: flex;
+    flex-direction: column;
+}
+.mini-lista {
+    flex-grow: 1; 
+}
