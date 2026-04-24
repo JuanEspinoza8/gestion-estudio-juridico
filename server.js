@@ -16,6 +16,7 @@ const causasRoutes = require('./src/routes/causasRoutes');
 const documentosRoutes = require('./src/routes/documentosRoutes');
 const notasRoutes = require('./src/routes/notasRoutes');
 const actividadRoutes = require('./src/routes/actividadRoutes');
+const notasRapidasRoutes = require('./src/routes/notasRapidasRoutes');
 
 const verificarToken = require('./src/middlewares/authMiddleware');
 
@@ -36,6 +37,7 @@ app.use('/api/expedientes', verificarToken, expedientesRoutes); // Honorarios vi
 app.use('/api/causas', verificarToken, causasRoutes); // Nuevos Expedientes
 app.use('/api/documentos', verificarToken, documentosRoutes); // PDFs
 app.use('/api/notas', verificarToken, notasRoutes);
+app.use('/api/notas-rapidas', verificarToken, notasRapidasRoutes);
 app.use('/api/actividad', verificarToken, actividadRoutes);
 
 app.get('/', (req, res) => {

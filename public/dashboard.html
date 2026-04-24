@@ -66,14 +66,28 @@
                 </ul>
             </div>
 
-            <div class="panel">
+            <div class="panel panel-notas-rapidas">
                 <div class="panel-header">
-                    <h3>Próximos Vencimientos</h3>
-                    <a href="clientes.html" class="link-ver-mas">Ver clientes</a>
+                    <h3><span class="material-symbols-outlined" style="font-size: 1.2rem; vertical-align: middle; margin-right: 4px;">sticky_note_2</span>Notas Rápidas</h3>
+                    <div class="notas-rapidas-actions">
+                        <button id="btnNuevaNota" class="btn-icon" title="Nueva nota">
+                            <span class="material-symbols-outlined">add</span>
+                        </button>
+                        <button id="btnEliminarNota" class="btn-icon btn-icon-danger" title="Eliminar esta nota">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
                 </div>
-                <ul class="mini-lista" id="listaVencimientos">
-                    <p style="color: #64748b; font-size: 0.9rem;">Analizando vencimientos...</p>
-                </ul>
+                <textarea id="notaRapidaTexto" placeholder="Escribí tu nota rápida acá..." rows="6"></textarea>
+                <div class="notas-rapidas-nav">
+                    <button id="btnNotaAnterior" class="btn-nav" disabled title="Nota más nueva">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+                    <span id="notaPaginacion" class="nota-paginacion">— / —</span>
+                    <button id="btnNotaSiguiente" class="btn-nav" disabled title="Nota más vieja">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+                </div>
             </div>
 
             <div class="panel" style="grid-column: 1 / -1;">
