@@ -1,34 +1,56 @@
-/* =========================================
-   PANTALLA DE LOGIN
-   ========================================= */
+/* public/css/login.css */
+
+:root {
+    /* Paleta Modo Oscuro Corporativo */
+    --bg-dark: #0f172a;
+    /* Slate 900 */
+    --card-dark: #1e293b;
+    /* Slate 800 */
+    --text-main: #f8fafc;
+    /* Slate 50 */
+    --text-muted: #94a3b8;
+    /* Slate 400 */
+    --primary-blue: #3b82f6;
+    /* Blue 500 */
+    --primary-hover: #2563eb;
+    /* Blue 600 */
+    --input-bg: #0f172a;
+    --input-border: #334155;
+    /* Slate 700 */
+}
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
 }
 
-body.bg-login {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f1f5f9; /* Fondo gris muy clarito */
-    height: 100vh;
+body.dark-theme {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
     display: flex;
     justify-content: center;
     align-items: center;
+    min-height: 100vh;
+    background-image: radial-gradient(circle at top right, #1e293b, transparent 40%);
 }
 
-.login-container {
+.login-wrapper {
     width: 100%;
-    max-width: 400px;
+    max-width: 420px;
     padding: 20px;
+    display: flex;
+    justify-content: center;
 }
 
 .login-card {
-    background-color: white;
-    padding: 40px 30px;
-    border-radius: 10px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    border-top: 5px solid #1e293b; /* Detalle oscuro arriba */
+    background-color: var(--card-dark);
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--input-border);
+    width: 100%;
 }
 
 .login-header {
@@ -37,66 +59,159 @@ body.bg-login {
 }
 
 .logo-icon {
-    font-size: 48px;
-    color: #1e293b;
+    font-size: 56px;
+    color: var(--primary-blue);
+    display: inline-block;
+    /* Esto garantiza que respete el centrado del contenedor */
     margin-bottom: 10px;
 }
 
 .login-header h1 {
     font-size: 1.5rem;
-    color: #0f172a;
+    font-weight: 600;
+    margin-bottom: 5px;
 }
 
 .login-header p {
-    color: #64748b;
+    color: var(--text-muted);
     font-size: 0.9rem;
-    margin-top: 5px;
 }
 
-.form-group {
-    margin-bottom: 20px;
+.login-form {
     display: flex;
     flex-direction: column;
+    gap: 18px;
 }
 
-.form-group label {
-    font-size: 0.9rem;
-    color: #334155;
-    margin-bottom: 5px;
-    font-weight: bold;
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
-.form-group input {
-    padding: 12px;
-    border: 1px solid #cbd5e1;
+.input-group label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.input-group input {
+    background-color: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-main);
+    padding: 12px 15px;
     border-radius: 6px;
     font-size: 1rem;
+    transition: all 0.3s ease;
     outline: none;
-    transition: border-color 0.2s;
+    width: 100%;
 }
 
-.form-group input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+.input-group input:focus {
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
-.btn-primary {
-    background-color: #3b82f6;
+.btn-login {
+    background-color: var(--primary-blue);
     color: white;
     border: none;
-    padding: 12px 20px;
+    padding: 14px;
     border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
     font-size: 1rem;
-    transition: background-color 0.2s;
-}
-
-.btn-primary:hover {
-    background-color: #2563eb;
-}
-
-.btn-block {
-    width: 100%;
+    font-weight: 600;
+    cursor: pointer;
     margin-top: 10px;
+    transition: background-color 0.3s ease;
+    width: 100%;
+}
+
+.btn-login:hover {
+    background-color: var(--primary-hover);
+}
+
+.login-footer {
+    margin-top: 25px;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--input-border);
+    padding-top: 20px;
+}
+
+.login-footer .highlight {
+    color: var(--primary-blue);
+    margin-top: 5px;
+    font-weight: 600;
+}
+
+/* ========================================================
+   REGLAS DE RESPONSIVIDAD (MOBILE FIRST ADAPTATION)
+   ======================================================== */
+
+/* Pantallas medianas/chicas (Ej: Celulares estándar - iPhone, Samsung) */
+@media screen and (max-width: 480px) {
+    .login-wrapper {
+        padding: 15px;
+    }
+
+    .login-card {
+        padding: 30px 20px;
+        /* Reducimos el margen interno para ganar espacio */
+    }
+
+    .login-header {
+        margin-bottom: 25px;
+    }
+
+    .logo-icon {
+        font-size: 2.5rem;
+    }
+
+    .login-header h1 {
+        font-size: 1.3rem;
+        /* Evitamos que el título salte de línea */
+    }
+}
+
+/* Pantallas ultra pequeñas (Ej: Galaxy Fold cerrado, celulares muy viejos) */
+@media screen and (max-width: 340px) {
+    .login-wrapper {
+        padding: 10px;
+    }
+
+    .login-card {
+        padding: 25px 15px;
+    }
+
+    .input-group input,
+    .btn-login {
+        padding: 10px;
+    }
+
+    .login-footer {
+        font-size: 0.75rem;
+    }
+}
+
+/* Animación de giro para el ícono de carga */
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.spin-anim {
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 8px;
+}
+
+/* Estado del botón mientras carga */
+.btn-loading {
+    background-color: var(--input-border) !important;
+    color: var(--text-muted) !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
 }
