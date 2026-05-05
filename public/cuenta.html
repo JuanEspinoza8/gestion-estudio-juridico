@@ -1,60 +1,409 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cuenta Corriente - Estudio Jurídico</title>
     <link rel="stylesheet" href="./css/clientes.css">
+
+    <!-- FUENTES E ÍCONOS PREMIUM -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+
+    <!-- SWEETALERT 2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="./js/theme.js"></script>
+
     <style>
-        .tabs { display:flex; gap:4px; margin-bottom:24px; border-bottom:2px solid #e2e8f0; }
-        .tab-btn { padding:10px 20px; border:none; background:none; cursor:pointer; font-size:0.95rem; color:#64748b; border-bottom:3px solid transparent; margin-bottom:-2px; font-weight:600; transition:color 0.2s; }
-        .tab-btn.activo { color:#3b82f6; border-bottom-color:#3b82f6; }
-        .tab-btn:hover { color:#1e293b; }
-        .tab-panel { display:none; }
-        .tab-panel.activo { display:block; }
+        /* ESTILOS GENERALES Y TABS */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid #e2e8f0;
+        }
 
-        .resumen-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:14px; margin-bottom:24px; }
-        .resumen-card { background:white; border-radius:8px; padding:16px 18px; box-shadow:0 2px 6px rgba(0,0,0,0.06); }
-        .resumen-card h4 { font-size:0.78rem; text-transform:uppercase; color:#94a3b8; margin-bottom:6px; letter-spacing:0.4px; }
-        .resumen-card .valor { font-size:1.45rem; font-weight:800; color:#1e293b; }
-        .resumen-card .valor.rojo { color:#ef4444; }
-        .resumen-card .valor.verde { color:#10b981; }
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: #64748b;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            font-weight: 600;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-        .info-cliente { background:white; padding:16px 20px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.05); margin-bottom:20px; display:flex; gap:28px; flex-wrap:wrap; }
-        .info-campo label { font-size:0.78rem; text-transform:uppercase; color:#94a3b8; letter-spacing:0.4px; }
-        .info-campo p { font-size:0.95rem; color:#1e293b; font-weight:600; margin-top:2px; }
+        .tab-btn.activo {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
 
-        body.dark-mode .resumen-card, body.dark-mode .info-cliente { background: #1e293b; }
-        body.dark-mode .resumen-card .valor, body.dark-mode .info-campo p { color: #f8fafc; }
+        .tab-btn:hover {
+            color: #1e293b;
+        }
 
-        .estado-vacio { text-align:center; padding:30px; color:#94a3b8; font-size:0.9rem; }
+        .tab-panel {
+            display: none;
+        }
 
-        /* Expedientes */
-        .expediente-item { background:white; border-radius:8px; padding:14px 18px; margin-bottom:10px; box-shadow:0 1px 4px rgba(0,0,0,0.06); border-left:3px solid #ef4444; display:flex; align-items:center; gap:14px; }
-        .expediente-info { flex:1; }
-        .expediente-info strong { color:#1e293b; }
-        .expediente-info p { color:#94a3b8; font-size:0.82rem; margin-top:3px; }
-        .expediente-monto { font-size:1.1rem; font-weight:800; color:#ef4444; white-space:nowrap; }
+        .tab-panel.activo {
+            display: block;
+        }
 
-        /* Notas */
-        .notas-lista { list-style:none; padding:0; }
-        .nota-item { background:white; border-radius:8px; padding:14px 18px; margin-bottom:10px; box-shadow:0 1px 4px rgba(0,0,0,0.06); border-left:3px solid #3b82f6; display:flex; align-items:flex-start; gap:12px; }
-        .nota-contenido { flex:1; }
-        .nota-contenido p { color:#1e293b; font-size:0.95rem; line-height:1.55; white-space:pre-wrap; }
-        .nota-fecha { font-size:0.78rem; color:#94a3b8; margin-top:6px; }
-        .btn-eliminar-chico { border:none; background:none; cursor:pointer; color:#cbd5e1; font-size:1rem; padding:2px 4px; transition:color 0.2s; flex-shrink:0; }
-        .btn-eliminar-chico:hover { color:#ef4444; }
+        .resumen-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
 
-        .add-nota-form { display:flex; gap:10px; margin-bottom:20px; }
-        .add-nota-form textarea { flex:1; padding:10px; border:1px solid #cbd5e1; border-radius:6px; font-family:inherit; font-size:0.9rem; resize:vertical; min-height:64px; outline:none; transition:border-color 0.2s; }
-        .add-nota-form textarea:focus { border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
-        .add-nota-form button { align-self:flex-end; white-space:nowrap; }
+        .resumen-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px 18px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+        }
 
-        .acciones-grupo { display:flex; gap:8px; flex-wrap:wrap; }
-        .btn-rojo { background:#ef4444 !important; }
+        .resumen-card h4 {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            letter-spacing: 0.4px;
+        }
+
+        .resumen-card .valor {
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        .resumen-card .valor.rojo {
+            color: #ef4444;
+        }
+
+        .resumen-card .valor.verde {
+            color: #10b981;
+        }
+
+        .info-cliente {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 28px;
+            flex-wrap: wrap;
+        }
+
+        .info-campo label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            color: #94a3b8;
+            letter-spacing: 0.4px;
+        }
+
+        .info-campo p {
+            font-size: 0.95rem;
+            color: #1e293b;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        body.dark-mode .resumen-card,
+        body.dark-mode .info-cliente {
+            background: #1e293b;
+        }
+
+        body.dark-mode .resumen-card .valor,
+        body.dark-mode .info-campo p {
+            color: #f8fafc;
+        }
+
+        .estado-vacio {
+            text-align: center;
+            padding: 30px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        /* LISTAS Y ELEMENTOS */
+        .expediente-item {
+            background: white;
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+            border-left: 3px solid #ef4444;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .expediente-info {
+            flex: 1;
+        }
+
+        .expediente-info strong {
+            color: #1e293b;
+        }
+
+        .expediente-info p {
+            color: #94a3b8;
+            font-size: 0.82rem;
+            margin-top: 3px;
+        }
+
+        .expediente-monto {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #ef4444;
+            white-space: nowrap;
+        }
+
+        .notas-lista {
+            list-style: none;
+            padding: 0;
+        }
+
+        .nota-item {
+            background: white;
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+            border-left: 3px solid #3b82f6;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .nota-contenido {
+            flex: 1;
+        }
+
+        .nota-contenido p {
+            color: #1e293b;
+            font-size: 0.95rem;
+            line-height: 1.55;
+            white-space: pre-wrap;
+        }
+
+        .nota-fecha {
+            font-size: 0.78rem;
+            color: #94a3b8;
+            margin-top: 6px;
+        }
+
+        .btn-eliminar-chico {
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: #cbd5e1;
+            font-size: 1rem;
+            padding: 2px 4px;
+            transition: color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-eliminar-chico:hover {
+            color: #ef4444;
+        }
+
+        .add-nota-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .add-nota-form textarea {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            resize: vertical;
+            min-height: 64px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .add-nota-form textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .add-nota-form button {
+            align-self: flex-end;
+            white-space: nowrap;
+        }
+
+        .acciones-grupo {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-rojo {
+            background: #ef4444 !important;
+        }
+
+        /* TARJETA FINANCIERA DE CUOTAS (PREMIUM) */
+        .finance-card {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 24px;
+            color: #f8fafc;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+
+        .finance-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+        }
+
+        .finance-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .finance-title h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .icon-blue {
+            color: #3b82f6;
+            font-size: 28px;
+        }
+
+        .finance-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .finance-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.95rem;
+        }
+
+        .finance-label {
+            color: #94a3b8;
+        }
+
+        .finance-value {
+            font-weight: 600;
+        }
+
+        .highlight-row {
+            background-color: rgba(59, 130, 246, 0.1);
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .text-blue {
+            color: #60a5fa;
+        }
+
+        body:not(.dark-mode) .finance-card {
+            background-color: #f8fafc;
+            border-color: #cbd5e1;
+            color: #1e293b;
+        }
+
+        body:not(.dark-mode) .finance-header {
+            border-bottom-color: #cbd5e1;
+        }
+
+        body:not(.dark-mode) .finance-label {
+            color: #64748b;
+        }
+
+        /* --- ESTILOS CONTROL DE CUOTAS PREMIUM --- */
+        /* 1. Ocultamos las flechas feas del navegador */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        /* 2. Creamos la "píldora" moderna */
+        .cuotas-control {
+            display: flex;
+            align-items: center;
+            background: #0f172a;
+            /* Fondo más oscuro */
+            border: 1px solid #334155;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .btn-cuota {
+            background: transparent;
+            color: #94a3b8;
+            border: none;
+            padding: 12px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-cuota:hover {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .cuotas-control input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            outline: none;
+        }
+
+        /* Adaptación para el modo claro */
+        body:not(.dark-mode) .cuotas-control {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        body:not(.dark-mode) .cuotas-control input {
+            color: #1e293b;
+        }
     </style>
 </head>
+
 <body>
 
     <nav class="navbar">
@@ -64,7 +413,8 @@
             <li><a href="clientes.html" class="active">Clientes</a></li>
             <li><a href="agenda.html">Agenda</a></li>
             <li><a href="expedientes.html">Expedientes</a></li>
-            <li style="margin-top:20px"><a href="#" onclick="cerrarSesion()" style="color:#ef4444">Cerrar Sesión</a></li>
+            <li style="margin-top:20px"><a href="#" onclick="cerrarSesion()" style="color:#ef4444">Cerrar Sesión</a>
+            </li>
         </ul>
     </nav>
 
@@ -73,8 +423,8 @@
             <h1 id="tituloCliente">Cargando...</h1>
             <div class="acciones-grupo">
                 <button class="btn-secondary" onclick="window.location.href='clientes.html'">← Volver</button>
-                <button class="btn-primary btn-rojo" id="btnAgregarDeuda">+ Agregar Deuda</button>
-                <button class="btn-primary" id="btnRegistrarPago">+ Registrar Pago</button>
+                <button class="btn-primary btn-rojo" id="btnAbrirModalDeuda">+ Agregar Deuda</button>
+                <button class="btn-primary" id="btnAbrirModalPago">+ Registrar Pago</button>
             </div>
         </header>
 
@@ -85,25 +435,59 @@
         <div class="resumen-grid">
             <div class="resumen-card">
                 <h4>Total Honorarios</h4>
-                <div class="valor" id="totalHonorarios">$ ...</div>
+                <div class="valor" id="totalHonorarios">$ 0</div>
             </div>
             <div class="resumen-card">
                 <h4>Total Pagado</h4>
-                <div class="valor verde" id="totalPagado">$ ...</div>
+                <div class="valor verde" id="totalPagado">$ 0</div>
             </div>
             <div class="resumen-card">
                 <h4>Saldo Deudor</h4>
-                <div class="valor rojo" id="saldoDeudor">$ ...</div>
+                <div class="valor rojo" id="saldoDeudor">$ 0</div>
             </div>
         </div>
 
-        <div class="tabs">
-            <button class="tab-btn activo" onclick="cambiarTab('historial', this)">🕒 Línea de Tiempo</button>
-            <button class="tab-btn" onclick="cambiarTab('pagos', this)">💰 Pagos</button>
-            <button class="tab-btn" onclick="cambiarTab('deudas', this)">📄 Honorarios</button>
-            <button class="tab-btn" onclick="cambiarTab('notas', this)">📝 Notas</button>
+        <!-- TARJETA DE CUOTAS PREMIUM -->
+        <div class="finance-card" id="tarjetaCuotas">
+            <div class="finance-header">
+                <div class="finance-title">
+                    <span class="material-symbols-outlined icon-blue">account_balance_wallet</span>
+                    <h2>Plan de Pagos Activo</h2>
+                </div>
+            </div>
+            <div class="finance-body">
+                <div class="finance-row highlight-row">
+                    <span class="finance-label">Estado de Cuotas:</span>
+                    <span class="finance-value text-blue" id="estadoCuotasUI">
+                        <span class="material-symbols-outlined"
+                            style="font-size: 18px; vertical-align: text-bottom;">sync</span>
+                        Calculando estado...
+                    </span>
+                </div>
+                <div class="finance-row">
+                    <span class="finance-label">Valor de Próxima Cuota:</span>
+                    <span class="finance-value" id="valorCuotaEstimado">Depende del plan</span>
+                </div>
+            </div>
         </div>
 
+        <!-- TABS PREMIUM CON MATERIAL ICONS -->
+        <div class="tabs">
+            <button class="tab-btn activo" onclick="cambiarTab('historial', this)">
+                <span class="material-symbols-outlined" style="font-size: 18px;">history</span> Línea de Tiempo
+            </button>
+            <button class="tab-btn" onclick="cambiarTab('pagos', this)">
+                <span class="material-symbols-outlined" style="font-size: 18px;">payments</span> Pagos
+            </button>
+            <button class="tab-btn" onclick="cambiarTab('deudas', this)">
+                <span class="material-symbols-outlined" style="font-size: 18px;">description</span> Honorarios
+            </button>
+            <button class="tab-btn" onclick="cambiarTab('notas', this)">
+                <span class="material-symbols-outlined" style="font-size: 18px;">edit_note</span> Notas
+            </button>
+        </div>
+
+        <!-- PANELES DE LAS TABS -->
         <div class="tab-panel activo" id="tab-historial">
             <ul class="notas-lista" id="listaHistorial">
                 <li class="estado-vacio">Cargando...</li>
@@ -113,22 +497,33 @@
         <div class="tab-panel" id="tab-pagos">
             <section class="table-container">
                 <table>
-                    <thead><tr><th>Fecha</th><th>Monto</th><th>Método</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Monto</th>
+                            <th>Método</th>
+                        </tr>
+                    </thead>
                     <tbody id="tbodyPagos">
-                        <tr><td colspan="3" class="estado-vacio">Cargando...</td></tr>
+                        <tr>
+                            <td colspan="3" class="estado-vacio">Cargando...</td>
+                        </tr>
                     </tbody>
                 </table>
             </section>
         </div>
 
         <div class="tab-panel" id="tab-deudas">
-            <div id="listaExpedientes"><p class="estado-vacio">Cargando...</p></div>
+            <div id="listaExpedientes">
+                <p class="estado-vacio">Cargando...</p>
+            </div>
         </div>
 
         <div class="tab-panel" id="tab-notas">
             <div class="add-nota-form">
                 <textarea id="nuevaNota" placeholder="Escribí una nueva nota sobre el caso..."></textarea>
-                <input type="date" id="fechaVencimientoNota" title="Fecha límite (Opcional)" style="border:1px solid #cbd5e1; border-radius:6px; padding:0 10px;">
+                <input type="date" id="fechaVencimientoNota" title="Fecha límite (Opcional)"
+                    style="border:1px solid #cbd5e1; border-radius:6px; padding:0 10px;">
                 <button class="btn-primary" onclick="agregarNota()">Agregar nota</button>
             </div>
             <ul class="notas-lista" id="listaNota">
@@ -137,16 +532,16 @@
         </div>
     </main>
 
-    <!-- Modal Pago -->
-    <div id="modalPago" class="modal-overlay">
+    <!-- MODAL PAGO (SIN CAMPO DE CUOTAS) -->
+    <div id="modalPago" class="modal-overlay" style="display:none;">
         <div class="modal-content">
             <header class="modal-header">
                 <h2>Registrar Pago</h2>
-                <button class="btn-close" id="btnCerrarModalPago">&times;</button>
+                <button class="btn-close" onclick="cerrarModal('modalPago')">&times;</button>
             </header>
             <form id="formPago" class="modal-form">
                 <div class="form-group">
-                    <label for="montoPago">Monto *</label>
+                    <label for="montoPago">Monto que ingresa *</label>
                     <input type="number" id="montoPago" min="1" step="0.01" required placeholder="Ej: 50000">
                 </div>
                 <div class="form-group">
@@ -156,44 +551,54 @@
                         <option>Efectivo</option>
                         <option>Transferencia Bancaria</option>
                         <option>Cheque</option>
-                        <option>Tarjeta de Débito</option>
-                        <option>Tarjeta de Crédito</option>
+                        <option>Tarjeta</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="fechaPago">Fecha *</label>
                     <input type="date" id="fechaPago" required>
                 </div>
-                <div class="form-group" style="flex-direction:row; align-items:center; gap:8px;">
-                    <input type="checkbox" id="generarDeudaMismoMonto" style="width:auto;">
-                    <label for="generarDeudaMismoMonto" style="margin:0; font-weight:normal; cursor:pointer;">Generar honorario automáticamente para balancear este pago</label>
-                </div>
                 <footer class="modal-actions">
-                    <button type="button" class="btn-secondary" id="btnCancelarPago">Cancelar</button>
+                    <button type="button" class="btn-secondary" onclick="cerrarModal('modalPago')">Cancelar</button>
                     <button type="submit" class="btn-primary">Guardar Pago</button>
                 </footer>
             </form>
         </div>
     </div>
 
-    <!-- Modal Deuda -->
-    <div id="modalDeuda" class="modal-overlay">
+    <!-- MODAL DEUDA (CON CAMPO DE CUOTAS AUTOMÁTICO) -->
+    <div id="modalDeuda" class="modal-overlay" style="display:none;">
         <div class="modal-content">
             <header class="modal-header">
                 <h2>Agregar Honorario / Deuda</h2>
-                <button class="btn-close" id="btnCerrarModalDeuda">&times;</button>
+                <button class="btn-close" onclick="cerrarModal('modalDeuda')">&times;</button>
             </header>
             <form id="formDeuda" class="modal-form">
                 <div class="form-group">
                     <label for="descripcionDeuda">Concepto *</label>
-                    <input type="text" id="descripcionDeuda" required placeholder="Ej: Honorarios juicio laboral, Consulta inicial...">
+                    <input type="text" id="descripcionDeuda" required placeholder="Ej: Honorarios juicio laboral">
                 </div>
                 <div class="form-group">
-                    <label for="montoDeuda">Monto de Honorarios *</label>
+                    <label for="montoDeuda">Monto Total de Honorarios *</label>
                     <input type="number" id="montoDeuda" min="1" step="0.01" required placeholder="Ej: 200000">
                 </div>
+
+                <!-- ESTE ES EL CAMPO DE CUOTAS -->
+                <div class="form-group">
+                    <label for="cantidadCuotas">¿En cuántas cuotas se divide? *</label>
+                    <div class="cuotas-control">
+                        <button type="button" class="btn-cuota" id="btnRestarCuota">
+                            <span class="material-symbols-outlined">remove</span>
+                        </button>
+                        <input type="number" id="cantidadCuotas" min="1" max="36" value="1" required>
+                        <button type="button" class="btn-cuota" id="btnSumarCuota">
+                            <span class="material-symbols-outlined">add</span>
+                        </button>
+                    </div>
+                </div>
+
                 <footer class="modal-actions">
-                    <button type="button" class="btn-secondary" id="btnCancelarDeuda">Cancelar</button>
+                    <button type="button" class="btn-secondary" onclick="cerrarModal('modalDeuda')">Cancelar</button>
                     <button type="submit" class="btn-primary btn-rojo">Agregar Deuda</button>
                 </footer>
             </form>
@@ -208,6 +613,7 @@
 
         if (!token || !clienteId) window.location.href = 'clientes.html';
 
+        // LÓGICA DE INTERFAZ
         function cambiarTab(nombre, btn) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('activo'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
@@ -215,69 +621,79 @@
             btn.classList.add('activo');
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        document.getElementById('btnAbrirModalPago').onclick = () => {
+            document.getElementById('fechaPago').value = new Date().toISOString().split('T')[0];
+            abrirModal('modalPago');
+        };
+        document.getElementById('btnAbrirModalDeuda').onclick = () => abrirModal('modalDeuda');
+        // LÓGICA DE LOS BOTONES + Y - PARA LAS CUOTAS
+        document.getElementById('btnSumarCuota').onclick = () => {
+            const input = document.getElementById('cantidadCuotas');
+            let valor = parseInt(input.value) || 1;
+            if (valor < 36) input.value = valor + 1; // Tope máximo de 36 cuotas
+        };
+
+        document.getElementById('btnRestarCuota').onclick = () => {
+            const input = document.getElementById('cantidadCuotas');
+            let valor = parseInt(input.value) || 1;
+            if (valor > 1) input.value = valor - 1; // Tope mínimo de 1 cuota
+        };
+
+        // ENVÍO DE PAGO (Ciego, sin cuotas manuales)
+        document.getElementById('formPago').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await fetchPost(`${API}/api/pagos`, {
+                cliente_id: clienteId,
+                monto: document.getElementById('montoPago').value,
+                metodo_pago: document.getElementById('metodoPago').value,
+                fecha_pago: document.getElementById('fechaPago').value
+            }, "Pago registrado correctamente");
+
+            cerrarModal('modalPago');
+            document.getElementById('formPago').reset();
             cargarTodo();
-
-            // --- Modal Pago ---
-            const modalPago = document.getElementById('modalPago');
-            document.getElementById('btnRegistrarPago').onclick = () => {
-                document.getElementById('fechaPago').value = new Date().toISOString().split('T')[0];
-                modalPago.style.display = 'flex';
-            };
-            document.getElementById('btnCerrarModalPago').onclick = () => modalPago.style.display = 'none';
-            document.getElementById('btnCancelarPago').onclick = () => modalPago.style.display = 'none';
-            document.getElementById('formPago').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const monto = document.getElementById('montoPago').value;
-                const generarDeuda = document.getElementById('generarDeudaMismoMonto').checked;
-                
-                if (generarDeuda) {
-                    await fetchPost(`${API}/api/expedientes`, {
-                        cliente_id: clienteId,
-                        descripcion: 'Honorario autogenerado por pago ingresado',
-                        honorarios_totales: monto
-                    });
-                }
-
-                await fetchPost(`${API}/api/pagos`, {
-                    cliente_id: clienteId,
-                    monto: monto,
-                    metodo_pago: document.getElementById('metodoPago').value,
-                    fecha_pago: document.getElementById('fechaPago').value
-                });
-                
-                modalPago.style.display = 'none';
-                document.getElementById('formPago').reset();
-                cargarTodo();
-            });
-
-            // --- Modal Deuda ---
-            const modalDeuda = document.getElementById('modalDeuda');
-            document.getElementById('btnAgregarDeuda').onclick = () => modalDeuda.style.display = 'flex';
-            document.getElementById('btnCerrarModalDeuda').onclick = () => modalDeuda.style.display = 'none';
-            document.getElementById('btnCancelarDeuda').onclick = () => modalDeuda.style.display = 'none';
-            document.getElementById('formDeuda').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                await fetchPost(`${API}/api/expedientes`, {
-                    cliente_id: clienteId,
-                    descripcion: document.getElementById('descripcionDeuda').value,
-                    honorarios_totales: document.getElementById('montoDeuda').value
-                });
-                modalDeuda.style.display = 'none';
-                document.getElementById('formDeuda').reset();
-                cargarTodo();
-            });
         });
 
-        async function fetchPost(url, body) {
+        // ENVÍO DE DEUDA (Le mandamos a Juan la cantidad de cuotas)
+        document.getElementById('formDeuda').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await fetchPost(`${API}/api/expedientes`, {
+                cliente_id: clienteId,
+                descripcion: document.getElementById('descripcionDeuda').value,
+                honorarios_totales: document.getElementById('montoDeuda').value,
+                cuotas_totales: document.getElementById('cantidadCuotas').value
+            }, "Honorario agregado al sistema");
+
+            cerrarModal('modalDeuda');
+            document.getElementById('formDeuda').reset();
+            cargarTodo();
+        });
+
+        // FUNCIONES DE API Y CARGA
+        async function fetchPost(url, body, mensajeExito) {
             try {
                 const res = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                     body: JSON.stringify(body)
                 });
-                if (!res.ok) { const e = await res.json(); alert(e.error || 'Error al guardar'); }
-            } catch { alert('Error de conexión'); }
+                if (!res.ok) {
+                    const e = await res.json();
+                    Swal.fire({ icon: 'error', title: 'Error', text: e.error || 'Error al guardar', background: '#1e293b', color: '#f8fafc' });
+                } else if (mensajeExito) {
+                    Swal.fire({ icon: 'success', title: '¡Listo!', text: mensajeExito, background: '#1e293b', color: '#f8fafc', timer: 1500, showConfirmButton: false });
+                }
+            } catch {
+                Swal.fire({ icon: 'error', title: 'Conexión Fallida', text: 'Error al conectar con el servidor', background: '#1e293b', color: '#f8fafc' });
+            }
+        }
+
+        async function fetchDelete(url) {
+            try { await fetch(url, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); }
+            catch { Swal.fire('Error', 'Error de conexión', 'error'); }
         }
 
         async function cargarTodo() {
@@ -292,23 +708,23 @@
                     fetch(`${API}/api/turnos/cliente/${clienteId}`, { headers: h })
                 ]);
 
-                // Cliente
+                // 1. Datos del Cliente
                 const c = await resC.json();
                 document.getElementById('tituloCliente').textContent = c.nombre_completo;
                 document.getElementById('infoCliente').innerHTML = `
-                    <div class="info-campo"><label>DNI</label><p>${c.dni ? String(c.dni).replace(/\\B(?=(\\d{3})+(?!\\d))/g, ".") : '-'}</p></div>
+                    <div class="info-campo"><label>DNI</label><p>${c.dni ? String(c.dni).replace(/\B(?=(\d{3})+(?!\d))/g, ".") : '-'}</p></div>
                     <div class="info-campo"><label>Teléfono</label><p>${c.telefono || '—'}</p></div>
                     <div class="info-campo"><label>Email</label><p>${c.email || '—'}</p></div>
                 `;
 
-                // Saldo
+                // 2. Saldos y Pagos
                 const s = await resS.json();
                 document.getElementById('saldoDeudor').textContent = '$ ' + fmt(s.saldo_deudor || 0);
 
-                // Pagos
                 const pagos = await resP.json();
                 const totalPagado = pagos.reduce((sum, p) => sum + parseFloat(p.monto), 0);
                 document.getElementById('totalPagado').textContent = '$ ' + fmt(totalPagado);
+
                 const tbody = document.getElementById('tbodyPagos');
                 tbody.innerHTML = pagos.length === 0
                     ? '<tr><td colspan="3" class="estado-vacio">No hay pagos registrados aún.</td></tr>'
@@ -318,10 +734,10 @@
                         <td>${p.metodo_pago || '—'}</td>
                       </tr>`).join('');
 
-                // Expedientes
                 const exps = await resE.json();
                 const totalHon = exps.reduce((sum, e) => sum + parseFloat(e.honorarios_totales), 0);
                 document.getElementById('totalHonorarios').textContent = '$ ' + fmt(totalHon);
+
                 document.getElementById('listaExpedientes').innerHTML = exps.length === 0
                     ? '<p class="estado-vacio">No hay honorarios cargados. Usá "+ Agregar Deuda".</p>'
                     : exps.map(exp => `
@@ -334,41 +750,36 @@
                             <button class="btn-eliminar-chico" onclick="eliminarExpediente(${exp.id})" title="Eliminar">🗑️</button>
                         </div>`).join('');
 
-                // Notas
+                // 3. ACTUALIZACIÓN AUTOMÁTICA DE LA TARJETA DE CUOTAS
+                // Esto preparará la tarjeta para cuando Juan mande los datos, pero ya funciona con lógica básica
+                const uiCuotas = document.getElementById('estadoCuotasUI');
+                if (totalHon === 0) {
+                    uiCuotas.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px; vertical-align: text-bottom;">info</span> <strong>Sin plan activo</strong>';
+                } else if (s.saldo_deudor <= 0) {
+                    uiCuotas.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px; vertical-align: text-bottom;">task_alt</span> <strong>Plan Cancelado al 100%</strong>';
+                    uiCuotas.style.color = '#10b981'; // Verde
+                } else {
+                    // Muestra el porcentaje de pago hasta que Juan devuelva la cantidad exacta de cuotas
+                    const porcentaje = Math.round((totalPagado / totalHon) * 100);
+                    uiCuotas.innerHTML = `<span class="material-symbols-outlined" style="font-size: 18px; vertical-align: text-bottom;">hourglass_bottom</span> <strong>Abonado al ${porcentaje}%</strong>`;
+                }
+
+                // Resto de la carga (Notas y Timeline)
                 const notas = await resN.json();
                 renderizarNotas(notas);
 
-                // Timeline
                 const turnos = await resT.json();
                 const timeline = [];
-                pagos.forEach(p => timeline.push({
-                    fecha: p.fecha_pago,
-                    icono: '💰',
-                    titulo: 'Pago recibido: ' + (p.metodo_pago || ''),
-                    monto: p.monto,
-                    color: '#10b981'
-                }));
-                exps.forEach(e => timeline.push({
-                    fecha: e.creado_en.split('T')[0],
-                    icono: '📄',
-                    titulo: 'Deuda/Honorario: ' + (e.descripcion || ''),
-                    monto: e.honorarios_totales,
-                    color: '#ef4444'
-                }));
-                turnos.forEach(t => timeline.push({
-                    fecha: t.fecha,
-                    icono: '📅',
-                    titulo: 'Turno (' + t.estado + '): ' + (t.tipo_evento || t.motivo),
-                    monto: null,
-                    color: '#3b82f6'
-                }));
-                
+                pagos.forEach(p => timeline.push({ fecha: p.fecha_pago, icono: 'payments', titulo: 'Pago recibido: ' + (p.metodo_pago || ''), monto: p.monto, color: '#10b981' }));
+                exps.forEach(e => timeline.push({ fecha: e.creado_en.split('T')[0], icono: 'description', titulo: 'Honorario: ' + (e.descripcion || ''), monto: e.honorarios_totales, color: '#ef4444' }));
+                turnos.forEach(t => timeline.push({ fecha: t.fecha, icono: 'calendar_month', titulo: 'Turno: ' + (t.tipo_evento || t.motivo), monto: null, color: '#3b82f6' }));
+
                 timeline.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
                 document.getElementById('listaHistorial').innerHTML = timeline.length === 0
                     ? '<li class="estado-vacio">No hay historial para este cliente.</li>'
                     : timeline.map(item => `
                         <li class="nota-item" style="border-left-color: ${item.color}">
-                            <div style="font-size: 1.5rem; margin-right: 10px;">${item.icono}</div>
+                            <div style="margin-right: 10px;"><span class="material-symbols-outlined" style="color:${item.color}">${item.icono}</span></div>
                             <div class="nota-contenido">
                                 <p><strong>${item.titulo}</strong></p>
                                 <div class="nota-fecha">${fmtFecha(item.fecha)}</div>
@@ -380,10 +791,11 @@
             } catch (err) { console.error('Error cargando datos:', err); }
         }
 
+        // --- FUNCIONES SECUNDARIAS (Notas, Eliminar, Formateo) ---
         function renderizarNotas(notas) {
             const hoy = new Date();
             document.getElementById('listaNota').innerHTML = notas.length === 0
-                ? '<li class="estado-vacio">No hay notas todavía. Agregá la primera arriba.</li>'
+                ? '<li class="estado-vacio">No hay notas todavía.</li>'
                 : notas.map(n => {
                     const vencida = n.fecha_vencimiento && new Date(n.fecha_vencimiento + 'T00:00:00') < hoy && n.estado !== 'completado';
                     return `
@@ -391,13 +803,13 @@
                         <div class="nota-contenido">
                             <p>${n.contenido}</p>
                             <div class="nota-fecha">
-                                🕐 Creado: ${fmtFechaHora(n.creado_en)}
+                                Creado: ${fmtFechaHora(n.creado_en)}
                                 ${n.fecha_vencimiento ? `<br>⚠️ Vence: <strong style="${vencida ? 'color:#ef4444;' : 'color:#f59e0b;'}">${fmtFecha(n.fecha_vencimiento)}</strong>` : ''}
                             </div>
                         </div>
                         <div style="display:flex; flex-direction:column; gap:6px;">
-                            ${n.estado !== 'completado' ? `<button class="btn-eliminar-chico" style="color:#10b981;" onclick="completarNota(${n.id})" title="Marcar completada">✔️</button>` : `<span title="Completada" style="text-align:center;">✅</span>`}
-                            <button class="btn-eliminar-chico" onclick="eliminarNota(${n.id})" title="Eliminar nota">✕</button>
+                            ${n.estado !== 'completado' ? `<button class="btn-eliminar-chico" style="color:#10b981;" onclick="completarNota(${n.id})"><span class="material-symbols-outlined">check_circle</span></button>` : `<span class="material-symbols-outlined" style="color:#10b981;">task_alt</span>`}
+                            <button class="btn-eliminar-chico" onclick="eliminarNota(${n.id})"><span class="material-symbols-outlined">delete</span></button>
                         </div>
                     </li>`;
                 }).join('');
@@ -406,43 +818,29 @@
         async function agregarNota() {
             const ta = document.getElementById('nuevaNota');
             const dateInput = document.getElementById('fechaVencimientoNota');
-            const contenido = ta.value.trim();
-            if (!contenido) { ta.focus(); return; }
-            const payload = { cliente_id: clienteId, contenido };
+            if (!ta.value.trim()) return ta.focus();
+            const payload = { cliente_id: clienteId, contenido: ta.value.trim() };
             if (dateInput && dateInput.value) payload.fecha_vencimiento = dateInput.value;
-            await fetchPost(`${API}/api/notas`, payload);
-            ta.value = '';
-            if (dateInput) dateInput.value = '';
+            await fetchPost(`${API}/api/notas`, payload, null);
+            ta.value = ''; if (dateInput) dateInput.value = '';
             cargarTodo();
         }
 
         async function completarNota(id) {
             try {
-                await fetch(`${API}/api/notas/${id}/estado`, { 
-                    method: 'PUT', 
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ estado: 'completado' })
-                });
+                await fetch(`${API}/api/notas/${id}/estado`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ estado: 'completado' }) });
                 cargarTodo();
-            } catch { alert('Error al completar'); }
+            } catch { Swal.fire('Error', 'No se pudo completar', 'error'); }
         }
 
         async function eliminarNota(id) {
-            if (!confirm('¿Eliminás esta nota?')) return;
-            await fetchDelete(`${API}/api/notas/${id}`);
-            cargarTodo();
+            const c = await Swal.fire({ title: '¿Eliminar nota?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#3b82f6', confirmButtonText: 'Sí', cancelButtonText: 'No', background: '#1e293b', color: '#f8fafc' });
+            if (c.isConfirmed) { await fetchDelete(`${API}/api/notas/${id}`); cargarTodo(); }
         }
 
         async function eliminarExpediente(id) {
-            if (!confirm('¿Eliminás este honorario? Esto afectará el saldo del cliente.')) return;
-            await fetchDelete(`${API}/api/expedientes/${id}`);
-            cargarTodo();
-        }
-
-        async function fetchDelete(url) {
-            try {
-                await fetch(url, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-            } catch { alert('Error de conexión'); }
+            const c = await Swal.fire({ title: '¿Eliminar honorario?', text: "Afectará el saldo del cliente.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#3b82f6', confirmButtonText: 'Sí', cancelButtonText: 'No', background: '#1e293b', color: '#f8fafc' });
+            if (c.isConfirmed) { await fetchDelete(`${API}/api/expedientes/${id}`); cargarTodo(); }
         }
 
         function fmt(n) { return new Intl.NumberFormat('es-AR').format(parseFloat(n) || 0); }
@@ -452,10 +850,11 @@
             const d = new Date(cleanStr + 'T00:00:00');
             return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('es-AR');
         }
-        function fmtFechaHora(str) {
-            return new Date(str).toLocaleString('es-AR', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
-        }
+        function fmtFechaHora(str) { return new Date(str).toLocaleString('es-AR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
         function cerrarSesion() { localStorage.clear(); window.location.href = 'login.html'; }
+
+        document.addEventListener('DOMContentLoaded', cargarTodo);
     </script>
 </body>
+
 </html>

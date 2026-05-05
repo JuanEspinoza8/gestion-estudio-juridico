@@ -59,7 +59,7 @@ body {
     padding: 30px;
     /* Agregamos el límite y el centrado */
     max-width: 1200px;
-    margin: 0 auto; 
+    margin: 0 auto;
 }
 
 .section-header {
@@ -124,7 +124,8 @@ thead {
     border-bottom: 2px solid #e2e8f0;
 }
 
-th, td {
+th,
+td {
     padding: 15px 20px;
     border-bottom: 1px solid #e2e8f0;
 }
@@ -145,10 +146,12 @@ tbody tr:hover {
     background-color: #fee2e2;
     color: #ef4444;
 }
+
 /* =========================================
    DISEÑO RESPONSIVO (Móviles y Tablets) 
    ========================================= */
 @media (max-width: 768px) {
+
     /* 1. Apilamos el layout: Nav arriba, Contenido abajo */
     body {
         flex-direction: column;
@@ -188,14 +191,17 @@ tbody tr:hover {
     }
 
     .actions input {
-        width: 100%; /* El buscador ocupa todo el ancho */
+        width: 100%;
+        /* El buscador ocupa todo el ancho */
     }
 
     /* 4. El salvavidas de las Tablas */
     .table-container {
-        overflow-x: auto; /* Permite hacer scroll horizontal solo en la tabla */
+        overflow-x: auto;
+        /* Permite hacer scroll horizontal solo en la tabla */
     }
 }
+
 /* =========================================
    VENTANA MODAL (Nuevo Cliente)
    ========================================= */
@@ -210,9 +216,9 @@ tbody tr:hover {
     justify-content: center;
     align-items: center;
     z-index: 1000;
-    
+
     /* TODO: En la Fase 3, Lucas usará JS para cambiar esto a display: flex cuando hagan clic en el botón */
-    display: none; 
+    display: none;
 }
 
 .modal-content {
@@ -221,7 +227,7 @@ tbody tr:hover {
     border-radius: 8px;
     width: 100%;
     max-width: 500px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
 .modal-header {
@@ -259,7 +265,8 @@ tbody tr:hover {
     font-weight: bold;
 }
 
-.modal-form input, .modal-form textarea {
+.modal-form input,
+.modal-form textarea {
     padding: 10px;
     border: 1px solid #cbd5e1;
     border-radius: 5px;
@@ -279,6 +286,7 @@ body.dark-mode {
     background-color: #0f172a;
     color: #f1f5f9;
 }
+
 body.dark-mode .table-container,
 body.dark-mode .modal-content,
 body.dark-mode .resumen-card,
@@ -293,13 +301,13 @@ body.dark-mode .dropzone,
 body.dark-mode .doc-item,
 body.dark-mode .lista-header {
     background-color: #1e293b !important;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.5) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5) !important;
     border-color: #334155 !important;
 }
 
-body.dark-mode h1, 
-body.dark-mode h2, 
-body.dark-mode h3, 
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
 body.dark-mode h4,
 body.dark-mode strong {
     color: #f8fafc !important;
@@ -346,15 +354,20 @@ body.dark-mode .navbar {
     background-color: #020617;
 }
 
-/* Fix espec�fico de estado badge */
+/* Fix espec�fico de estado badge */
 body.dark-mode .estado-badge {
     background-color: #334155 !important;
     color: #f8fafc !important;
 }
 
 /* Fix valor rojo / verde */
-body.dark-mode .valor.rojo { color: #f87171 !important; }
-body.dark-mode .valor.verde { color: #34d399 !important; }
+body.dark-mode .valor.rojo {
+    color: #f87171 !important;
+}
+
+body.dark-mode .valor.verde {
+    color: #34d399 !important;
+}
 
 /* Boton Modo Oscuro */
 .theme-toggle-btn {
@@ -372,20 +385,78 @@ body.dark-mode .valor.verde { color: #34d399 !important; }
     gap: 8px;
     width: 100%;
 }
+
 .theme-toggle-btn:hover {
     background-color: #334155;
     color: white;
 }
 
 /* Correcciones Dark Mode Auditoria */
-body.dark-mode .kpi-card { background-color: #1e293b; border: 1px solid #334155; }
-body.dark-mode .kpi-number { color: #f8fafc; }
-body.dark-mode .doc-item a { color: #e2e8f0; }
-body.dark-mode .dropzone { background-color: #1e293b !important; color: #f8fafc !important; border-color: #334155 !important; }
+body.dark-mode .kpi-card {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+}
+
+body.dark-mode .kpi-number {
+    color: #f8fafc;
+}
+
+body.dark-mode .doc-item a {
+    color: #e2e8f0;
+}
+
+body.dark-mode .dropzone {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+}
 
 /* Auditoria Fase 2 */
-body.dark-mode .kpi-icon { background-color: #334155 !important; }
-body.dark-mode .kpi-icon.text-blue { color: #60a5fa !important; background-color: rgba(59, 130, 246, 0.2) !important; }
-body.dark-mode .kpi-icon.text-green { color: #34d399 !important; background-color: rgba(16, 185, 129, 0.2) !important; }
-body.dark-mode .estado-vacio { color: #cbd5e1 !important; }
-body.dark-mode input::placeholder, body.dark-mode textarea::placeholder { color: #94a3b8 !important; }
+body.dark-mode .kpi-icon {
+    background-color: #334155 !important;
+}
+
+body.dark-mode .kpi-icon.text-blue {
+    color: #60a5fa !important;
+    background-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+body.dark-mode .kpi-icon.text-green {
+    color: #34d399 !important;
+    background-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+body.dark-mode .estado-vacio {
+    color: #cbd5e1 !important;
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder {
+    color: #94a3b8 !important;
+}
+
+/* --- BOTÓN DE ACCIÓN EN TABLA (VER CUENTA) --- */
+.btn-ver-cuenta {
+    background-color: rgba(59, 130, 246, 0.1);
+    /* Fondo azulcito súper sutil */
+    color: #60a5fa;
+    /* Texto azul claro */
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    /* Borde para darle forma */
+    padding: 6px 14px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-block;
+    transition: all 0.2s ease;
+}
+
+.btn-ver-cuenta:hover {
+    background-color: #3b82f6;
+    /* Se vuelve azul sólido al pasar el mouse */
+    color: #ffffff;
+    border-color: #3b82f6;
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+    /* Pequeño brillo */
+}

@@ -115,7 +115,8 @@ function renderizarTabla(clientes) {
             <td>${c.dni ? String(c.dni).replace(/\B(?=(\d{3})+(?!\d))/g, ".") : '-'}</td>
             <td>${c.telefono || '-'}</td>
             <td>
-                <button class="btn-secondary" onclick="verCuenta(${c.id})">Ver Cuenta</button>
+                <!-- AQUÍ INYECTAMOS NUESTRA CLASE PREMIUM -->
+                <button class="btn-ver-cuenta" onclick="verCuenta(${c.id})">Ver Cuenta</button>
             </td>
         </tr>
     `).join('');
