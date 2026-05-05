@@ -1,14 +1,17 @@
 /* =========================================
-   AGENDA DE TURNOS - CSS Rediseñado
+   AGENDA DE TURNOS - CSS Rediseñado y Unificado
    ========================================= */
 
-#contenedorTurnos {
+/* -----------------------------------------
+   1. ESTILOS DE LISTA (HISTORIAL)
+   ----------------------------------------- */
+#contenedorTurnos,
+#contenedorCompletados {
     list-style: none;
     padding: 0;
     margin: 0;
 }
 
-/* ---- Separador de Fecha ---- */
 .fecha-grupo {
     display: flex;
     align-items: center;
@@ -42,13 +45,15 @@
     background-color: #e2e8f0;
 }
 
-/* ---- Tarjeta de Turno ---- */
+/* -----------------------------------------
+   2. TARJETAS DE TURNOS
+   ----------------------------------------- */
 .turno-card {
     background: white;
     border-radius: 10px;
     padding: 16px 20px;
     margin-bottom: 10px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
     border-left: 4px solid #cbd5e1;
     display: flex;
     align-items: center;
@@ -57,16 +62,28 @@
 }
 
 .turno-card:hover {
-    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
     transform: translateX(3px);
 }
 
-.turno-card.hoy { border-left-color: #3b82f6; }
-.turno-card.urgente { border-left-color: #ef4444; }
-.turno-card.completado { border-left-color: #10b981; opacity: 0.75; }
-.turno-card.cancelado { border-left-color: #94a3b8; opacity: 0.6; }
+.turno-card.hoy {
+    border-left-color: #3b82f6;
+}
 
-/* ---- Bloque de hora ---- */
+.turno-card.urgente {
+    border-left-color: #ef4444;
+}
+
+.turno-card.completado {
+    border-left-color: #10b981;
+    opacity: 0.75;
+}
+
+.turno-card.cancelado {
+    border-left-color: #94a3b8;
+    opacity: 0.6;
+}
+
 .turno-hora-bloque {
     text-align: center;
     min-width: 64px;
@@ -86,7 +103,6 @@
     letter-spacing: 0.5px;
 }
 
-/* ---- Separador vertical ---- */
 .turno-divisor {
     width: 1px;
     height: 40px;
@@ -94,7 +110,6 @@
     flex-shrink: 0;
 }
 
-/* ---- Info del turno ---- */
 .turno-info {
     flex: 1;
     min-width: 0;
@@ -115,7 +130,6 @@
     color: #64748b;
 }
 
-/* ---- Badge de estado ---- */
 .badge-estado {
     padding: 3px 10px;
     border-radius: 12px;
@@ -126,11 +140,21 @@
     white-space: nowrap;
 }
 
-.badge-pendiente  { background: #fef9c3; color: #854d0e; }
-.badge-completado { background: #dcfce7; color: #166534; }
-.badge-cancelado  { background: #f1f5f9; color: #64748b; }
+.badge-pendiente {
+    background: #fef9c3;
+    color: #854d0e;
+}
 
-/* ---- Acciones ---- */
+.badge-completado {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.badge-cancelado {
+    background: #f1f5f9;
+    color: #64748b;
+}
+
 .turno-acciones {
     display: flex;
     gap: 6px;
@@ -150,21 +174,35 @@
     transition: opacity 0.2s, transform 0.15s;
 }
 
-.btn-icono:hover { opacity: 0.8; transform: scale(1.1); }
-.btn-icono.editar   { background: #e0f2fe; color: #0369a1; }
-.btn-icono.eliminar { background: #fee2e2; color: #b91c1c; }
+.btn-icono:hover {
+    opacity: 0.8;
+    transform: scale(1.1);
+}
 
-/* ---- Estado vacío ---- */
+.btn-icono.editar {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.btn-icono.eliminar {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
 .agenda-vacia {
     text-align: center;
     padding: 50px 20px;
     color: #94a3b8;
 }
 
-.agenda-vacia .icono { font-size: 3rem; margin-bottom: 10px; }
-.agenda-vacia p { font-size: 1rem; }
+.agenda-vacia .icono {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
 
-/* ---- Inputs select y date dentro de modales ---- */
+/* -----------------------------------------
+   3. MODALES Y TABS
+   ----------------------------------------- */
 .modal-form select,
 .modal-form input[type="date"],
 .modal-form input[type="time"] {
@@ -183,12 +221,247 @@
 .modal-form select:focus,
 .modal-form input:focus {
     border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* ---- Responsive ---- */
+.tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #64748b;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.tab-btn.activo {
+    color: #3b82f6;
+    border-bottom-color: #3b82f6;
+}
+
+.tab-btn:hover {
+    color: #1e293b;
+}
+
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.activo {
+    display: block;
+}
+
+/* Dark Mode Base (Tarjetas y Modales) */
+body.dark-mode .modal-form select,
+body.dark-mode .modal-form input[type="date"],
+body.dark-mode .modal-form input[type="time"] {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+/* Responsive Tarjetas */
 @media (max-width: 600px) {
-    .turno-card { flex-wrap: wrap; gap: 10px; }
-    .turno-divisor { display: none; }
-    .turno-acciones { width: 100%; justify-content: flex-end; }
+    .turno-card {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .turno-divisor {
+        display: none;
+    }
+
+    .turno-acciones {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* -----------------------------------------
+   4. FULLCALENDAR PREMIUM (DISEÑO MODERNO 2026)
+   ----------------------------------------- */
+#calendar {
+    background: var(--fc-page-bg-color, white);
+    padding: 24px;
+    border-radius: 16px;
+    /* Bordes más redondeados en la tarjeta principal */
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    /* Sombra más amplia y suave */
+    margin-top: 10px;
+}
+
+/* Título del Calendario (ej. "mayo de 2026") */
+.fc-toolbar-title {
+    font-weight: 800 !important;
+    font-size: 1.6rem !important;
+    color: #0f172a;
+    letter-spacing: -0.5px;
+}
+
+/* Botones de navegación (Mes, Semana, Día) */
+.fc .fc-button-primary {
+    background-color: white;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    text-transform: capitalize;
+    font-weight: 600;
+    border-radius: 8px !important;
+    /* Botones más redondeados */
+    padding: 8px 16px !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.fc .fc-button-primary:hover {
+    background-color: #f8fafc;
+    color: #0f172a;
+    border-color: #cbd5e1;
+}
+
+.fc .fc-button-primary:not(:disabled):active,
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+    background-color: #3b82f6;
+    /* Azul corporativo al hacer clic */
+    color: white;
+    border-color: #3b82f6;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* --- SUAVIZAR LA GRILLA (Chau efecto Excel) --- */
+.fc-theme-standard th,
+.fc-theme-standard td,
+.fc-theme-standard .fc-scrollgrid {
+    border-color: #f1f5f9 !important;
+    /* Líneas gris muuuuy clarito */
+}
+
+.fc-scrollgrid {
+    border-left: none !important;
+    /* Sacamos el borde de los costados para que "respire" */
+    border-right: none !important;
+}
+
+/* Cabecera de los días (DOM, LUN, MAR...) */
+.fc-col-header-cell {
+    padding: 12px 0 !important;
+}
+
+.fc-col-header-cell-cushion {
+    font-weight: 700 !important;
+    color: #64748b !important;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+}
+
+/* Eventos (Turnos) estilo "Chips" flotantes */
+.fc-event {
+    cursor: pointer;
+    border-radius: 6px !important;
+    border: none !important;
+    padding: 4px 6px !important;
+    font-size: 0.82em;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.2);
+    transition: transform 0.15s, box-shadow 0.15s;
+    margin: 1px 2px !important;
+}
+
+.fc-event:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+    opacity: 1;
+}
+
+/* --- FULLCALENDAR: AJUSTES NATIVOS DARK MODE --- */
+body.dark-mode {
+    --fc-page-bg-color: #1e293b;
+    --fc-neutral-bg-color: #1e293b;
+    --fc-neutral-text-color: #f8fafc;
+    --fc-border-color: #334155;
+    --fc-today-bg-color: transparent;
+}
+
+body.dark-mode .fc-toolbar-title {
+    color: #f8fafc;
+}
+
+body.dark-mode #calendar {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+/* Ajuste botones en Dark Mode */
+body.dark-mode .fc .fc-button-primary {
+    background-color: #334155;
+    color: #cbd5e1;
+    border-color: #475569;
+}
+
+body.dark-mode .fc .fc-button-primary:hover {
+    background-color: #475569;
+    color: white;
+}
+
+body.dark-mode .fc .fc-button-primary:not(:disabled).fc-button-active {
+    background-color: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+/* Ajuste grilla en Dark Mode */
+body.dark-mode .fc-theme-standard th,
+body.dark-mode .fc-theme-standard td,
+body.dark-mode .fc-theme-standard .fc-scrollgrid {
+    border-color: #334155 !important;
+}
+
+body.dark-mode .fc-col-header-cell-cushion {
+    color: #94a3b8 !important;
+}
+
+/* --- ESTILO GOOGLE CALENDAR (DÍA ACTUAL Y HOVER INTELIGENTE) --- */
+:root {
+    --fc-today-bg-color: transparent !important;
+}
+
+/* 1. Vista de MES: Circulito azul perfecto solo en el número */
+.fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+    background-color: #3b82f6 !important;
+    color: white !important;
+    border-radius: 50%;
+    min-width: 32px;
+    height: 32px;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    margin: 4px auto;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.4);
+}
+
+/* 2. Vista de SEMANA/DÍA: El texto se pone azul brillante, sin intentar hacer un círculo que rompa todo */
+.fc-col-header-cell.fc-day-today .fc-col-header-cell-cushion {
+    color: #3b82f6 !important;
+    font-weight: 900 !important;
+}
+
+body.dark-mode .fc-col-header-cell.fc-day-today .fc-col-header-cell-cushion {
+    color: #60a5fa !important;
+    /* Azul más claro para que resalte en la oscuridad */
+}
+
+/* 3. Efecto Hover: Solo ilumina los cuadraditos del Mes, NO la columna entera de la Semana */
+.fc-daygrid-day:hover {
+    background-color: rgba(59, 130, 246, 0.05) !important;
+    cursor: pointer;
 }

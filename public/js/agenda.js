@@ -1,6 +1,7 @@
 // public/js/agenda.js
 
 const API = 'https://api-estudio-juridico-oma1.onrender.com';
+let calendar; // Variable global para guardar el motor del calendario
 
 document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('estudio_token');
@@ -16,7 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Modal NUEVO TURNO ---
     const modalNuevo = document.getElementById('modalNuevoTurno');
-    document.getElementById('btnNuevoTurno').addEventListener('click', () => modalNuevo.style.display = 'flex');
+    document.getElementById('btnNuevoTurno').addEventListener('click', () => {
+        // Al hacer clic manual en el botón superior, cargamos la fecha de hoy por defecto
+        document.getElementById('fecha').value = new Date().toISOString().split('T')[0];
+        document.getElementById('hora').value = '09:00';
+        modalNuevo.style.display = 'flex';
+    });
     document.getElementById('btnCerrarModalTurno').addEventListener('click', () => modalNuevo.style.display = 'none');
     document.getElementById('btnCancelarModalTurno').addEventListener('click', () => modalNuevo.style.display = 'none');
 
@@ -37,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const res = await fetch(`${API}/api/turnos`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('estudio_token')}` },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(nuevoTurno)
             });
 
@@ -78,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const res = await fetch(`${API}/api/turnos/${id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('estudio_token')}` },
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(datos)
             });
 
@@ -97,9 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function cargarTurnos() {
     const token = localStorage.getItem('estudio_token');
     const usuarioId = localStorage.getItem('usuario_id');
-    const contenedor = document.getElementById('contenedorTurnos');
     const contenedorComp = document.getElementById('contenedorCompletados');
-    contenedor.innerHTML = '<p style="text-align:center;color:#64748b;padding:30px">Cargando agenda...</p>';
     contenedorComp.innerHTML = '<p style="text-align:center;color:#64748b;padding:30px">Cargando historial...</p>';
 
     try {
@@ -110,14 +114,84 @@ async function cargarTurnos() {
         if (!res.ok) throw new Error('Error del servidor');
         const turnos = await res.json();
 
+        // 1. DIBUJAR EL CALENDARIO (Solo Pendientes, para no saturar visualmente)
         const pendientes = turnos.filter(t => t.estado === 'pendiente');
-        const completados = turnos.filter(t => t.estado === 'completado' || t.estado === 'cancelado');
 
-        if (pendientes.length === 0) {
-            contenedor.innerHTML = '<div class="agenda-vacia"><div class="icono">📅</div><p>No hay turnos agendados próximos.</p></div>';
+        // Mapeamos los datos de nuestra base al formato que entiende FullCalendar
+        const eventosFullCalendar = pendientes.map(t => {
+            return {
+                id: t.id,
+                title: `${t.nombre_completo || 'Tarea'} - ${t.tipo_evento || t.motivo}`,
+                start: `${t.fecha.split('T')[0]}T${t.hora}`,
+                color: '#3b82f6', // Azul Corporativo
+                extendedProps: {
+                    cliente_id: t.cliente_id,
+                    fecha: t.fecha,
+                    hora: t.hora,
+                    tipo_evento: t.tipo_evento,
+                    motivo: t.motivo,
+                    estado: t.estado
+                }
+            };
+        });
+
+        const calendarEl = document.getElementById('calendar');
+
+        if (calendar) {
+            // Si el calendario ya está abierto, solo actualizamos los datos
+            calendar.removeAllEvents();
+            calendar.addEventSource(eventosFullCalendar);
         } else {
-            contenedor.innerHTML = renderizarAgenda(pendientes, false);
+            // Inicialización de FullCalendar estilo "Google Calendar"
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek', // Vista semanal por defecto
+                locale: 'es',
+                slotMinTime: '08:00:00', // El calendario empieza a las 8 AM
+                slotMaxTime: '20:00:00', // y termina a las 8 PM
+                allDaySlot: false,
+                nowIndicator: true, // Agrega la línea roja y la bolita de la hora actual
+                slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false }, // Formatea a 08:00, 09:00
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay' // Mes, Semana, Día
+                },
+                buttonText: {
+                    today: 'Hoy',
+                    month: 'Mes',
+                    week: 'Semana',
+                    day: 'Día'
+                },
+                events: eventosFullCalendar,
+
+                // Acción al hacer clic en un día/hora vacía del calendario
+                dateClick: function (info) {
+                    const fechaStr = info.dateStr.split('T')[0];
+                    const horaStr = info.dateStr.includes('T') ? info.dateStr.split('T')[1].substring(0, 5) : '09:00';
+
+                    document.getElementById('fecha').value = fechaStr;
+                    document.getElementById('hora').value = horaStr;
+                    document.getElementById('modalNuevoTurno').style.display = 'flex';
+                },
+
+                // Acción al hacer clic en una "cajita" de turno ya agendado
+                eventClick: function (info) {
+                    const props = info.event.extendedProps;
+                    abrirModalEditar(
+                        info.event.id,
+                        String(props.cliente_id),
+                        props.fecha,
+                        props.hora,
+                        props.tipo_evento || props.motivo,
+                        props.estado
+                    );
+                }
+            });
+            calendar.render();
         }
+
+        // 2. DIBUJAR EL HISTORIAL (Completados y Cancelados en forma de lista)
+        const completados = turnos.filter(t => t.estado === 'completado' || t.estado === 'cancelado');
 
         if (completados.length === 0) {
             contenedorComp.innerHTML = '<div class="agenda-vacia"><div class="icono">📜</div><p>No hay registro de turnos pasados.</p></div>';
@@ -126,13 +200,30 @@ async function cargarTurnos() {
         }
 
     } catch (error) {
-        contenedor.innerHTML = '<p style="color:red;text-align:center;padding:20px">Error al cargar la agenda.</p>';
+        console.error("Error al cargar turnos:", error);
+        alert("Error al cargar la agenda.");
     }
 }
 
+// FIX: Esta función corrige un error visual de la librería cuando se la esconde y se la vuelve a mostrar usando TABS
+function cambiarTabAgenda(nombre, btn) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('activo'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
+    document.getElementById('tab-' + nombre).classList.add('activo');
+    btn.classList.add('activo');
+
+    // Si abrimos la pestaña del calendario, le ordenamos que se redibuje a sí mismo
+    if (nombre === 'calendario' && calendar) {
+        setTimeout(() => { calendar.render(); }, 10);
+    }
+}
+
+// --------------------------------------------------------------------------------------
+// FUNCIONES VIEJAS PRESERVADAS INTACTAS PARA QUE EL HISTORIAL Y LOS MODALES SIGAN FUNCIONANDO
+// --------------------------------------------------------------------------------------
+
 function renderizarAgenda(turnos, esHistorial) {
     const hoy = new Date().toISOString().split('T')[0];
-
     const grupos = {};
     turnos.forEach(t => {
         const fechaLimpia = t.fecha ? t.fecha.split('T')[0] : '';
@@ -154,8 +245,7 @@ function renderizarAgenda(turnos, esHistorial) {
             etiquetaFecha += ' (Completado por adelantado)';
         }
 
-        // Si es historial ordenamos descendente la hora
-        turnosDia.sort((a,b) => esHistorial ? b.hora.localeCompare(a.hora) : a.hora.localeCompare(b.hora));
+        turnosDia.sort((a, b) => esHistorial ? b.hora.localeCompare(a.hora) : a.hora.localeCompare(b.hora));
         const tarjetas = turnosDia.map(t => renderizarTarjeta(t, esHoy)).join('');
 
         return `
@@ -187,13 +277,7 @@ function renderizarTarjeta(t, esHoy) {
             </div>
             <span class="badge-estado ${badgeClase}">${t.estado}</span>
             <div class="turno-acciones">
-                ${t.estado === 'pendiente' ? `
-                <button class="btn-icono completar" title="Marcar Completado"
-                    onclick="marcarCompletado(${t.id})">
-                    ✔️
-                </button>
-                ` : ''}
-                <button class="btn-icono editar" title="Editar"
+                <button class="btn-icono editar" title="Editar / Reabrir"
                     onclick="abrirModalEditar(${t.id}, '${t.cliente_id}', '${t.fecha}', '${t.hora}', '${t.tipo_evento || motivoEscapado}', '${t.estado}')">
                     ✏️
                 </button>
@@ -206,39 +290,16 @@ function renderizarTarjeta(t, esHoy) {
     `;
 }
 
-function cambiarTabAgenda(nombre, btn) {
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('activo'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('activo'));
-    document.getElementById('tab-' + nombre).classList.add('activo');
-    btn.classList.add('activo');
-}
-
-async function marcarCompletado(id) {
-    if (!confirm('¿Marcar este turno como completado?')) return;
-    const token = localStorage.getItem('estudio_token');
-    try {
-        const res = await fetch(`${API}/api/turnos/${id}/estado`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ estado: 'completado' })
-        });
-        if (res.ok) cargarTurnos();
-        else alert("No se pudo completar el turno.");
-    } catch {
-        alert("Error de conexión.");
-    }
-}
-
 async function abrirModalEditar(id, clienteId, fecha, hora, tipoEvento, estado) {
     const select = document.getElementById('editarClienteId');
     if (select.options.length <= 1) {
         await cargarDesplegableClientes('editarClienteId');
     }
     document.getElementById('editarTurnoId').value = id;
-    document.getElementById('editarClienteId').value = clienteId === 'null' ? '' : clienteId;
+    document.getElementById('editarClienteId').value = (clienteId === 'null' || !clienteId) ? '' : clienteId;
     document.getElementById('editarFecha').value = fecha.split('T')[0];
     document.getElementById('editarHora').value = hora.substring(0, 5);
-    
+
     const opcionesPermitidas = ['Audiencia', 'Mediación', 'Presentar Escrito', 'Reunión Cliente', 'Otro'];
     if (opcionesPermitidas.includes(tipoEvento) && tipoEvento !== 'Otro') {
         document.getElementById('editarTipoEvento').value = tipoEvento;
@@ -249,13 +310,13 @@ async function abrirModalEditar(id, clienteId, fecha, hora, tipoEvento, estado) 
         document.getElementById('editarTipoEventoOtro').style.display = 'block';
         document.getElementById('editarTipoEventoOtro').value = tipoEvento === 'Otro' ? '' : tipoEvento;
     }
-    
+
     document.getElementById('editarEstado').value = estado;
     document.getElementById('modalEditarTurno').style.display = 'flex';
 }
 
 async function eliminarTurno(id) {
-    if (!confirm('¿Eliminás este turno?')) return;
+    if (!confirm('¿Eliminás este turno definitivamente?')) return;
     const token = localStorage.getItem('estudio_token');
     try {
         const res = await fetch(`${API}/api/turnos/${id}`, {
@@ -278,8 +339,8 @@ async function cargarDesplegableClientes(selectId) {
         });
         if (res.ok) {
             const clientes = await res.json();
-            select.innerHTML = '<option value="">Sin cliente asociado</option>' +
-                clientes.map(c => '<option value="' + c.id + '">' + c.nombre_completo + ' (DNI: ' + c.dni + ')</option>').join('');
+            select.innerHTML = '<option value="">Sin cliente asociado (Tarea interna)</option>' +
+                clientes.map(c => '<option value="' + c.id + '">' + c.nombre_completo + ' (DNI: ' + (c.dni || '-') + ')</option>').join('');
         }
     } catch (error) {
         console.error("Error al cargar clientes:", error);
