@@ -79,7 +79,7 @@ async function cargarResumenGeneral() {
         } else {
             listaActividadEl.innerHTML = actividad.map(a => {
                 const f = a.fecha ? new Date(a.fecha) : new Date(NaN);
-                const fechaFormateada = isNaN(f.getTime()) ? 'Fecha desconocida' : f.toLocaleDateString('es-AR') + ' ' + f.toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'});
+                const fechaFormateada = isNaN(f.getTime()) ? 'Fecha desconocida' : f.toLocaleDateString('es-AR') + ' ' + f.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
                 const accionLimpia = a.accion.replace(/_/g, ' ');
                 return `
                 <li style="align-items:flex-start;">
@@ -210,7 +210,8 @@ async function crearNuevaNota() {
 async function eliminarNotaActual() {
     if (!notaActualId) return;
 
-    if (!confirm('¿Estás seguro de que querés eliminar esta nota?')) return;
+    const confirmado = await Alertas.confirmar('¿Eliminar nota?', 'Esta acción no se puede deshacer.', 'Sí, eliminar');
+    if (!confirmado) return;
 
     try {
         const res = await fetch(`${API_BASE}/notas-rapidas/${notaActualId}`, {
@@ -263,7 +264,7 @@ function obtenerUsuarioDelToken() {
         // El JWT es: Header.Payload.Signature. Tomamos el Payload [1]
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
         }).join(''));
 

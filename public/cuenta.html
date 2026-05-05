@@ -401,6 +401,26 @@
         body:not(.dark-mode) .cuotas-control input {
             color: #1e293b;
         }
+
+        /* --- BARRA DE PROGRESO --- */
+        .progress-track {
+            width: 100%; 
+            height: 8px; 
+            background-color: #334155; 
+            border-radius: 4px; 
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        body:not(.dark-mode) .progress-track {
+            background-color: #e2e8f0;
+        }
+        .progress-bar {
+            width: 0%; 
+            height: 100%; 
+            background: linear-gradient(90deg, #3b82f6, #10b981); 
+            border-radius: 4px; 
+            transition: width 0.5s ease-in-out;
+        }
     </style>
 </head>
 
@@ -465,8 +485,22 @@
                     </span>
                 </div>
                 <div class="finance-row">
-                    <span class="finance-label">Valor de Próxima Cuota:</span>
+                    <span class="finance-label">Valor Original de la Cuota:</span>
                     <span class="finance-value" id="valorCuotaEstimado">Depende del plan</span>
+                </div>
+                <div class="finance-row" id="rowRestanteCuota" style="display: none; color: #f59e0b;">
+                    <span class="finance-label" id="labelRestanteCuota" style="color: inherit;">Falta para cubrir la cuota:</span>
+                    <span class="finance-value" id="valorRestanteCuota">$ 0</span>
+                </div>
+                <!-- Barra de progreso -->
+                <div style="margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">
+                        <span>Progreso General</span>
+                        <span id="porcentajeProgresoTexto">0%</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-bar" id="barraProgresoFinanzas"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -686,14 +720,14 @@
                 } else if (mensajeExito) {
                     Swal.fire({ icon: 'success', title: '¡Listo!', text: mensajeExito, background: '#1e293b', color: '#f8fafc', timer: 1500, showConfirmButton: false });
                 }
-            } catch {
+            } catch (error) {
                 Swal.fire({ icon: 'error', title: 'Conexión Fallida', text: 'Error al conectar con el servidor', background: '#1e293b', color: '#f8fafc' });
             }
         }
 
         async function fetchDelete(url) {
             try { await fetch(url, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); }
-            catch { Swal.fire('Error', 'Error de conexión', 'error'); }
+            catch (error) { Swal.fire('Error', 'Error de conexión', 'error'); }
         }
 
         async function cargarTodo() {
@@ -747,21 +781,60 @@
                                 <p>Cargado el ${fmtFechaHora(exp.creado_en)}</p>
                             </div>
                             <span class="expediente-monto">$ ${fmt(exp.honorarios_totales)}</span>
-                            <button class="btn-eliminar-chico" onclick="eliminarExpediente(${exp.id})" title="Eliminar">🗑️</button>
+                            <button class="btn-eliminar-chico" style="display:inline-flex; align-items:center; justify-content:center; border:none; background:none; color:#ef4444; cursor:pointer;" onclick="eliminarExpediente(${exp.id})" title="Eliminar"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button>
                         </div>`).join('');
 
                 // 3. ACTUALIZACIÓN AUTOMÁTICA DE LA TARJETA DE CUOTAS
-                // Esto preparará la tarjeta para cuando Juan mande los datos, pero ya funciona con lógica básica
                 const uiCuotas = document.getElementById('estadoCuotasUI');
+                const uiValorBase = document.getElementById('valorCuotaEstimado');
+                const rowRestante = document.getElementById('rowRestanteCuota');
+                const labelRestante = document.getElementById('labelRestanteCuota');
+                const valorRestante = document.getElementById('valorRestanteCuota');
+                const barraProgreso = document.getElementById('barraProgresoFinanzas');
+                const porcentajeTexto = document.getElementById('porcentajeProgresoTexto');
+
                 if (totalHon === 0) {
                     uiCuotas.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px; vertical-align: text-bottom;">info</span> <strong>Sin plan activo</strong>';
+                    uiValorBase.textContent = '—';
+                    rowRestante.style.display = 'none';
+                    barraProgreso.style.width = '0%';
+                    porcentajeTexto.textContent = '0%';
                 } else if (s.saldo_deudor <= 0) {
                     uiCuotas.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px; vertical-align: text-bottom;">task_alt</span> <strong>Plan Cancelado al 100%</strong>';
-                    uiCuotas.style.color = '#10b981'; // Verde
+                    uiCuotas.style.color = '#10b981';
+                    uiValorBase.textContent = 'Completado';
+                    rowRestante.style.display = 'none';
+                    barraProgreso.style.width = '100%';
+                    porcentajeTexto.textContent = '100%';
                 } else {
-                    // Muestra el porcentaje de pago hasta que Juan devuelva la cantidad exacta de cuotas
-                    const porcentaje = Math.round((totalPagado / totalHon) * 100);
-                    uiCuotas.innerHTML = `<span class="material-symbols-outlined" style="font-size: 18px; vertical-align: text-bottom;">hourglass_bottom</span> <strong>Abonado al ${porcentaje}%</strong>`;
+                    // Lógica de "Cuota X de Y" y pagos parciales
+                    const planActivo = exps[exps.length - 1] || exps[0]; 
+                    let totalCuotas = planActivo && planActivo.cuotas_totales ? parseInt(planActivo.cuotas_totales) : 1;
+                    
+                    const valorCuotaIdeal = totalHon / totalCuotas;
+                    
+                    // Cálculo de en qué cuota vamos
+                    let cuotaActual = Math.floor(totalPagado / valorCuotaIdeal) + 1;
+                    if (cuotaActual > totalCuotas) cuotaActual = totalCuotas;
+                    
+                    const pagadoHaciaCuotaActual = totalPagado % valorCuotaIdeal;
+                    const restanteParaCuotaActual = valorCuotaIdeal - pagadoHaciaCuotaActual;
+
+                    uiCuotas.innerHTML = `<strong>Cuota ${cuotaActual} de ${totalCuotas}</strong>`;
+                    uiValorBase.textContent = '$ ' + fmt(valorCuotaIdeal);
+
+                    if (pagadoHaciaCuotaActual > 0 && cuotaActual <= totalCuotas) {
+                        rowRestante.style.display = 'flex';
+                        labelRestante.textContent = `Falta para cubrir Cuota ${cuotaActual}:`;
+                        valorRestante.textContent = '$ ' + fmt(restanteParaCuotaActual);
+                    } else {
+                        rowRestante.style.display = 'none';
+                    }
+
+                    // Actualizar barra de progreso
+                    const porcentaje = Math.min(100, Math.round((totalPagado / totalHon) * 100));
+                    barraProgreso.style.width = `${porcentaje}%`;
+                    porcentajeTexto.textContent = `${porcentaje}%`;
                 }
 
                 // Resto de la carga (Notas y Timeline)
@@ -804,7 +877,7 @@
                             <p>${n.contenido}</p>
                             <div class="nota-fecha">
                                 Creado: ${fmtFechaHora(n.creado_en)}
-                                ${n.fecha_vencimiento ? `<br>⚠️ Vence: <strong style="${vencida ? 'color:#ef4444;' : 'color:#f59e0b;'}">${fmtFecha(n.fecha_vencimiento)}</strong>` : ''}
+                                ${n.fecha_vencimiento ? `<br><span class="material-symbols-outlined" style="font-size:14px; vertical-align:middle; color:${vencida ? '#ef4444' : '#f59e0b'}">warning</span> Vence: <strong style="${vencida ? 'color:#ef4444;' : 'color:#f59e0b;'}">${fmtFecha(n.fecha_vencimiento)}</strong>` : ''}
                             </div>
                         </div>
                         <div style="display:flex; flex-direction:column; gap:6px;">
@@ -830,7 +903,7 @@
             try {
                 await fetch(`${API}/api/notas/${id}/estado`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ estado: 'completado' }) });
                 cargarTodo();
-            } catch { Swal.fire('Error', 'No se pudo completar', 'error'); }
+            } catch (error) { Swal.fire('Error', 'No se pudo completar', 'error'); }
         }
 
         async function eliminarNota(id) {

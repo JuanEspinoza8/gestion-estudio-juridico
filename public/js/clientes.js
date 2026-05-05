@@ -68,11 +68,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('searchInput').value = '';
                 cargarClientes();
             } else {
-                const errorData = await respuesta.json();
-                alert("Error al guardar: " + (errorData.error || errorData.message || "Verifique los datos"));
+                let errorMessage = "Verifique los datos";
+                try {
+                    const errorData = await respuesta.json();
+                    errorMessage = errorData.error || errorData.message || errorMessage;
+                } catch (parseError) {
+                    errorMessage = "El servidor está inactivo o devolvió un error inesperado. Intente de nuevo en 1 minuto.";
+                }
+                Alertas.mensaje('Error', "Error al guardar: " + errorMessage, 'error');
             }
         } catch (error) {
-            alert("No se pudo conectar con el servidor.");
+            Alertas.toast("No se pudo conectar con el servidor.", 'error');
         }
     });
 }); // <--- Ahora sí, cerramos el bloque principal donde corresponde
