@@ -52,11 +52,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('formNuevoTurno').reset();
                 cargarTurnos();
             } else {
-                const err = await res.json();
-                alert("Error al agendar: " + (err.message || "Verifique los datos"));
+                let errorMessage = "Verifique los datos";
+                try {
+                    const err = await res.json();
+                    errorMessage = err.message || errorMessage;
+                } catch (parseError) {
+                    errorMessage = "El servidor está inactivo. Intente nuevamente en unos segundos.";
+                }
+                Alertas.mensaje('Error', "Error al agendar: " + errorMessage, 'error');
             }
         } catch (error) {
-            alert("Error de conexión con el servidor.");
+            Alertas.toast("Error de conexión con el servidor.", 'error');
         }
     });
 
@@ -92,10 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 modalEditar.style.display = 'none';
                 cargarTurnos();
             } else {
-                alert("Error al actualizar el turno.");
+                Alertas.toast("Error al actualizar el turno.", 'error');
             }
-        } catch {
-            alert("Error de conexión.");
+        } catch (error) {
+            Alertas.toast("Error de conexión.", 'error');
         }
     });
 });
@@ -164,6 +170,24 @@ async function cargarTurnos() {
                 },
                 events: eventosFullCalendar,
 
+                // --- INYECCIÓN HTML PARA EVENTOS PREMIUM ---
+                eventContent: function (arg) {
+                    const tipo = (arg.event.extendedProps.tipo_evento || '').toLowerCase();
+                    let icon = 'event_note'; // Default
+                    if (tipo.includes('audiencia') || tipo.includes('juicio')) icon = 'gavel';
+                    else if (tipo.includes('reunión') || tipo.includes('cliente')) icon = 'groups';
+                    else if (tipo.includes('escrito') || tipo.includes('presentar')) icon = 'edit_document';
+                    else if (tipo.includes('mediación')) icon = 'handshake';
+
+                    return {
+                        html: `<div style="display: flex; align-items: center; gap: 5px; padding: 2px 4px; overflow: hidden;">
+                                   <span class="material-symbols-outlined" style="font-size: 15px; flex-shrink: 0;">${icon}</span>
+                                   <span style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.85em;">${arg.event.title}</span>
+                               </div>`
+                    };
+                },
+
+
                 // Acción al hacer clic en un día/hora vacía del calendario
                 dateClick: function (info) {
                     const fechaStr = info.dateStr.split('T')[0];
@@ -194,14 +218,14 @@ async function cargarTurnos() {
         const completados = turnos.filter(t => t.estado === 'completado' || t.estado === 'cancelado');
 
         if (completados.length === 0) {
-            contenedorComp.innerHTML = '<div class="agenda-vacia"><div class="icono">📜</div><p>No hay registro de turnos pasados.</p></div>';
+            contenedorComp.innerHTML = '<div class="agenda-vacia"><div class="icono"><span class="material-symbols-outlined" style="font-size: 48px; color: #94a3b8;">history</span></div><p>No hay registro de turnos pasados.</p></div>';
         } else {
             contenedorComp.innerHTML = renderizarAgenda(completados, true);
         }
 
     } catch (error) {
         console.error("Error al cargar turnos:", error);
-        alert("Error al cargar la agenda.");
+        Alertas.toast("Error al cargar la agenda.", 'error');
     }
 }
 
@@ -236,7 +260,7 @@ function renderizarAgenda(turnos, esHistorial) {
         const esHoy = fecha === hoy && !esHistorial;
         const fechaObj = new Date(fecha + 'T00:00:00');
         let etiquetaFecha = esHoy
-            ? '🔵 Hoy — ' + fechaObj.toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long' })
+            ? '<span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle; color: #3b82f6;">today</span> Hoy — ' + fechaObj.toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long' })
             : fechaObj.toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
 
         const hoyObj = new Date();
@@ -273,17 +297,17 @@ function renderizarTarjeta(t, esHoy) {
             <div class="turno-divisor"></div>
             <div class="turno-info">
                 <div class="cliente-nombre">${t.nombre_completo || 'Tarea del Estudio'}</div>
-                <div class="turno-motivo">📋 ${t.tipo_evento || t.motivo}</div>
+                <div class="turno-motivo"><span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">assignment</span> ${t.tipo_evento || t.motivo}</div>
             </div>
             <span class="badge-estado ${badgeClase}">${t.estado}</span>
             <div class="turno-acciones">
                 <button class="btn-icono editar" title="Editar / Reabrir"
                     onclick="abrirModalEditar(${t.id}, '${t.cliente_id}', '${t.fecha}', '${t.hora}', '${t.tipo_evento || motivoEscapado}', '${t.estado}')">
-                    ✏️
+                    <span class="material-symbols-outlined">edit</span>
                 </button>
                 <button class="btn-icono eliminar" title="Eliminar"
                     onclick="eliminarTurno(${t.id})">
-                    🗑️
+                    <span class="material-symbols-outlined">delete</span>
                 </button>
             </div>
         </li>
@@ -316,7 +340,8 @@ async function abrirModalEditar(id, clienteId, fecha, hora, tipoEvento, estado) 
 }
 
 async function eliminarTurno(id) {
-    if (!confirm('¿Eliminás este turno definitivamente?')) return;
+    const confirmado = await Alertas.confirmar('¿Eliminar turno?', 'Esta acción no se puede deshacer.', 'Sí, eliminar');
+    if (!confirmado) return;
     const token = localStorage.getItem('estudio_token');
     try {
         const res = await fetch(`${API}/api/turnos/${id}`, {
@@ -324,9 +349,9 @@ async function eliminarTurno(id) {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) cargarTurnos();
-        else alert("No se pudo eliminar el turno.");
-    } catch {
-        alert("Error de conexión.");
+        else Alertas.toast("No se pudo eliminar el turno.", 'error');
+    } catch (error) {
+        Alertas.toast("Error de conexión.", 'error');
     }
 }
 

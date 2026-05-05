@@ -69,9 +69,6 @@
             background: #e2e8f0;
             color: #475569;
         }
-        .estado-badge.Iniciado { background: #dbeafe; color: #1e3a8a; }
-        .estado-badge.Prueba { background: #fef3c7; color: #92400e; }
-        .estado-badge.Sentencia { background: #d1fae5; color: #065f46; }
 
         .vista-detalle {
             flex: 1;
@@ -239,8 +236,8 @@
                             <span id="detEstado" class="estado-badge">Estado</span>
                         </div>
                         <div class="acciones-grupo" style="display:flex; gap:10px;">
-                            <button class="btn-secondary" onclick="editarExpediente()" title="Editar Expediente" style="padding:5px 10px; cursor:pointer;">✏️</button>
-                            <button class="btn-secondary" onclick="eliminarExpediente()" title="Eliminar Expediente" style="padding:5px 10px; color:#ef4444; cursor:pointer;">🗑️</button>
+                            <button class="btn-secondary" onclick="editarExpediente()" title="Editar Expediente" style="padding:5px 10px; cursor:pointer;"><span class="material-symbols-outlined" style="font-size:18px;">edit</span></button>
+                            <button class="btn-secondary" onclick="eliminarExpediente()" title="Eliminar Expediente" style="padding:5px 10px; color:#ef4444; cursor:pointer;"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button>
                         </div>
                     </div>
                     
@@ -304,12 +301,28 @@
                 <div class="form-group">
                     <label>Estado</label>
                     <select id="estado" onchange="document.getElementById('estadoOtro').style.display = this.value === 'Otro' ? 'block' : 'none';">
-                        <option value="Iniciado">Iniciado</option>
-                        <option value="Mediación">Mediación</option>
-                        <option value="Prueba">Prueba</option>
-                        <option value="Sentencia">Sentencia</option>
-                        <option value="Cerrado">Cerrado</option>
-                        <option value="Otro">Otro</option>
+                        <optgroup label="⚖️ Civil / Comercial">
+                            <option value="1. Demanda Iniciada">1. Demanda Iniciada</option>
+                            <option value="2. Mediación">2. Mediación</option>
+                            <option value="3. Traslado / Contestación">3. Traslado / Contestación</option>
+                            <option value="4. Apertura a Prueba">4. Apertura a Prueba</option>
+                            <option value="5. Alegatos">5. Alegatos</option>
+                            <option value="6. Sentencia">6. Sentencia</option>
+                            <option value="7. Ejecución">7. Ejecución</option>
+                            <option value="8. Cerrado">8. Cerrado</option>
+                        </optgroup>
+                        <optgroup label="🔨 Penal">
+                            <option value="1. Investigación Penal (IPP)">1. Investigación Penal (IPP)</option>
+                            <option value="2. Indagatoria / Imputación">2. Indagatoria / Imputación</option>
+                            <option value="3. Elevación a Juicio">3. Elevación a Juicio</option>
+                            <option value="4. Juicio Oral">4. Juicio Oral</option>
+                            <option value="5. Sentencia Penal">5. Sentencia Penal</option>
+                            <option value="6. Apelación / Casación">6. Apelación / Casación</option>
+                            <option value="7. Ejecución Penal">7. Ejecución Penal</option>
+                        </optgroup>
+                        <optgroup label="Otros">
+                            <option value="Otro">Otro estado...</option>
+                        </optgroup>
                     </select>
                     <input type="text" id="estadoOtro" style="display:none; margin-top:10px;" placeholder="Especifique el estado...">
                 </div>
@@ -321,6 +334,8 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="./js/utils.js"></script>
     <script src="./js/expedientes.js"></script>
 </body>
 </html>
