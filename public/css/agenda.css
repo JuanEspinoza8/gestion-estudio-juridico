@@ -270,8 +270,18 @@ body.dark-mode .modal-form input[type="time"] {
     color: #f8fafc !important;
 }
 
-/* Responsive Tarjetas */
-@media (max-width: 600px) {
+/* Responsive Tarjetas y Layout */
+@media (max-width: 768px) {
+    .layout-agenda {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .sidebar-agenda {
+        width: 100%;
+        max-height: 50vh;
+    }
+
     .turno-card {
         flex-wrap: wrap;
         gap: 10px;

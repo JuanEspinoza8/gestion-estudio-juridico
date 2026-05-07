@@ -157,16 +157,21 @@ tbody tr:hover {
         flex-direction: column;
     }
 
-    /* 2. El menú lateral se convierte en un menú superior */
+    /* 2. Ajustes Generales y Menú */
+    .container {
+        padding: 15px;
+    }
+
     .navbar {
         width: 100%;
         padding: 15px;
     }
 
-    /* Ponemos los links uno al lado del otro */
+    /* Ponemos los links uno al lado del otro pero permitiendo que bajen si no caben */
     .navbar ul {
         display: flex;
-        justify-content: space-around;
+        justify-content: center;
+        flex-wrap: wrap;
         gap: 10px;
     }
 

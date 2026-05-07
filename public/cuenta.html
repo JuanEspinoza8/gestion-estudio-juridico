@@ -17,9 +17,9 @@
     <script src="./js/theme.js"></script>
 
     <style>
-        /* ESTILOS GENERALES Y TABS */
         .tabs {
             display: flex;
+            flex-wrap: wrap;
             gap: 4px;
             margin-bottom: 24px;
             border-bottom: 2px solid #e2e8f0;
@@ -421,6 +421,22 @@
             border-radius: 4px; 
             transition: width 0.5s ease-in-out;
         }
+
+        /* --- MOBILE TWEAKS --- */
+        @media (max-width: 600px) {
+            .finance-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            .finance-card {
+                padding: 15px;
+            }
+            .info-cliente {
+                gap: 15px;
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 
@@ -576,7 +592,7 @@
             <form id="formPago" class="modal-form">
                 <div class="form-group">
                     <label for="montoPago">Monto que ingresa *</label>
-                    <input type="number" id="montoPago" min="1" step="0.01" required placeholder="Ej: 50000">
+                    <input type="text" inputmode="numeric" id="montoPago" required placeholder="Ej: 50.000">
                 </div>
                 <div class="form-group">
                     <label for="metodoPago">Método de Pago *</label>
@@ -614,7 +630,7 @@
                 </div>
                 <div class="form-group">
                     <label for="montoDeuda">Monto Total de Honorarios *</label>
-                    <input type="number" id="montoDeuda" min="1" step="0.01" required placeholder="Ej: 200000">
+                    <input type="text" inputmode="numeric" id="montoDeuda" required placeholder="Ej: 200.000">
                 </div>
 
                 <!-- ESTE ES EL CAMPO DE CUOTAS -->
@@ -676,12 +692,27 @@
             if (valor > 1) input.value = valor - 1; // Tope mínimo de 1 cuota
         };
 
+        // FORMATEADOR DE MILES EN TIEMPO REAL
+        function formatMonedaInput(e) {
+            let rawValue = e.target.value.replace(/\D/g, ''); // Deja solo los números puros
+            if (rawValue === '') {
+                e.target.value = '';
+                return;
+            }
+            const numero = parseInt(rawValue, 10);
+            e.target.value = new Intl.NumberFormat('es-AR').format(numero); // Aplica el punto .
+        }
+
+        document.getElementById('montoPago').addEventListener('input', formatMonedaInput);
+        document.getElementById('montoDeuda').addEventListener('input', formatMonedaInput);
+
         // ENVÍO DE PAGO (Ciego, sin cuotas manuales)
         document.getElementById('formPago').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const montoRaw = document.getElementById('montoPago').value.replace(/\./g, ''); // Quita los puntos antes de enviar
             await fetchPost(`${API}/api/pagos`, {
                 cliente_id: clienteId,
-                monto: document.getElementById('montoPago').value,
+                monto: montoRaw,
                 metodo_pago: document.getElementById('metodoPago').value,
                 fecha_pago: document.getElementById('fechaPago').value
             }, "Pago registrado correctamente");
@@ -694,10 +725,11 @@
         // ENVÍO DE DEUDA (Le mandamos a Juan la cantidad de cuotas)
         document.getElementById('formDeuda').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const montoRaw = document.getElementById('montoDeuda').value.replace(/\./g, ''); // Quita los puntos antes de enviar
             await fetchPost(`${API}/api/expedientes`, {
                 cliente_id: clienteId,
                 descripcion: document.getElementById('descripcionDeuda').value,
-                honorarios_totales: document.getElementById('montoDeuda').value,
+                honorarios_totales: montoRaw,
                 cuotas_totales: document.getElementById('cantidadCuotas').value
             }, "Honorario agregado al sistema");
 
