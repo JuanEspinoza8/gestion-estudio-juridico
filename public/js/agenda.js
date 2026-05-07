@@ -28,6 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('formNuevoTurno').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const btnSubmit = e.target.querySelector('button[type="submit"]');
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = 'Guardando...';
+
         const tipoEventoSel = document.getElementById('tipoEvento').value;
         const motivoReal = tipoEventoSel === 'Otro' ? document.getElementById('tipoEventoOtro').value || 'Otro' : tipoEventoSel;
 
@@ -63,6 +67,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             Alertas.toast("Error de conexión con el servidor.", 'error');
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = 'Guardar Turno';
         }
     });
 
@@ -73,6 +80,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('formEditarTurno').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const btnSubmit = e.target.querySelector('button[type="submit"]');
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = 'Guardando...';
+
         const id = document.getElementById('editarTurnoId').value;
         const tipoEventoSel = document.getElementById('editarTipoEvento').value;
         const motivoReal = tipoEventoSel === 'Otro' ? document.getElementById('editarTipoEventoOtro').value || 'Otro' : tipoEventoSel;
@@ -102,6 +113,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             Alertas.toast("Error de conexión.", 'error');
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = 'Guardar Cambios';
         }
     });
 });

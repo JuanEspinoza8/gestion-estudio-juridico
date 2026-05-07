@@ -709,6 +709,10 @@
         // ENVÍO DE PAGO (Ciego, sin cuotas manuales)
         document.getElementById('formPago').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btnSubmit = e.target.querySelector('button[type="submit"]');
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Guardando...';
+
             const montoRaw = document.getElementById('montoPago').value.replace(/\./g, ''); // Quita los puntos antes de enviar
             await fetchPost(`${API}/api/pagos`, {
                 cliente_id: clienteId,
@@ -719,12 +723,18 @@
 
             cerrarModal('modalPago');
             document.getElementById('formPago').reset();
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = 'Registrar Pago';
             cargarTodo();
         });
 
         // ENVÍO DE DEUDA (Le mandamos a Juan la cantidad de cuotas)
         document.getElementById('formDeuda').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btnSubmit = e.target.querySelector('button[type="submit"]');
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Guardando...';
+
             const montoRaw = document.getElementById('montoDeuda').value.replace(/\./g, ''); // Quita los puntos antes de enviar
             await fetchPost(`${API}/api/expedientes`, {
                 cliente_id: clienteId,
@@ -735,6 +745,8 @@
 
             cerrarModal('modalDeuda');
             document.getElementById('formDeuda').reset();
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = 'Agregar Deuda';
             cargarTodo();
         });
 
