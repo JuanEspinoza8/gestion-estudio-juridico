@@ -124,7 +124,7 @@ async function cargarTurnos() {
     const token = localStorage.getItem('estudio_token');
     const usuarioId = localStorage.getItem('usuario_id');
     const contenedorComp = document.getElementById('contenedorCompletados');
-    contenedorComp.innerHTML = '<p style="text-align:center;color:#64748b;padding:30px">Cargando historial...</p>';
+    contenedorComp.innerHTML = '<div style="text-align:center;padding:30px"><div class="spinner"></div></div>';
 
     try {
         const res = await fetch(`${API}/api/turnos/usuario/${usuarioId}`, {

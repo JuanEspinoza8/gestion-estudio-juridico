@@ -6,6 +6,39 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* --- SPINNER DE CARGA GLOBAL --- */
+.spinner {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    border: 3px solid #334155;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 20px auto;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* --- ANIMACIÓN DE MODALES --- */
+.modal-overlay {
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+.modal-overlay[style*="display: flex"],
+.modal-overlay.visible {
+    opacity: 1;
+}
+.modal-overlay .modal-content {
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.25s ease, opacity 0.25s ease;
+}
+.modal-overlay[style*="display: flex"] .modal-content,
+.modal-overlay.visible .modal-content {
+    transform: translateY(0) scale(1);
+}
+
 body {
     display: flex;
     min-height: 100vh;
