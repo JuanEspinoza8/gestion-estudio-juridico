@@ -72,11 +72,24 @@ class Cliente {
         try {
             const query = `
                 SELECT 
-                    (SELECT COALESCE(SUM(honorarios_totales), 0) FROM expedientes WHERE cliente_id = $1) -
-                    (SELECT COALESCE(SUM(monto), 0) FROM pagos WHERE cliente_id = $1) AS saldo_deudor;
+                    (SELECT COALESCE(SUM(honorarios_totales), 0) FROM expedientes WHERE cliente_id = $1) AS total_honorarios,
+                    (SELECT COALESCE(SUM(cuotas_totales), 0) FROM expedientes WHERE cliente_id = $1 AND estado = 'Activo') AS cuotas_totales_plan,
+                    (SELECT COALESCE(SUM(monto), 0) FROM pagos WHERE cliente_id = $1) AS total_pagos;
             `;
             const { rows } = await db.query(query, [this.id]);
-            return parseFloat(rows[0].saldo_deudor);
+            const total_honorarios = parseFloat(rows[0].total_honorarios);
+            const cuotas_totales_plan = parseInt(rows[0].cuotas_totales_plan) || 1; // Default a 1 si no hay expedientes
+            const total_pagos = parseFloat(rows[0].total_pagos);
+            
+            const saldo_deudor = total_honorarios - total_pagos;
+            const valor_cuota_promedio = total_honorarios > 0 ? (total_honorarios / cuotas_totales_plan) : 0;
+            const cuotas_pagadas = valor_cuota_promedio > 0 ? Math.floor(total_pagos / valor_cuota_promedio) : 0;
+
+            return {
+                saldo_deudor,
+                cuotas_plan_activo: parseInt(rows[0].cuotas_totales_plan) || 0, // Devuelve 0 si no hay plan activo real
+                cuotas_pagadas
+            };
         } catch (error) {
             console.error('Error al calcular el saldo del cliente:', error);
             throw error;

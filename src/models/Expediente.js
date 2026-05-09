@@ -8,6 +8,8 @@ class Expediente {
         // La DB tiene la columna 'caratula', pero el frontend manda 'descripcion'
         this.descripcion = exp.descripcion || exp.caratula || null;
         this.honorarios_totales = parseFloat(exp.honorarios_totales) || 0;
+        this.cuotas_totales = parseInt(exp.cuotas_totales) || 1;
+        this.valor_por_cuota = this.cuotas_totales > 0 ? (this.honorarios_totales / this.cuotas_totales) : this.honorarios_totales;
         this.estado = exp.estado || 'Activo';
         this.creado_en = exp.creado_en || null;
     }
@@ -17,17 +19,17 @@ class Expediente {
             if (this.id) {
                 const query = `
                     UPDATE expedientes
-                    SET caratula = $1, honorarios_totales = $2, estado = $3
-                    WHERE id = $4 RETURNING *;
+                    SET caratula = $1, honorarios_totales = $2, estado = $3, cuotas_totales = $4, valor_por_cuota = $5
+                    WHERE id = $6 RETURNING *;
                 `;
-                const { rows } = await db.query(query, [this.descripcion, this.honorarios_totales, this.estado, this.id]);
+                const { rows } = await db.query(query, [this.descripcion, this.honorarios_totales, this.estado, this.cuotas_totales, this.valor_por_cuota, this.id]);
                 return new Expediente(rows[0]);
             } else {
                 const query = `
-                    INSERT INTO expedientes (cliente_id, caratula, honorarios_totales, estado)
-                    VALUES ($1, $2, $3, $4) RETURNING *;
+                    INSERT INTO expedientes (cliente_id, caratula, honorarios_totales, estado, cuotas_totales, valor_por_cuota)
+                    VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;
                 `;
-                const { rows } = await db.query(query, [this.cliente_id, this.descripcion, this.honorarios_totales, this.estado]);
+                const { rows } = await db.query(query, [this.cliente_id, this.descripcion, this.honorarios_totales, this.estado, this.cuotas_totales, this.valor_por_cuota]);
                 this.id = rows[0].id;
                 return new Expediente(rows[0]);
             }

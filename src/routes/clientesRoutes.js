@@ -49,8 +49,8 @@ router.get('/:id', async (req, res) => {
 router.get('/:id/saldo', async (req, res) => {
     try {
         const cliente = new Cliente({ id: req.params.id });
-        const saldo = await cliente.obtenerSaldo();
-        res.json({ saldo_deudor: saldo });
+        const saldoInfo = await cliente.obtenerSaldo();
+        res.json(saldoInfo);
     } catch (error) {
         res.status(500).json({ error: 'Error al calcular el saldo del cliente' });
     }
