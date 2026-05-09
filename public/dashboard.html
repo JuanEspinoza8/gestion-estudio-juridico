@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <link rel="stylesheet" href="./css/clientes.css">
     <link rel="stylesheet" href="./css/dashboard.css">
-    <link rel="icon" href="data:,">
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <script src="./js/theme.js"></script>
 </head>
 <body>
@@ -15,11 +15,11 @@
     <nav class="navbar">
         <h2>Estudio Jurídico</h2>
         <ul>
-            <li><a href="dashboard.html" class="active">Dashboard</a></li>
-            <li><a href="clientes.html">Clientes</a></li>
-            <li><a href="agenda.html">Agenda</a></li>
-            <li><a href="expedientes.html">Expedientes</a></li>
-            <li style="margin-top: 20px;"><a href="#" onclick="cerrarSesion()" style="color: #ef4444;">Cerrar Sesión</a></li>
+            <li><a href="dashboard.html" class="active"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px;">dashboard</span>Dashboard</a></li>
+            <li><a href="clientes.html"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px;">group</span>Clientes</a></li>
+            <li><a href="agenda.html"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px;">calendar_month</span>Agenda</a></li>
+            <li><a href="expedientes.html"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px;">folder_open</span>Expedientes</a></li>
+            <li style="margin-top: 20px;"><a href="#" onclick="cerrarSesion()" style="color: #ef4444;"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px;">logout</span>Cerrar Sesión</a></li>
         </ul>
     </nav>
 
@@ -62,7 +62,7 @@
                     <a href="agenda.html" class="link-ver-mas">Ver agenda</a>
                 </div>
                 <ul class="mini-lista" id="listaTurnosHoy">
-                    <p style="color: #64748b; font-size: 0.9rem;">Cargando turnos...</p>
+                    <div style="text-align:center; padding: 20px;"><div class="spinner"></div></div>
                 </ul>
             </div>
 
@@ -95,7 +95,7 @@
                     <h3>Actividad Reciente</h3>
                 </div>
                 <ul class="mini-lista" id="listaActividad">
-                    <p style="color: #64748b; font-size: 0.9rem;">Cargando actividad...</p>
+                    <div style="text-align:center; padding: 20px;"><div class="spinner"></div></div>
                 </ul>
             </div>
         </section>

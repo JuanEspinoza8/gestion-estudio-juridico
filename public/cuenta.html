@@ -14,12 +14,13 @@
 
     <!-- SWEETALERT 2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <script src="./js/theme.js"></script>
 
     <style>
-        /* ESTILOS GENERALES Y TABS */
         .tabs {
             display: flex;
+            flex-wrap: wrap;
             gap: 4px;
             margin-bottom: 24px;
             border-bottom: 2px solid #e2e8f0;
@@ -421,6 +422,22 @@
             border-radius: 4px; 
             transition: width 0.5s ease-in-out;
         }
+
+        /* --- MOBILE TWEAKS --- */
+        @media (max-width: 600px) {
+            .finance-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            .finance-card {
+                padding: 15px;
+            }
+            .info-cliente {
+                gap: 15px;
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 
@@ -429,11 +446,11 @@
     <nav class="navbar">
         <h2>Estudio Jurídico</h2>
         <ul>
-            <li><a href="dashboard.html">Dashboard</a></li>
-            <li><a href="clientes.html" class="active">Clientes</a></li>
-            <li><a href="agenda.html">Agenda</a></li>
-            <li><a href="expedientes.html">Expedientes</a></li>
-            <li style="margin-top:20px"><a href="#" onclick="cerrarSesion()" style="color:#ef4444">Cerrar Sesión</a>
+            <li><a href="dashboard.html"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px;">dashboard</span>Dashboard</a></li>
+            <li><a href="clientes.html" class="active"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px;">group</span>Clientes</a></li>
+            <li><a href="agenda.html"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px;">calendar_month</span>Agenda</a></li>
+            <li><a href="expedientes.html"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px;">folder_open</span>Expedientes</a></li>
+            <li style="margin-top:20px"><a href="#" onclick="cerrarSesion()" style="color:#ef4444"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px;">logout</span>Cerrar Sesión</a>
             </li>
         </ul>
     </nav>
@@ -524,7 +541,7 @@
         <!-- PANELES DE LAS TABS -->
         <div class="tab-panel activo" id="tab-historial">
             <ul class="notas-lista" id="listaHistorial">
-                <li class="estado-vacio">Cargando...</li>
+                <li style="text-align:center; padding: 20px;"><div class="spinner"></div></li>
             </ul>
         </div>
 
@@ -540,7 +557,7 @@
                     </thead>
                     <tbody id="tbodyPagos">
                         <tr>
-                            <td colspan="3" class="estado-vacio">Cargando...</td>
+                            <td colspan="3" style="text-align:center; padding: 20px;"><div class="spinner"></div></td>
                         </tr>
                     </tbody>
                 </table>
@@ -549,7 +566,7 @@
 
         <div class="tab-panel" id="tab-deudas">
             <div id="listaExpedientes">
-                <p class="estado-vacio">Cargando...</p>
+                <div style="text-align:center; padding: 20px;"><div class="spinner"></div></div>
             </div>
         </div>
 
@@ -561,7 +578,7 @@
                 <button class="btn-primary" onclick="agregarNota()">Agregar nota</button>
             </div>
             <ul class="notas-lista" id="listaNota">
-                <li class="estado-vacio">Cargando notas...</li>
+                <li style="text-align:center; padding: 20px;"><div class="spinner"></div></li>
             </ul>
         </div>
     </main>
@@ -576,7 +593,7 @@
             <form id="formPago" class="modal-form">
                 <div class="form-group">
                     <label for="montoPago">Monto que ingresa *</label>
-                    <input type="number" id="montoPago" min="1" step="0.01" required placeholder="Ej: 50000">
+                    <input type="text" inputmode="numeric" id="montoPago" required placeholder="Ej: 50.000">
                 </div>
                 <div class="form-group">
                     <label for="metodoPago">Método de Pago *</label>
@@ -614,7 +631,7 @@
                 </div>
                 <div class="form-group">
                     <label for="montoDeuda">Monto Total de Honorarios *</label>
-                    <input type="number" id="montoDeuda" min="1" step="0.01" required placeholder="Ej: 200000">
+                    <input type="text" inputmode="numeric" id="montoDeuda" required placeholder="Ej: 200.000">
                 </div>
 
                 <!-- ESTE ES EL CAMPO DE CUOTAS -->
@@ -676,33 +693,61 @@
             if (valor > 1) input.value = valor - 1; // Tope mínimo de 1 cuota
         };
 
+        // FORMATEADOR DE MILES EN TIEMPO REAL
+        function formatMonedaInput(e) {
+            let rawValue = e.target.value.replace(/\D/g, ''); // Deja solo los números puros
+            if (rawValue === '') {
+                e.target.value = '';
+                return;
+            }
+            const numero = parseInt(rawValue, 10);
+            e.target.value = new Intl.NumberFormat('es-AR').format(numero); // Aplica el punto .
+        }
+
+        document.getElementById('montoPago').addEventListener('input', formatMonedaInput);
+        document.getElementById('montoDeuda').addEventListener('input', formatMonedaInput);
+
         // ENVÍO DE PAGO (Ciego, sin cuotas manuales)
         document.getElementById('formPago').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btnSubmit = e.target.querySelector('button[type="submit"]');
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Guardando...';
+
+            const montoRaw = document.getElementById('montoPago').value.replace(/\./g, ''); // Quita los puntos antes de enviar
             await fetchPost(`${API}/api/pagos`, {
                 cliente_id: clienteId,
-                monto: document.getElementById('montoPago').value,
+                monto: montoRaw,
                 metodo_pago: document.getElementById('metodoPago').value,
                 fecha_pago: document.getElementById('fechaPago').value
             }, "Pago registrado correctamente");
 
             cerrarModal('modalPago');
             document.getElementById('formPago').reset();
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = 'Registrar Pago';
             cargarTodo();
         });
 
         // ENVÍO DE DEUDA (Le mandamos a Juan la cantidad de cuotas)
         document.getElementById('formDeuda').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const btnSubmit = e.target.querySelector('button[type="submit"]');
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Guardando...';
+
+            const montoRaw = document.getElementById('montoDeuda').value.replace(/\./g, ''); // Quita los puntos antes de enviar
             await fetchPost(`${API}/api/expedientes`, {
                 cliente_id: clienteId,
                 descripcion: document.getElementById('descripcionDeuda').value,
-                honorarios_totales: document.getElementById('montoDeuda').value,
+                honorarios_totales: montoRaw,
                 cuotas_totales: document.getElementById('cantidadCuotas').value
             }, "Honorario agregado al sistema");
 
             cerrarModal('modalDeuda');
             document.getElementById('formDeuda').reset();
+            btnSubmit.disabled = false;
+            btnSubmit.textContent = 'Agregar Deuda';
             cargarTodo();
         });
 
