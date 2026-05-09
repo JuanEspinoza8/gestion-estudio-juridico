@@ -16,11 +16,11 @@ router.get('/cliente/:clienteId', async (req, res) => {
 // POST: Crear nuevo expediente (agregar deuda/honorario)
 router.post('/', async (req, res) => {
     try {
-        const { cliente_id, descripcion, honorarios_totales } = req.body;
+        const { cliente_id, descripcion, honorarios_totales, cuotas_totales } = req.body;
         if (!cliente_id || !honorarios_totales) {
             return res.status(400).json({ error: 'cliente_id y honorarios_totales son requeridos' });
         }
-        const nuevo = new Expediente({ cliente_id, descripcion, honorarios_totales });
+        const nuevo = new Expediente({ cliente_id, descripcion, honorarios_totales, cuotas_totales });
         const guardado = await nuevo.guardar();
         res.status(201).json(guardado);
     } catch (error) {
