@@ -462,6 +462,9 @@
                 <button class="btn-secondary" onclick="window.location.href='clientes.html'">← Volver</button>
                 <button class="btn-primary btn-rojo" id="btnAbrirModalDeuda">+ Agregar Deuda</button>
                 <button class="btn-primary" id="btnAbrirModalPago">+ Registrar Pago</button>
+                <button class="btn-secondary" id="btnEliminarCliente" style="background:#ef4444;color:white;border:none;" title="Eliminar este cliente">
+                    <span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;">person_remove</span> Eliminar
+                </button>
             </div>
         </header>
 
@@ -592,6 +595,12 @@
             </header>
             <form id="formPago" class="modal-form">
                 <div class="form-group">
+                    <label for="honorarioDestino">¿A qué honorario se aplica este pago? *</label>
+                    <select id="honorarioDestino" required>
+                        <option value="">Seleccionar honorario...</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label for="montoPago">Monto que ingresa *</label>
                     <input type="text" inputmode="numeric" id="montoPago" required placeholder="Ej: 50.000">
                 </div>
@@ -675,7 +684,26 @@
         function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
         function cerrarModal(id) { document.getElementById(id).style.display = 'none'; }
 
+        // Variable global para almacenar el saldo deudor actual
+        let saldoDeudorActual = 0;
+        let expedientesActuales = [];
+
         document.getElementById('btnAbrirModalPago').onclick = () => {
+            if (saldoDeudorActual <= 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sin deuda pendiente',
+                    text: 'Este cliente no tiene saldo deudor. No se puede registrar un pago.',
+                    background: document.body.classList.contains('dark-mode') ? '#1e293b' : '#fff',
+                    color: document.body.classList.contains('dark-mode') ? '#f8fafc' : '#1e293b',
+                    confirmButtonColor: '#3b82f6'
+                });
+                return;
+            }
+            // Cargar honorarios disponibles en el select
+            const select = document.getElementById('honorarioDestino');
+            select.innerHTML = '<option value="">Seleccionar honorario...</option>' +
+                expedientesActuales.map(exp => `<option value="${exp.id}">${exp.descripcion || 'Sin descripción'} — $ ${fmt(exp.honorarios_totales)}</option>`).join('');
             document.getElementById('fechaPago').value = new Date().toISOString().split('T')[0];
             abrirModal('modalPago');
         };
@@ -707,16 +735,19 @@
         document.getElementById('montoPago').addEventListener('input', formatMonedaInput);
         document.getElementById('montoDeuda').addEventListener('input', formatMonedaInput);
 
-        // ENVÍO DE PAGO (Ciego, sin cuotas manuales)
+        // ENVÍO DE PAGO
         document.getElementById('formPago').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btnSubmit = e.target.querySelector('button[type="submit"]');
             btnSubmit.disabled = true;
             btnSubmit.textContent = 'Guardando...';
 
-            const montoRaw = document.getElementById('montoPago').value.replace(/\./g, ''); // Quita los puntos antes de enviar
+            const montoRaw = document.getElementById('montoPago').value.replace(/\./g, '');
+            const honorarioId = document.getElementById('honorarioDestino').value;
+
             await fetchPost(`${API}/api/pagos`, {
                 cliente_id: clienteId,
+                expediente_id: honorarioId || null,
                 monto: montoRaw,
                 metodo_pago: document.getElementById('metodoPago').value,
                 fecha_pago: document.getElementById('fechaPago').value
@@ -725,7 +756,7 @@
             cerrarModal('modalPago');
             document.getElementById('formPago').reset();
             btnSubmit.disabled = false;
-            btnSubmit.textContent = 'Registrar Pago';
+            btnSubmit.textContent = 'Guardar Pago';
             cargarTodo();
         });
 
@@ -798,6 +829,7 @@
 
                 // 2. Saldos y Pagos
                 const s = await resS.json();
+                saldoDeudorActual = parseFloat(s.saldo_deudor) || 0;
                 document.getElementById('saldoDeudor').textContent = '$ ' + fmt(s.saldo_deudor || 0);
 
                 const pagos = await resP.json();
@@ -814,6 +846,7 @@
                       </tr>`).join('');
 
                 const exps = await resE.json();
+                expedientesActuales = exps;
                 const totalHon = exps.reduce((sum, e) => sum + parseFloat(e.honorarios_totales), 0);
                 document.getElementById('totalHonorarios').textContent = '$ ' + fmt(totalHon);
 
@@ -970,6 +1003,49 @@
         }
         function fmtFechaHora(str) { return new Date(str).toLocaleString('es-AR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
         function cerrarSesion() { localStorage.clear(); window.location.href = 'login.html'; }
+
+        // ELIMINAR CLIENTE
+        document.getElementById('btnEliminarCliente').onclick = async () => {
+            const isDark = document.body.classList.contains('dark-mode');
+            const confirmado = await Swal.fire({
+                title: '¿Eliminar este cliente?',
+                text: 'Se borrarán todos sus datos, pagos, notas y honorarios. Esta acción no se puede deshacer.',
+                icon: 'warning',
+                showCancelButton: true,
+                background: isDark ? '#1e293b' : '#fff',
+                color: isDark ? '#f8fafc' : '#1e293b',
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, eliminar definitivamente',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            });
+            if (!confirmado.isConfirmed) return;
+
+            try {
+                const res = await fetch(`${API}/api/clientes/${clienteId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Cliente eliminado',
+                        text: 'Redirigiendo al listado...',
+                        background: isDark ? '#1e293b' : '#fff',
+                        color: isDark ? '#f8fafc' : '#1e293b',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    window.location.href = 'clientes.html';
+                } else {
+                    const err = await res.json();
+                    Swal.fire({ icon: 'error', title: 'Error', text: err.error || 'No se pudo eliminar', background: isDark ? '#1e293b' : '#fff', color: isDark ? '#f8fafc' : '#1e293b' });
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Error de conexión con el servidor', 'error');
+            }
+        };
 
         document.addEventListener('DOMContentLoaded', cargarTodo);
     </script>
