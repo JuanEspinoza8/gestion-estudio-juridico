@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.ok) {
                 modalNuevo.style.display = 'none';
                 document.getElementById('formNuevoTurno').reset();
+                localStorage.removeItem('ultima_vigilancia_api'); // Forzar refresco de notificaciones
                 cargarTurnos();
             } else {
                 let errorMessage = "Verifique los datos";
@@ -107,6 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (res.ok) {
                 modalEditar.style.display = 'none';
+                localStorage.removeItem('ultima_vigilancia_api'); // Forzar refresco de notificaciones
                 cargarTurnos();
             } else {
                 Alertas.toast("Error al actualizar el turno.", 'error');
@@ -164,7 +166,8 @@ async function cargarTurnos() {
         } else {
             // Inicialización de FullCalendar estilo "Google Calendar"
             calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'timeGridWeek', // Vista semanal por defecto
+                initialView: window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek', // Vista diaria en móvil, semanal en PC
+                height: 'auto', // Permite que el calendario use todo el alto necesario sin scroll interno
                 locale: 'es',
                 slotMinTime: '08:00:00', // El calendario empieza a las 8 AM
                 slotMaxTime: '20:00:00', // y termina a las 8 PM
@@ -362,8 +365,10 @@ async function eliminarTurno(id) {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (res.ok) cargarTurnos();
-        else Alertas.toast("No se pudo eliminar el turno.", 'error');
+        if (res.ok) {
+            localStorage.removeItem('ultima_vigilancia_api');
+            cargarTurnos();
+        } else Alertas.toast("No se pudo eliminar el turno.", 'error');
     } catch (error) {
         Alertas.toast("Error de conexión.", 'error');
     }

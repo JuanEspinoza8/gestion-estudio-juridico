@@ -78,3 +78,110 @@ window.fetch = async function (...args) {
     }
     return response;
 };
+
+// --- MENU HAMBURGUESA (MOBILE) ---
+document.addEventListener('DOMContentLoaded', () => {
+    const menuToggle = document.getElementById('menuToggle');
+    const navMenu = document.getElementById('navMenu');
+    if (menuToggle && navMenu) {
+        menuToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('show');
+        });
+    }
+});
+
+// --- PWA & NOTIFICACIONES LOCALES ---
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Registrar Service Worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./service-worker.js')
+            .then(reg => console.log('Service Worker registrado correctamente.', reg))
+            .catch(err => console.log('Error al registrar Service Worker:', err));
+    }
+
+    // 2. Pedir permiso para notificaciones si estamos logueados
+    const token = localStorage.getItem('estudio_token');
+    // window.location.pathname no debe ser login.html
+    if (token && 'Notification' in window && !window.location.pathname.includes('login.html')) {
+        if (Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // Iniciar vigilancia
+        vigilarTurnosProximos();
+        // Revisar el reloj cada 1 minuto (esto ya no consumirá internet, solo lee memoria local)
+        setInterval(vigilarTurnosProximos, 60000);
+    }
+});
+
+async function vigilarTurnosProximos() {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+    const token = localStorage.getItem('estudio_token');
+    const usuarioId = localStorage.getItem('usuario_id');
+    if (!token || !usuarioId) return;
+
+    let turnos = [];
+    const ahoraMs = new Date().getTime();
+    const ultimaRevision = localStorage.getItem('ultima_vigilancia_api');
+
+    // OPTIMIZACIÓN: Solo hacemos FETCH a la base de datos cada 15 minutos para ahorrar cuota
+    if (!ultimaRevision || (ahoraMs - parseInt(ultimaRevision)) > 15 * 60 * 1000) {
+        try {
+            const res = await fetch(`https://api-estudio-juridico-oma1.onrender.com/api/turnos/usuario/${usuarioId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (!res.ok) return;
+            turnos = await res.json();
+            
+            localStorage.setItem('turnos_cache_notif', JSON.stringify(turnos));
+            localStorage.setItem('ultima_vigilancia_api', ahoraMs.toString());
+        } catch (e) {
+            console.error("Error vigilando turnos (Red):", e);
+            return;
+        }
+    } else {
+        // Leemos desde la memoria local sin gastar peticiones al servidor
+        const cache = localStorage.getItem('turnos_cache_notif');
+        if (cache) turnos = JSON.parse(cache);
+    }
+        
+    const ahora = new Date();
+    const hoyStr = ahora.toISOString().split('T')[0];
+        
+        // Filtramos turnos pendientes de hoy
+        const turnosHoy = turnos.filter(t => t.estado === 'pendiente' && t.fecha.startsWith(hoyStr));
+        
+        const notificados = JSON.parse(localStorage.getItem('turnos_notificados') || '[]');
+
+        turnosHoy.forEach(turno => {
+            if (notificados.includes(turno.id)) return; // Ya avisamos
+
+            // Parsear hora del turno
+            const [hora, min] = turno.hora.split(':');
+            const fechaTurno = new Date();
+            fechaTurno.setHours(parseInt(hora), parseInt(min), 0, 0);
+
+            const diferenciaMs = fechaTurno - ahora;
+            const minutosRestantes = Math.floor(diferenciaMs / 60000);
+
+            // Si el turno es en los próximos 30 minutos (y aún no pasó)
+            if (minutosRestantes > 0 && minutosRestantes <= 30) {
+                // Lanzar Notificación Nativa
+                new Notification('¡Turno Próximo!', {
+                    body: `Faltan ${minutosRestantes} minutos para: ${turno.tipo_evento || turno.motivo} - ${turno.nombre_completo || 'Sin cliente'}`,
+                    icon: './icon-192.png',
+                    badge: './icon-192.png',
+                    vibrate: [200, 100, 200]
+                });
+
+                // Registrar que ya lo notificamos
+                notificados.push(turno.id);
+                localStorage.setItem('turnos_notificados', JSON.stringify(notificados));
+            }
+        });
+    } catch (e) {
+        console.error("Error vigilando turnos:", e);
+    }
+}
