@@ -88,4 +88,23 @@ router.put('/:id', async (req, res) => {
     }
 });
 
+// DELETE: Eliminar un cliente y todos sus datos asociados
+router.delete('/:id', async (req, res) => {
+    try {
+        const clienteEliminado = await Cliente.eliminar(req.params.id);
+        if (!clienteEliminado) {
+            return res.status(404).json({ error: 'Cliente no encontrado' });
+        }
+        logActividad(
+            req.usuario ? req.usuario.id : 1,
+            null,
+            'CLIENTE_ELIMINADO',
+            `Cliente eliminado: ${clienteEliminado.nombre_completo} (ID: ${clienteEliminado.id})`
+        );
+        res.json({ mensaje: 'Cliente y todos sus datos eliminados correctamente.', cliente: clienteEliminado });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al eliminar el cliente' });
+    }
+});
+
 module.exports = router;

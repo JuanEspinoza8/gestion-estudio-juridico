@@ -142,6 +142,25 @@ class Cliente {
             throw error;
         }
     }
+
+    /**
+     * MÉTODO ESTÁTICO: Elimina un cliente y todos sus datos asociados.
+     * Funciona gracias a ON DELETE CASCADE configurado en Supabase:
+     * pagos, expedientes, turnos, notas_cliente se borran automáticamente.
+     */
+    static async eliminar(id) {
+        try {
+            const query = 'DELETE FROM clientes WHERE id = $1 RETURNING id, nombre_completo;';
+            const { rows } = await db.query(query, [id]);
+            if (rows.length === 0) {
+                return null; // No existía ese cliente
+            }
+            return rows[0];
+        } catch (error) {
+            console.error('Error al eliminar el cliente:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = Cliente;
