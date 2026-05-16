@@ -83,9 +83,18 @@ window.fetch = async function (...args) {
 document.addEventListener('DOMContentLoaded', () => {
     const menuToggle = document.getElementById('menuToggle');
     const navMenu = document.getElementById('navMenu');
+
     if (menuToggle && navMenu) {
-        menuToggle.addEventListener('click', () => {
+        menuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
             navMenu.classList.toggle('show');
+        });
+
+        // Cerrar el menú al hacer clic fuera de la navbar
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.navbar')) {
+                navMenu.classList.remove('show');
+            }
         });
     }
 });
@@ -101,7 +110,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 2. Pedir permiso para notificaciones si estamos logueados
     const token = localStorage.getItem('estudio_token');
-    // window.location.pathname no debe ser login.html
     if (token && 'Notification' in window && !window.location.pathname.includes('login.html')) {
         if (Notification.permission === 'default') {
             Notification.requestPermission();
@@ -109,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Iniciar vigilancia
         vigilarTurnosProximos();
-        // Revisar el reloj cada 1 minuto (esto ya no consumirá internet, solo lee memoria local)
+        // Revisar el reloj cada 1 minuto (solo lee memoria local, no gasta red)
         setInterval(vigilarTurnosProximos, 60000);
     }
 });
@@ -125,16 +133,16 @@ async function vigilarTurnosProximos() {
     const ahoraMs = new Date().getTime();
     const ultimaRevision = localStorage.getItem('ultima_vigilancia_api');
 
-    // OPTIMIZACIÓN: Solo hacemos FETCH a la base de datos cada 15 minutos para ahorrar cuota
+    // OPTIMIZACIÓN: Solo consultamos la API cada 15 minutos para no gastar cuota de Supabase
     if (!ultimaRevision || (ahoraMs - parseInt(ultimaRevision)) > 15 * 60 * 1000) {
         try {
             const res = await fetch(`https://api-estudio-juridico-oma1.onrender.com/api/turnos/usuario/${usuarioId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
+
             if (!res.ok) return;
             turnos = await res.json();
-            
+
             localStorage.setItem('turnos_cache_notif', JSON.stringify(turnos));
             localStorage.setItem('ultima_vigilancia_api', ahoraMs.toString());
         } catch (e) {
@@ -142,46 +150,40 @@ async function vigilarTurnosProximos() {
             return;
         }
     } else {
-        // Leemos desde la memoria local sin gastar peticiones al servidor
+        // Leemos desde caché local sin gastar peticiones al servidor
         const cache = localStorage.getItem('turnos_cache_notif');
         if (cache) turnos = JSON.parse(cache);
     }
-        
+
     const ahora = new Date();
     const hoyStr = ahora.toISOString().split('T')[0];
-        
-        // Filtramos turnos pendientes de hoy
-        const turnosHoy = turnos.filter(t => t.estado === 'pendiente' && t.fecha.startsWith(hoyStr));
-        
-        const notificados = JSON.parse(localStorage.getItem('turnos_notificados') || '[]');
 
-        turnosHoy.forEach(turno => {
-            if (notificados.includes(turno.id)) return; // Ya avisamos
+    // Filtramos turnos pendientes de hoy
+    const turnosHoy = turnos.filter(t => t.estado === 'pendiente' && t.fecha.startsWith(hoyStr));
+    const notificados = JSON.parse(localStorage.getItem('turnos_notificados') || '[]');
 
-            // Parsear hora del turno
-            const [hora, min] = turno.hora.split(':');
-            const fechaTurno = new Date();
-            fechaTurno.setHours(parseInt(hora), parseInt(min), 0, 0);
+    turnosHoy.forEach(turno => {
+        if (notificados.includes(turno.id)) return; // Ya avisamos por este turno
 
-            const diferenciaMs = fechaTurno - ahora;
-            const minutosRestantes = Math.floor(diferenciaMs / 60000);
+        const [hora, min] = turno.hora.split(':');
+        const fechaTurno = new Date();
+        fechaTurno.setHours(parseInt(hora), parseInt(min), 0, 0);
 
-            // Si el turno es en los próximos 30 minutos (y aún no pasó)
-            if (minutosRestantes > 0 && minutosRestantes <= 30) {
-                // Lanzar Notificación Nativa
-                new Notification('¡Turno Próximo!', {
-                    body: `Faltan ${minutosRestantes} minutos para: ${turno.tipo_evento || turno.motivo} - ${turno.nombre_completo || 'Sin cliente'}`,
-                    icon: './icon-192.png',
-                    badge: './icon-192.png',
-                    vibrate: [200, 100, 200]
-                });
+        const diferenciaMs = fechaTurno - ahora;
+        const minutosRestantes = Math.floor(diferenciaMs / 60000);
 
-                // Registrar que ya lo notificamos
-                notificados.push(turno.id);
-                localStorage.setItem('turnos_notificados', JSON.stringify(notificados));
-            }
-        });
-    } catch (e) {
-        console.error("Error vigilando turnos:", e);
-    }
+        // Si el turno es en los próximos 30 minutos (y aún no pasó)
+        if (minutosRestantes > 0 && minutosRestantes <= 30) {
+            new Notification('¡Turno Próximo!', {
+                body: `Faltan ${minutosRestantes} min para: ${turno.tipo_evento || turno.motivo} - ${turno.nombre_completo || 'Sin cliente'}`,
+                icon: './icon-192.png',
+                badge: './icon-192.png',
+                vibrate: [200, 100, 200]
+            });
+
+            // Registrar que ya notificamos este turno
+            notificados.push(turno.id);
+            localStorage.setItem('turnos_notificados', JSON.stringify(notificados));
+        }
+    });
 }
