@@ -12,13 +12,18 @@
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <script src="./js/theme.js"></script>
 
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#1e293b">
 </head>
 
 <body>
 
     <nav class="navbar">
-        <h2>Estudio Jurídico</h2>
-        <ul>
+        <div class="navbar-header">
+            <h2>Estudio Jurídico</h2>
+            <button id="menuToggle" class="menu-toggle"><span class="material-symbols-outlined">menu</span></button>
+        </div>
+        <ul id="navMenu">
             <li><a href="dashboard.html"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px;">dashboard</span>Dashboard</a></li>
             <li><a href="clientes.html"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px;">group</span>Clientes</a></li>
             <li><a href="agenda.html" class="active"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px;">calendar_month</span>Agenda</a></li>

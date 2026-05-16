@@ -437,15 +437,27 @@
                 gap: 15px;
                 padding: 15px;
             }
+            .add-nota-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .add-nota-form button {
+                align-self: stretch;
+            }
         }
     </style>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#1e293b">
 </head>
 
 <body>
 
     <nav class="navbar">
-        <h2>Estudio Jurídico</h2>
-        <ul>
+        <div class="navbar-header">
+            <h2>Estudio Jurídico</h2>
+            <button id="menuToggle" class="menu-toggle"><span class="material-symbols-outlined">menu</span></button>
+        </div>
+        <ul id="navMenu">
             <li><a href="dashboard.html"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px;">dashboard</span>Dashboard</a></li>
             <li><a href="clientes.html" class="active"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px;">group</span>Clientes</a></li>
             <li><a href="agenda.html"><span class="material-symbols-outlined" style="font-size:20px;vertical-align:middle;margin-right:6px;">calendar_month</span>Agenda</a></li>
@@ -808,9 +820,9 @@
                 tbody.innerHTML = pagos.length === 0
                     ? '<tr><td colspan="3" class="estado-vacio">No hay pagos registrados aún.</td></tr>'
                     : pagos.map(p => `<tr>
-                        <td>${fmtFecha(p.fecha_pago)}</td>
-                        <td><strong>$ ${fmt(p.monto)}</strong></td>
-                        <td>${p.metodo_pago || '—'}</td>
+                        <td data-label="Fecha">${fmtFecha(p.fecha_pago)}</td>
+                        <td data-label="Monto"><strong>$ ${fmt(p.monto)}</strong></td>
+                        <td data-label="Método">${p.metodo_pago || '—'}</td>
                       </tr>`).join('');
 
                 const exps = await resE.json();

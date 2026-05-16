@@ -56,11 +56,25 @@ body {
 }
 
 .navbar h2 {
-    margin-bottom: 30px;
     font-size: 1.5rem;
     text-align: center;
+}
+
+.navbar-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 30px;
     border-bottom: 1px solid #334155;
     padding-bottom: 10px;
+}
+
+.navbar-header h2 {
+    margin-bottom: 0;
+}
+
+.menu-toggle {
+    display: none;
 }
 
 .navbar ul {
@@ -202,18 +216,46 @@ tbody tr:hover {
 
     /* Ponemos los links uno al lado del otro pero permitiendo que bajen si no caben */
     .navbar ul {
+        display: none; /* Oculto por defecto en mobile */
+        flex-direction: column;
+        width: 100%;
+        margin-top: 15px;
+        gap: 0;
+    }
+    
+    .navbar ul.show {
         display: flex;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 10px;
     }
 
     .navbar ul li {
-        margin-bottom: 0;
+        margin-bottom: 5px;
     }
 
-    .navbar h2 {
-        margin-bottom: 15px;
+    .navbar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        margin-bottom: 0;
+        border-bottom: none;
+    }
+    
+    .navbar-header h2 {
+        margin-bottom: 0;
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .menu-toggle {
+        display: flex;
+        background: transparent;
+        border: 1px solid #334155;
+        border-radius: 4px;
+        color: white;
+        padding: 5px;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
     }
 
     /* 3. Ajustamos la cabecera (Input y Botón) */
@@ -233,10 +275,59 @@ tbody tr:hover {
         /* El buscador ocupa todo el ancho */
     }
 
-    /* 4. El salvavidas de las Tablas */
+    /* 4. El salvavidas de las Tablas (Formato Tarjeta) */
     .table-container {
-        overflow-x: auto;
-        /* Permite hacer scroll horizontal solo en la tabla */
+        box-shadow: none;
+        background-color: transparent;
+        border-radius: 0;
+    }
+    .table-container table, 
+    .table-container tbody, 
+    .table-container tr, 
+    .table-container td {
+        display: block;
+        width: 100%;
+    }
+    .table-container thead {
+        display: none;
+    }
+    .table-container tr {
+        background-color: white;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        padding: 15px;
+        border: 1px solid #e2e8f0;
+    }
+    .table-container td {
+        border-bottom: 1px solid #f1f5f9;
+        padding: 10px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: right;
+    }
+    .table-container td:last-child {
+        border-bottom: none;
+        justify-content: flex-end;
+        gap: 10px;
+        padding-top: 15px;
+    }
+    .table-container td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #64748b;
+        font-size: 0.85rem;
+        text-align: left;
+        flex: 1;
+        padding-right: 15px;
+    }
+    body.dark-mode .table-container tr {
+        background-color: #1e293b;
+        border-color: #334155;
+    }
+    body.dark-mode .table-container td {
+        border-bottom-color: #334155;
     }
 }
 
@@ -263,9 +354,11 @@ tbody tr:hover {
     background-color: white;
     padding: 30px;
     border-radius: 8px;
-    width: 100%;
+    width: 90%;
     max-width: 500px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .modal-header {
@@ -304,11 +397,27 @@ tbody tr:hover {
 }
 
 .modal-form input,
-.modal-form textarea {
+.modal-form textarea,
+.modal-form select {
     padding: 10px;
     border: 1px solid #cbd5e1;
     border-radius: 5px;
     font-family: inherit;
+    font-size: 1rem;
+    color: #334155;
+    width: 100%;
+}
+
+.modal-form select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 15px top 50%;
+    background-size: 12px auto;
+    padding-right: 40px;
+    cursor: pointer;
 }
 
 .modal-actions {

@@ -114,13 +114,15 @@ function renderizarTabla(clientes) {
 
     tbody.innerHTML = clientes.map(c => `
         <tr>
-            <td>
-                <strong>${c.nombre_completo}</strong>
-                ${c.email ? `<br><small style="color:#64748b">${c.email}</small>` : ''}
+            <td data-label="Nombre y Apellido">
+                <div style="text-align: right;">
+                    <strong>${c.nombre_completo}</strong>
+                    ${c.email ? `<br><small style="color:#64748b">${c.email}</small>` : ''}
+                </div>
             </td>
-            <td>${c.dni ? String(c.dni).replace(/\B(?=(\d{3})+(?!\d))/g, ".") : '-'}</td>
-            <td>${c.telefono || '-'}</td>
-            <td>
+            <td data-label="DNI">${c.dni ? String(c.dni).replace(/\B(?=(\d{3})+(?!\d))/g, ".") : '-'}</td>
+            <td data-label="Teléfono">${c.telefono || '-'}</td>
+            <td data-label="Acciones">
                 <!-- AQUÍ INYECTAMOS NUESTRA CLASE PREMIUM -->
                 <button class="btn-ver-cuenta" onclick="verCuenta(${c.id})">Ver Cuenta</button>
             </td>
