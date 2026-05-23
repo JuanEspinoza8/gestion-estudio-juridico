@@ -499,44 +499,6 @@
             </div>
         </div>
 
-        <!-- TARJETA DE CUOTAS PREMIUM -->
-        <div class="finance-card" id="tarjetaCuotas">
-            <div class="finance-header">
-                <div class="finance-title">
-                    <span class="material-symbols-outlined icon-blue">account_balance_wallet</span>
-                    <h2>Plan de Pagos Activo</h2>
-                </div>
-            </div>
-            <div class="finance-body">
-                <div class="finance-row highlight-row">
-                    <span class="finance-label">Estado de Cuotas:</span>
-                    <span class="finance-value text-blue" id="estadoCuotasUI">
-                        <span class="material-symbols-outlined"
-                            style="font-size: 18px; vertical-align: text-bottom;">sync</span>
-                        Calculando estado...
-                    </span>
-                </div>
-                <div class="finance-row">
-                    <span class="finance-label">Valor Original de la Cuota:</span>
-                    <span class="finance-value" id="valorCuotaEstimado">Depende del plan</span>
-                </div>
-                <div class="finance-row" id="rowRestanteCuota" style="display: none; color: #f59e0b;">
-                    <span class="finance-label" id="labelRestanteCuota" style="color: inherit;">Falta para cubrir la cuota:</span>
-                    <span class="finance-value" id="valorRestanteCuota">$ 0</span>
-                </div>
-                <!-- Barra de progreso -->
-                <div style="margin-top: 10px;">
-                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #94a3b8; margin-bottom: 4px;">
-                        <span>Progreso General</span>
-                        <span id="porcentajeProgresoTexto">0%</span>
-                    </div>
-                    <div class="progress-track">
-                        <div class="progress-bar" id="barraProgresoFinanzas"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- TABS PREMIUM CON MATERIAL ICONS -->
         <div class="tabs">
             <button class="tab-btn activo" onclick="cambiarTab('historial', this)">
@@ -796,6 +758,9 @@
 
         // FUNCIONES DE API Y CARGA
         async function fetchPost(url, body, mensajeExito) {
+            const isDark = document.body.classList.contains('dark-mode');
+            const bg = isDark ? '#1e293b' : '#fff';
+            const color = isDark ? '#f8fafc' : '#1e293b';
             try {
                 const res = await fetch(url, {
                     method: 'POST',
@@ -804,18 +769,31 @@
                 });
                 if (!res.ok) {
                     const e = await res.json();
-                    Swal.fire({ icon: 'error', title: 'Error', text: e.error || 'Error al guardar', background: '#1e293b', color: '#f8fafc' });
+                    Swal.fire({ icon: 'error', title: 'Error', text: e.error || 'Error al guardar', background: bg, color: color });
                 } else if (mensajeExito) {
-                    Swal.fire({ icon: 'success', title: '¡Listo!', text: mensajeExito, background: '#1e293b', color: '#f8fafc', timer: 1500, showConfirmButton: false });
+                    Swal.fire({ icon: 'success', title: '¡Listo!', text: mensajeExito, background: bg, color: color, timer: 1500, showConfirmButton: false });
                 }
             } catch (error) {
-                Swal.fire({ icon: 'error', title: 'Conexión Fallida', text: 'Error al conectar con el servidor', background: '#1e293b', color: '#f8fafc' });
+                Swal.fire({ icon: 'error', title: 'Conexión Fallida', text: 'Error al conectar con el servidor', background: bg, color: color });
             }
         }
 
         async function fetchDelete(url) {
-            try { await fetch(url, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); }
-            catch (error) { Swal.fire('Error', 'Error de conexión', 'error'); }
+            const isDark = document.body.classList.contains('dark-mode');
+            const bg = isDark ? '#1e293b' : '#fff';
+            const color = isDark ? '#f8fafc' : '#1e293b';
+            try { 
+                const res = await fetch(url, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); 
+                if (!res.ok) {
+                    const e = await res.json();
+                    Swal.fire({ icon: 'error', title: 'Error', text: e.error || 'Error al eliminar', background: bg, color: color });
+                    throw new Error('Error en DELETE');
+                }
+            }
+            catch (error) { 
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Error de conexión o de servidor', background: bg, color: color }); 
+                throw error;
+            }
         }
 
         async function cargarTodo() {
@@ -852,7 +830,9 @@
                 tbody.innerHTML = pagos.length === 0
                     ? '<tr><td colspan="3" class="estado-vacio">No hay pagos registrados aún.</td></tr>'
                     : pagos.map(p => `<tr>
-                        <td data-label="Fecha">${fmtFecha(p.fecha_pago)}</td>
+                        <td data-label="Fecha">${fmtFecha(p.fecha_pago)}
+                           <div style="font-size:0.8rem; color:#64748b;">${p.expediente_id ? 'Asignado a Honorario #' + p.expediente_id : 'Sin asignar'}</div>
+                        </td>
                         <td data-label="Monto"><strong>$ ${fmt(p.monto)}</strong></td>
                         <td data-label="Método">${p.metodo_pago || '—'}</td>
                       </tr>`).join('');
@@ -864,68 +844,74 @@
 
                 document.getElementById('listaExpedientes').innerHTML = exps.length === 0
                     ? '<p class="estado-vacio">No hay honorarios cargados. Usá "+ Agregar Deuda".</p>'
-                    : exps.map(exp => `
-                        <div class="expediente-item">
-                            <div class="expediente-info">
-                                <strong>${exp.descripcion || 'Sin descripción'}</strong>
-                                <p>Cargado el ${fmtFechaHora(exp.creado_en)}</p>
+                    : exps.map(exp => {
+                        // Calcular estado del expediente individual
+                        const pagosExp = pagos.filter(p => p.expediente_id === exp.id);
+                        const totalPagadoExp = pagosExp.reduce((sum, p) => sum + parseFloat(p.monto), 0);
+                        const honorariosExp = parseFloat(exp.honorarios_totales) || 0;
+                        const cuotasTotales = parseInt(exp.cuotas_totales) || 1;
+                        
+                        const valorCuotaIdeal = honorariosExp / cuotasTotales;
+                        let cuotasAbonadas = valorCuotaIdeal > 0 ? Math.floor(totalPagadoExp / valorCuotaIdeal) : 0;
+                        if (cuotasAbonadas > cuotasTotales) cuotasAbonadas = cuotasTotales;
+                        
+                        const pagadoHaciaCuota = totalPagadoExp % valorCuotaIdeal;
+                        const restanteCuota = valorCuotaIdeal - pagadoHaciaCuota;
+                        const saldoExp = Math.max(0, honorariosExp - totalPagadoExp);
+                        
+                        let porcentaje = honorariosExp > 0 ? Math.floor((totalPagadoExp / honorariosExp) * 100) : 0;
+                        if (porcentaje > 100) porcentaje = 100;
+                        
+                        const esCancelado = saldoExp <= 0;
+                        const colorBarra = esCancelado ? '#10b981' : '#3b82f6';
+                        
+                        return `
+                        <div class="expediente-item finance-card" style="margin-bottom: 15px; border-radius: 8px;">
+                            <div class="finance-header" style="padding-bottom: 10px;">
+                                <div class="finance-title" style="flex: 1;">
+                                    <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-color);">${exp.descripcion || 'Honorario'} <span style="font-size:0.8rem;color:#64748b;font-weight:normal;">#${exp.id}</span></h3>
+                                    <span style="font-size: 0.8rem; color: #64748b;">${fmtFechaHora(exp.creado_en)}</span>
+                                </div>
+                                <button class="btn-eliminar-chico" style="border:none; background:none; color:#ef4444; cursor:pointer;" onclick="eliminarExpediente(${exp.id})" title="Eliminar Deuda">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
                             </div>
-                            <span class="expediente-monto">$ ${fmt(exp.honorarios_totales)}</span>
-                            <button class="btn-eliminar-chico" style="display:inline-flex; align-items:center; justify-content:center; border:none; background:none; color:#ef4444; cursor:pointer;" onclick="eliminarExpediente(${exp.id})" title="Eliminar"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button>
-                        </div>`).join('');
-
-                // 3. ACTUALIZACIÓN AUTOMÁTICA DE LA TARJETA DE CUOTAS
-                const uiCuotas = document.getElementById('estadoCuotasUI');
-                const uiValorBase = document.getElementById('valorCuotaEstimado');
-                const rowRestante = document.getElementById('rowRestanteCuota');
-                const labelRestante = document.getElementById('labelRestanteCuota');
-                const valorRestante = document.getElementById('valorRestanteCuota');
-                const barraProgreso = document.getElementById('barraProgresoFinanzas');
-                const porcentajeTexto = document.getElementById('porcentajeProgresoTexto');
-
-                if (totalHon === 0) {
-                    uiCuotas.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px; vertical-align: text-bottom;">info</span> <strong>Sin plan activo</strong>';
-                    uiValorBase.textContent = '—';
-                    rowRestante.style.display = 'none';
-                    barraProgreso.style.width = '0%';
-                    porcentajeTexto.textContent = '0%';
-                } else if (s.saldo_deudor <= 0) {
-                    uiCuotas.innerHTML = '<span class="material-symbols-outlined" style="font-size: 18px; vertical-align: text-bottom;">task_alt</span> <strong>Plan Cancelado al 100%</strong>';
-                    uiCuotas.style.color = '#10b981';
-                    uiValorBase.textContent = 'Completado';
-                    rowRestante.style.display = 'none';
-                    barraProgreso.style.width = '100%';
-                    porcentajeTexto.textContent = '100%';
-                } else {
-                    // Lógica de "Cuota X de Y" y pagos parciales
-                    const planActivo = exps[exps.length - 1] || exps[0]; 
-                    let totalCuotas = planActivo && planActivo.cuotas_totales ? parseInt(planActivo.cuotas_totales) : 1;
-                    
-                    const valorCuotaIdeal = totalHon / totalCuotas;
-                    
-                    // Cálculo de en qué cuota vamos
-                    let cuotaActual = Math.floor(totalPagado / valorCuotaIdeal) + 1;
-                    if (cuotaActual > totalCuotas) cuotaActual = totalCuotas;
-                    
-                    const pagadoHaciaCuotaActual = totalPagado % valorCuotaIdeal;
-                    const restanteParaCuotaActual = valorCuotaIdeal - pagadoHaciaCuotaActual;
-
-                    uiCuotas.innerHTML = `<strong>Cuota ${cuotaActual} de ${totalCuotas}</strong>`;
-                    uiValorBase.textContent = '$ ' + fmt(valorCuotaIdeal);
-
-                    if (pagadoHaciaCuotaActual > 0 && cuotaActual <= totalCuotas) {
-                        rowRestante.style.display = 'flex';
-                        labelRestante.textContent = `Falta para cubrir Cuota ${cuotaActual}:`;
-                        valorRestante.textContent = '$ ' + fmt(restanteParaCuotaActual);
-                    } else {
-                        rowRestante.style.display = 'none';
-                    }
-
-                    // Actualizar barra de progreso
-                    const porcentaje = Math.min(100, Math.round((totalPagado / totalHon) * 100));
-                    barraProgreso.style.width = `${porcentaje}%`;
-                    porcentajeTexto.textContent = `${porcentaje}%`;
-                }
+                            
+                            <div class="finance-body" style="padding-top: 5px;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom: 10px;">
+                                    <div>
+                                        <div style="font-size: 0.8rem; color:#64748b;">Monto Total</div>
+                                        <div style="font-weight: bold;">$ ${fmt(honorariosExp)}</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-size: 0.8rem; color:#64748b;">Saldo Pendiente</div>
+                                        <div style="font-weight: bold; color: ${esCancelado ? '#10b981' : '#ef4444'};">$ ${fmt(saldoExp)}</div>
+                                    </div>
+                                </div>
+                                
+                                <div style="background: var(--bg-color); border-radius: 6px; padding: 10px; margin-bottom: 10px;">
+                                    ${esCancelado 
+                                        ? `<div style="color: #10b981; font-weight: 500; display:flex; align-items:center; gap: 5px;">
+                                             <span class="material-symbols-outlined" style="font-size:18px;">task_alt</span> Abonado en su totalidad
+                                           </div>`
+                                        : `
+                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
+                                            <span style="font-size: 0.9rem;"><strong>Cuotas:</strong> ${cuotasAbonadas} de ${cuotasTotales} abonadas</span>
+                                            <span style="font-size: 0.8rem; color: #64748b;">Cuota: $ ${fmt(valorCuotaIdeal)}</span>
+                                        </div>
+                                        ${pagadoHaciaCuota > 0 && cuotasAbonadas < cuotasTotales ? 
+                                            `<div style="font-size:0.8rem; color:#f59e0b; margin-bottom: 5px;">
+                                                Falta $ ${fmt(restanteCuota)} para completar la cuota ${cuotasAbonadas + 1}
+                                             </div>` : ''}
+                                        `
+                                    }
+                                    <div class="progress-track" style="height: 6px; margin-top: 8px;">
+                                        <div class="progress-bar" style="width: ${porcentaje}%; background-color: ${colorBarra};"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join('');
 
                 // Resto de la carga (Notas y Timeline)
                 const notas = await resN.json();
@@ -1006,7 +992,7 @@
             if (c.isConfirmed) { await fetchDelete(`${API}/api/expedientes/${id}`); cargarTodo(); }
         }
 
-        function fmt(n) { return new Intl.NumberFormat('es-AR').format(parseFloat(n) || 0); }
+        function fmt(n) { return new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(parseFloat(n) || 0); }
         function fmtFecha(str) {
             if (!str) return '—';
             const cleanStr = str.includes('T') ? str.split('T')[0] : str;

@@ -1,7 +1,6 @@
 // public/js/agenda.js
 
-const API = 'https://api-estudio-juridico-oma1.onrender.com';
-let calendar; // Variable global para guardar el motor del calendario
+// El API ya está definido en utils.jslet calendar; // Variable global para guardar el motor del calendario
 
 document.addEventListener('DOMContentLoaded', () => {
     const token = localStorage.getItem('estudio_token');
@@ -70,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
             Alertas.toast("Error de conexión con el servidor.", 'error');
         } finally {
             btnSubmit.disabled = false;
-            btnSubmit.textContent = 'Guardar Turno';
+            btnSubmit.textContent = 'Agendar';
         }
     });
 
@@ -390,8 +389,4 @@ async function cargarDesplegableClientes(selectId) {
         console.error("Error al cargar clientes:", error);
     }
 }
-
-function cerrarSesion() {
-    localStorage.clear();
-    window.location.href = 'login.html';
-}
+

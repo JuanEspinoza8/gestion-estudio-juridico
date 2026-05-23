@@ -1,4 +1,4 @@
-const API = 'https://api-estudio-juridico-oma1.onrender.com';
+const API = 'https://api-estudio-juridico-oma.onrender.com';
 const token = localStorage.getItem('estudio_token');
 
 if (!token) {
@@ -236,6 +236,13 @@ async function subirDocumento(e) {
     
     if (file.type !== 'application/pdf') {
         Alertas.toast('Por favor, subí únicamente archivos PDF.', 'warning');
+        e.target.value = '';
+        return;
+    }
+    
+    // MISS-06: File size validation (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+        Alertas.toast('El archivo es demasiado grande (Máx. 5MB).', 'warning');
         e.target.value = '';
         return;
     }
