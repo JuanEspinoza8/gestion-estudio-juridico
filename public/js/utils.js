@@ -1,7 +1,30 @@
 /* =========================================
    MÓDULO DE ALERTAS Y NOTIFICACIONES (SweetAlert2)
-   ========================================= */
+   =========================================// public/js/utils.js
 
+// --- VARIABLES GLOBALES ---
+const API = 'https://api-estudio-juridico-oma1.onrender.com';
+
+// --- FUNCIONES GLOBALES ---
+function cerrarSesion() {
+    localStorage.clear();
+    window.location.href = 'login.html';
+}
+
+function fmt(n) { return new Intl.NumberFormat('es-AR', { maximumFractionDigits: 0 }).format(parseFloat(n) || 0); }
+
+function fmtFecha(str) {
+    if (!str) return '—';
+    const cleanStr = str.includes('T') ? str.split('T')[0] : str;
+    const d = new Date(cleanStr + 'T00:00:00');
+    return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('es-AR');
+}
+
+function fmtFechaHora(str) { 
+    return new Date(str).toLocaleString('es-AR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); 
+}
+
+// --- UTILIDADES DE UI ---
 const Alertas = {
     // 1. Notificación tipo "Toast" (Aparece arriba a la derecha y se va sola)
     toast: (mensaje, icono = 'success') => {
@@ -59,22 +82,27 @@ const Alertas = {
 // --- INTERCEPTOR GLOBAL DE SESIÓN EXPIRADA ---
 // Sobreescribimos el fetch nativo para capturar respuestas 401 en cualquier lugar de la app
 const _fetchOriginal = window.fetch;
+let isSessionExpiredDialogShowing = false;
+
 window.fetch = async function (...args) {
     const response = await _fetchOriginal.apply(this, args);
     if (response.status === 401) {
         localStorage.clear();
-        const isDark = document.body.classList.contains('dark-mode');
-        await Swal.fire({
-            icon: 'info',
-            title: 'Sesión expirada',
-            text: 'Tu sesión ha expirado. Por favor, iniciá sesión nuevamente.',
-            background: isDark ? '#1e293b' : '#fff',
-            color: isDark ? '#f8fafc' : '#1e293b',
-            confirmButtonColor: '#3b82f6',
-            confirmButtonText: 'Ir al Login',
-            allowOutsideClick: false
-        });
-        window.location.href = 'login.html';
+        if (!isSessionExpiredDialogShowing) {
+            isSessionExpiredDialogShowing = true;
+            const isDark = document.body.classList.contains('dark-mode');
+            await Swal.fire({
+                icon: 'info',
+                title: 'Sesión expirada',
+                text: 'Tu sesión ha expirado. Por favor, iniciá sesión nuevamente.',
+                background: isDark ? '#1e293b' : '#fff',
+                color: isDark ? '#f8fafc' : '#1e293b',
+                confirmButtonColor: '#3b82f6',
+                confirmButtonText: 'Ir al Login',
+                allowOutsideClick: false
+            });
+            window.location.href = 'login.html';
+        }
     }
     return response;
 };
@@ -136,7 +164,7 @@ async function vigilarTurnosProximos() {
     // OPTIMIZACIÓN: Solo consultamos la API cada 15 minutos para no gastar cuota de Supabase
     if (!ultimaRevision || (ahoraMs - parseInt(ultimaRevision)) > 15 * 60 * 1000) {
         try {
-            const res = await fetch(`https://api-estudio-juridico-oma1.onrender.com/api/turnos/usuario/${usuarioId}`, {
+            const res = await fetch(`${API}/api/turnos/usuario/${usuarioId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -160,7 +188,14 @@ async function vigilarTurnosProximos() {
 
     // Filtramos turnos pendientes de hoy
     const turnosHoy = turnos.filter(t => t.estado === 'pendiente' && t.fecha.startsWith(hoyStr));
-    const notificados = JSON.parse(localStorage.getItem('turnos_notificados') || '[]');
+    let notificados = JSON.parse(localStorage.getItem('turnos_notificados') || '[]');
+    
+    // MISS-03: Cleanup notificados array daily
+    const lastCleanup = localStorage.getItem('turnos_notificados_cleanup');
+    if (lastCleanup !== hoyStr) {
+        notificados = [];
+        localStorage.setItem('turnos_notificados_cleanup', hoyStr);
+    }
 
     turnosHoy.forEach(turno => {
         if (notificados.includes(turno.id)) return; // Ya avisamos por este turno

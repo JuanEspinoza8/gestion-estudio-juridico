@@ -43,27 +43,34 @@ document.addEventListener('DOMContentLoaded', () => {
         const dniLimpio = dniCrudo.replace(/\./g, ''); // Elimina todos los puntos
         // ------------------------------------------------------
 
-        const nuevoCliente = {
+        const editId = document.getElementById('clienteEditId').value;
+        const metodo = editId ? 'PUT' : 'POST';
+        const url = editId ? `${API}/api/clientes/${editId}` : `${API}/api/clientes`;
+
+        const datos = {
             nombre_completo: document.getElementById('nombre').value,
-            dni: dniLimpio, // Enviamos el DNI limpio a la base de datos
+            dni: dniLimpio,
             telefono: document.getElementById('telefono').value,
             email: document.getElementById('email').value,
             notas: document.getElementById('notas').value
         };
 
         try {
-            const respuesta = await fetch('https://api-estudio-juridico-oma1.onrender.com/api/clientes', {
-                method: 'POST',
+            const respuesta = await fetch(url, {
+                method: metodo,
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(nuevoCliente)
+                body: JSON.stringify(datos)
             });
 
             if (respuesta.ok) {
+                Alertas.toast(editId ? '¡Cliente actualizado!' : '¡Cliente guardado con éxito!');
                 modal.style.display = 'none';
                 document.getElementById('formNuevoCliente').reset();
+                document.getElementById('clienteEditId').value = '';
+                document.getElementById('modalClienteTitulo').textContent = 'Nuevo Cliente';
                 // Limpiamos la búsqueda para mostrar la lista completa con el nuevo cliente
                 document.getElementById('searchInput').value = '';
                 cargarClientes();
@@ -89,7 +96,7 @@ async function cargarClientes() {
     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b">Cargando...</td></tr>`;
 
     try {
-        const respuesta = await fetch('https://api-estudio-juridico-oma1.onrender.com/api/clientes', {
+        const respuesta = await fetch(`${API}/api/clientes`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -123,18 +130,38 @@ function renderizarTabla(clientes) {
             <td data-label="DNI">${c.dni ? String(c.dni).replace(/\B(?=(\d{3})+(?!\d))/g, ".") : '-'}</td>
             <td data-label="Teléfono">${c.telefono || '-'}</td>
             <td data-label="Acciones">
-                <!-- AQUÍ INYECTAMOS NUESTRA CLASE PREMIUM -->
-                <button class="btn-ver-cuenta" onclick="verCuenta(${c.id})">Ver Cuenta</button>
+                <button class="btn-primary" onclick="verCuenta(${c.id})">Ver Cuenta</button>
+                <button class="btn-secondary" style="margin-left: 5px; padding: 6px 12px;" onclick="editarCliente(${c.id})" title="Editar">
+                    <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">edit</span>
+                </button>
             </td>
         </tr>
     `).join('');
 }
 
-function cerrarSesion() {
-    localStorage.removeItem('estudio_token');
-    window.location.href = 'login.html';
-}
+
 
 function verCuenta(id) {
     window.location.href = `cuenta.html?id=${id}`;
+}
+
+async function editarCliente(id) {
+    const token = localStorage.getItem('estudio_token');
+    try {
+        const res = await fetch(`${API}/api/clientes/${id}`, { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) {
+            const c = await res.json();
+            document.getElementById('clienteEditId').value = c.id;
+            document.getElementById('nombre').value = c.nombre_completo;
+            document.getElementById('dni').value = c.dni;
+            document.getElementById('telefono').value = c.telefono || '';
+            document.getElementById('email').value = c.email || '';
+            document.getElementById('notas').value = c.notas || '';
+            
+            document.getElementById('modalClienteTitulo').textContent = 'Editar Cliente';
+            document.getElementById('modalNuevoCliente').style.display = 'flex';
+        }
+    } catch (e) {
+        Alertas.toast('Error al cargar datos del cliente', 'error');
+    }
 }
