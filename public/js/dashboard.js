@@ -1,7 +1,6 @@
 // public/js/dashboard.js
 
-const API_BASE = 'https://api-estudio-juridico-oma1.onrender.com/api';
-
+// El API ya está definido en utils.js
 // Estado global de notas rápidas
 let notaActualId = null;
 let notaPaginaActual = 1;
@@ -39,10 +38,10 @@ async function cargarResumenGeneral() {
 
     try {
         const [resClientes, resTurnosHoy, resIngresos, resActividad] = await Promise.all([
-            fetch(`${API_BASE}/clientes`, { headers }),
-            fetch(`${API_BASE}/turnos/usuario/${usuarioId}/hoy`, { headers }),
-            fetch(`${API_BASE}/pagos/mes-actual`, { headers }),
-            fetch(`${API_BASE}/actividad/usuario/${usuarioId}`, { headers })
+            fetch(`${API}/api/clientes`, { headers }),
+            fetch(`${API}/api/turnos/usuario/${usuarioId}/hoy`, { headers }),
+            fetch(`${API}/api/pagos/mes-actual`, { headers }),
+            fetch(`${API}/api/actividad/usuario/${usuarioId}`, { headers })
         ]);
 
         const clientes = await resClientes.json();
@@ -138,7 +137,9 @@ function initNotasRapidas() {
 
 async function cargarNotaRapida(page) {
     try {
-        const res = await fetch(`${API_BASE}/notas-rapidas?page=${page}`, {
+        const usuarioId = localStorage.getItem('usuario_id');
+        const limit = 1;
+        const res = await fetch(`${API}/api/notas-rapidas/usuario/${usuarioId}?page=${page}&limit=${limit}`, {
             headers: getHeaders()
         });
 
@@ -189,13 +190,13 @@ async function guardarNotaRapida(id, contenido) {
 
 async function crearNuevaNota() {
     try {
-        const res = await fetch(`${API_BASE}/notas-rapidas`, {
+        const respuesta = await fetch(`${API}/api/dashboard/${usuarioId}`, {
             method: 'POST',
             headers: getHeaders(),
             body: JSON.stringify({ contenido: '' })
         });
 
-        if (!res.ok) throw new Error('Error al crear nota');
+        if (!respuesta.ok) throw new Error('Error al crear nota');
 
         // Navegar a la página 1 (la nota más reciente, que es la que acabamos de crear)
         await cargarNotaRapida(1);
@@ -214,7 +215,7 @@ async function eliminarNotaActual() {
     if (!confirmado) return;
 
     try {
-        const res = await fetch(`${API_BASE}/notas-rapidas/${notaActualId}`, {
+        const res = await fetch(`${API}/api/notas-rapidas/${notaActualId}`, {
             method: 'DELETE',
             headers: getHeaders()
         });
@@ -250,10 +251,7 @@ function actualizarBotonesNav() {
     btnSiguiente.disabled = notaPaginaActual >= notaTotalPaginas;
 }
 
-function cerrarSesion() {
-    localStorage.clear();
-    window.location.href = 'login.html';
-}
+
 
 // Función para decodificar el payload del JWT sin librerías externas
 function obtenerUsuarioDelToken() {
