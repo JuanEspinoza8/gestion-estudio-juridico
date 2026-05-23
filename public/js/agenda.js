@@ -160,7 +160,7 @@ async function cargarTurnos() {
 
         if (calendar) {
             // Si el calendario ya está abierto, solo actualizamos los datos
-            calendar.removeAllEvents();
+            calendar.getEventSources().forEach(source => source.remove());
             calendar.addEventSource(eventosFullCalendar);
         } else {
             // Inicialización de FullCalendar estilo "Google Calendar"
@@ -230,13 +230,24 @@ async function cargarTurnos() {
             calendar.render();
         }
 
-        // 2. DIBUJAR EL HISTORIAL (Completados y Cancelados en forma de lista)
-        const completados = turnos.filter(t => t.estado === 'completado' || t.estado === 'cancelado');
+        // 2. DIBUJAR EL HISTORIAL (Completados, Cancelados, o Pendientes en el pasado)
+        const ahora = new Date();
+        const historial = turnos.filter(t => {
+            if (t.estado === 'completado' || t.estado === 'cancelado') return true;
+            if (t.estado === 'pendiente') {
+                const fechaTurno = new Date(t.fecha.split('T')[0] + 'T' + t.hora);
+                return fechaTurno < ahora;
+            }
+            return false;
+        });
 
-        if (completados.length === 0) {
+        // Ordenar historial por fecha (más recientes primero)
+        historial.sort((a, b) => new Date(b.fecha + 'T' + b.hora) - new Date(a.fecha + 'T' + a.hora));
+
+        if (historial.length === 0) {
             contenedorComp.innerHTML = '<div class="agenda-vacia"><div class="icono"><span class="material-symbols-outlined" style="font-size: 48px; color: #94a3b8;">history</span></div><p>No hay registro de turnos pasados.</p></div>';
         } else {
-            contenedorComp.innerHTML = renderizarAgenda(completados, true);
+            contenedorComp.innerHTML = renderizarAgenda(historial, true);
         }
 
     } catch (error) {
