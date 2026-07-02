@@ -33,7 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSubmit.textContent = 'Guardando...';
 
         const tipoEventoSel = document.getElementById('tipoEvento').value;
-        const motivoReal = tipoEventoSel === 'Otro' ? document.getElementById('tipoEventoOtro').value || 'Otro' : tipoEventoSel;
+        const especificacion = document.getElementById('tipoEventoOtro').value.trim();
+        // El texto libre va en 'motivo'; 'tipo_evento' se mantiene siempre en la categoría válida
+        const motivoReal = tipoEventoSel === 'Otro' ? (especificacion || 'Otro') : tipoEventoSel;
 
         const nuevoTurno = {
             cliente_id: document.getElementById('clienteId').value || null,
@@ -41,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fecha: document.getElementById('fecha').value,
             hora: document.getElementById('hora').value,
             motivo: motivoReal,
-            tipo_evento: motivoReal
+            tipo_evento: tipoEventoSel
         };
 
         try {
@@ -87,7 +89,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const id = document.getElementById('editarTurnoId').value;
         const tipoEventoSel = document.getElementById('editarTipoEvento').value;
-        const motivoReal = tipoEventoSel === 'Otro' ? document.getElementById('editarTipoEventoOtro').value || 'Otro' : tipoEventoSel;
+        const especificacion = document.getElementById('editarTipoEventoOtro').value.trim();
+        // El texto libre va en 'motivo'; 'tipo_evento' se mantiene siempre en la categoría válida
+        const motivoReal = tipoEventoSel === 'Otro' ? (especificacion || 'Otro') : tipoEventoSel;
 
         const datos = {
             cliente_id: document.getElementById('editarClienteId').value || null,
@@ -95,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fecha: document.getElementById('editarFecha').value,
             hora: document.getElementById('editarHora').value,
             motivo: motivoReal,
-            tipo_evento: motivoReal,
+            tipo_evento: tipoEventoSel,
             estado: document.getElementById('editarEstado').value
         };
 
@@ -143,7 +147,7 @@ async function cargarTurnos() {
         const eventosFullCalendar = pendientes.map(t => {
             return {
                 id: t.id,
-                title: `${t.nombre_completo || 'Tarea'} - ${t.tipo_evento || t.motivo}`,
+                title: `${t.nombre_completo || 'Tarea'} - ${t.motivo || t.tipo_evento}`,
                 start: `${t.fecha.split('T')[0]}T${t.hora}`,
                 color: '#3b82f6', // Azul Corporativo
                 extendedProps: {
@@ -223,7 +227,8 @@ async function cargarTurnos() {
                         String(props.cliente_id),
                         props.fecha,
                         props.hora,
-                        props.tipo_evento || props.motivo,
+                        props.tipo_evento,
+                        props.motivo,
                         props.estado
                     );
                 }
@@ -303,7 +308,8 @@ function renderizarTarjeta(t, esHoy) {
     const hora = t.hora.substring(0, 5);
     const estadoClase = t.estado === 'completado' ? 'completado' : t.estado === 'cancelado' ? 'cancelado' : esHoy ? 'hoy' : '';
     const badgeClase = 'badge-' + t.estado;
-    const motivoEscapado = String(t.motivo).replace(/'/g, "\\'");
+    const motivoEscapado = String(t.motivo || '').replace(/'/g, "\\'");
+    const tipoEscapado = String(t.tipo_evento || '').replace(/'/g, "\\'");
 
     return `
         <li class="turno-card ${estadoClase}">
@@ -314,12 +320,12 @@ function renderizarTarjeta(t, esHoy) {
             <div class="turno-divisor"></div>
             <div class="turno-info">
                 <div class="cliente-nombre">${t.nombre_completo || 'Tarea del Estudio'}</div>
-                <div class="turno-motivo"><span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">assignment</span> ${t.tipo_evento || t.motivo}</div>
+                <div class="turno-motivo"><span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">assignment</span> ${t.motivo || t.tipo_evento}</div>
             </div>
             <span class="badge-estado ${badgeClase}">${t.estado}</span>
             <div class="turno-acciones">
                 <button class="btn-icono editar" title="Editar / Reabrir"
-                    onclick="abrirModalEditar(${t.id}, '${t.cliente_id}', '${t.fecha}', '${t.hora}', '${t.tipo_evento || motivoEscapado}', '${t.estado}')">
+                    onclick="abrirModalEditar(${t.id}, '${t.cliente_id}', '${t.fecha}', '${t.hora}', '${tipoEscapado}', '${motivoEscapado}', '${t.estado}')">
                     <span class="material-symbols-outlined">edit</span>
                 </button>
                 <button class="btn-icono eliminar" title="Eliminar"
@@ -331,7 +337,7 @@ function renderizarTarjeta(t, esHoy) {
     `;
 }
 
-async function abrirModalEditar(id, clienteId, fecha, hora, tipoEvento, estado) {
+async function abrirModalEditar(id, clienteId, fecha, hora, tipoEvento, motivo, estado) {
     const select = document.getElementById('editarClienteId');
     if (select.options.length <= 1) {
         await cargarDesplegableClientes('editarClienteId');
@@ -341,15 +347,19 @@ async function abrirModalEditar(id, clienteId, fecha, hora, tipoEvento, estado) 
     document.getElementById('editarFecha').value = fecha.split('T')[0];
     document.getElementById('editarHora').value = hora.substring(0, 5);
 
-    const opcionesPermitidas = ['Audiencia', 'Mediación', 'Presentar Escrito', 'Reunión Cliente', 'Otro'];
-    if (opcionesPermitidas.includes(tipoEvento) && tipoEvento !== 'Otro') {
+    // Categorías fijas (sin "Otro"): el select toma el valor directo
+    const categoriasFijas = ['Audiencia', 'Mediación', 'Presentar Escrito', 'Reunión Cliente'];
+    if (categoriasFijas.includes(tipoEvento)) {
         document.getElementById('editarTipoEvento').value = tipoEvento;
         document.getElementById('editarTipoEventoOtro').style.display = 'none';
         document.getElementById('editarTipoEventoOtro').value = '';
     } else {
+        // "Otro" (o cualquier valor legacy): el detalle vive en 'motivo'.
+        // Si un dato viejo tuviera el texto en 'tipo_evento', se usa como respaldo.
         document.getElementById('editarTipoEvento').value = 'Otro';
         document.getElementById('editarTipoEventoOtro').style.display = 'block';
-        document.getElementById('editarTipoEventoOtro').value = tipoEvento === 'Otro' ? '' : tipoEvento;
+        const textoLibre = (motivo && motivo !== 'Otro') ? motivo : (tipoEvento && tipoEvento !== 'Otro' ? tipoEvento : '');
+        document.getElementById('editarTipoEventoOtro').value = textoLibre;
     }
 
     document.getElementById('editarEstado').value = estado;
