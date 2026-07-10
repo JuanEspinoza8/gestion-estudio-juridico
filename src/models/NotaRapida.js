@@ -39,7 +39,8 @@ class NotaRapida {
     }
 
     /**
-     * Obtener notas paginadas del usuario (1 nota por página, orden DESC)
+     * Obtener notas paginadas del usuario (1 nota por página, orden ASC cronológico:
+     * la nota más antigua es la página 1 y la más reciente queda en la última página)
      * @param {number} usuarioId
      * @param {number} page - Página actual (1-indexed)
      * @returns {{ nota: object|null, total: number, page: number }}
@@ -62,7 +63,7 @@ class NotaRapida {
             const query = `
                 SELECT * FROM notas_rapidas
                 WHERE usuario_id = $1
-                ORDER BY creado_en DESC
+                ORDER BY creado_en ASC, id ASC
                 LIMIT 1 OFFSET $2;
             `;
             const { rows } = await db.query(query, [usuarioId, offset]);

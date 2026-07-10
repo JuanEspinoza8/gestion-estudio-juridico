@@ -211,6 +211,13 @@ async function cargarTurnos() {
 
                 // Acción al hacer clic en un día/hora vacía del calendario
                 dateClick: function (info) {
+                    // En la vista de Mes, FullCalendar dispara dateClick incluso cuando el
+                    // clic cae sobre un evento ya agendado. Si es así, no abrimos el modal de
+                    // creación: dejamos que eventClick abra el detalle del turno.
+                    if (info.jsEvent && info.jsEvent.target.closest('.fc-event')) {
+                        return;
+                    }
+
                     const fechaStr = info.dateStr.split('T')[0];
                     const horaStr = info.dateStr.includes('T') ? info.dateStr.split('T')[1].substring(0, 5) : '09:00';
 

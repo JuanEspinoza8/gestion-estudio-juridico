@@ -110,7 +110,7 @@ function getHeaders() {
     };
 }
 
-function initNotasRapidas() {
+async function initNotasRapidas() {
     const textarea = document.getElementById('notaRapidaTexto');
     const btnNueva = document.getElementById('btnNuevaNota');
     const btnEliminar = document.getElementById('btnEliminarNota');
@@ -132,8 +132,13 @@ function initNotasRapidas() {
     btnAnterior.addEventListener('click', () => navegarNota(notaPaginaActual - 1));
     btnSiguiente.addEventListener('click', () => navegarNota(notaPaginaActual + 1));
 
-    // Cargar la primera nota (más reciente)
-    cargarNotaRapida(1);
+    // Cargar la primera nota (la más antigua)
+    await cargarNotaRapida(1);
+
+    // Garantizar que siempre exista al menos una nota (nunca 0 notas)
+    if (notaTotalPaginas === 0) {
+        await crearNuevaNota();
+    }
 }
 
 async function cargarNotaRapida(page) {
@@ -197,8 +202,9 @@ async function crearNuevaNota() {
 
         if (!res.ok) throw new Error('Error al crear nota');
 
-        // Navegar a la página 1 (la nota más reciente, que es la que acabamos de crear)
-        await cargarNotaRapida(1);
+        // La nota recién creada es la más reciente, así que queda como última página.
+        // notaTotalPaginas todavía tiene el total previo, por lo que +1 apunta a la nueva.
+        await cargarNotaRapida(notaTotalPaginas + 1);
 
         // Focus en el textarea
         document.getElementById('notaRapidaTexto').focus();
@@ -224,6 +230,11 @@ async function eliminarNotaActual() {
         // Después de eliminar, recargar en la misma posición (o la anterior si era la última)
         const nuevaPagina = notaPaginaActual > 1 ? notaPaginaActual - 1 : 1;
         await cargarNotaRapida(nuevaPagina);
+
+        // Garantizar que siempre exista al menos una nota (nunca 0 notas)
+        if (notaTotalPaginas === 0) {
+            await crearNuevaNota();
+        }
     } catch (error) {
         console.error('Error al eliminar nota rápida:', error);
     }
