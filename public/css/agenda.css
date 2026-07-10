@@ -502,3 +502,11 @@ body.dark-mode .fc-col-header-cell.fc-day-today .fc-col-header-cell-cushion {
     background-color: rgba(59, 130, 246, 0.05) !important;
     cursor: pointer;
 }
+
+/* FullCalendar arma su grilla con <table>/<tbody>/<tr> internos. La regla global
+   "tbody tr:hover" (pensada para las tablas de datos) teñía toda la grilla de la
+   agenda al pasar el mouse, confundiéndose con las líneas divisorias. La anulamos
+   dentro del calendario para que el área de clic quede siempre limpia. */
+#calendar tbody tr:hover {
+    background-color: transparent !important;
+}

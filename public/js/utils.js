@@ -1,4 +1,26 @@
 /* =========================================
+   HELPERS DE BÚSQUEDA (normalización de texto)
+   ========================================= */
+
+// Normaliza un texto para búsquedas: pasa a minúsculas, recorta espacios,
+// colapsa espacios repetidos y elimina acentos/diacríticos (á→a, ñ→n, ü→u).
+// Así "Pérez", "perez" y "PEREZ" se consideran iguales al buscar.
+function normalizarTexto(str) {
+    return (str === null || str === undefined ? '' : String(str))
+        .normalize('NFD')                    // separa la letra de su acento
+        .replace(/[̀-ͯ]/g, '')     // quita los acentos/diacríticos
+        .toLowerCase()
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+// Deja solo los dígitos de un texto (para comparar DNI o teléfonos sin
+// importar puntos, guiones o espacios que el usuario escriba).
+function soloDigitos(str) {
+    return (str === null || str === undefined ? '' : String(str)).replace(/\D/g, '');
+}
+
+/* =========================================
    MÓDULO DE ALERTAS Y NOTIFICACIONES (SweetAlert2)
    ========================================= */
 

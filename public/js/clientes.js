@@ -120,16 +120,28 @@ async function cargarClientes() {
 
 // Aplica el filtro de búsqueda + el ordenamiento activo y redibuja la tabla
 function aplicarVistaClientes() {
-    const termino = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+    const terminoRaw = document.getElementById('searchInput').value || '';
+    const termino = normalizarTexto(terminoRaw);        // sin acentos, minúsculas
+    const terminoDigitos = soloDigitos(terminoRaw);     // para DNI / teléfono
 
     let vista = todosLosClientes;
     if (termino) {
-        vista = todosLosClientes.filter(c =>
-            c.nombre_completo.toLowerCase().includes(termino) ||
-            String(c.dni).includes(termino) ||
-            (c.email && c.email.toLowerCase().includes(termino)) ||
-            (c.telefono && c.telefono.includes(termino))
-        );
+        // Cada palabra buscada debe aparecer en algún dato del cliente (así el orden
+        // no importa: "perez juan" encuentra a "Juan Ignacio Pérez").
+        const tokens = termino.split(' ').filter(Boolean);
+
+        vista = todosLosClientes.filter(c => {
+            const heno = normalizarTexto(`${c.nombre_completo || ''} ${c.email || ''} ${c.telefono || ''} ${c.dni || ''}`);
+            const coincideTexto = tokens.every(tok => heno.includes(tok));
+
+            // Coincidencia numérica ignorando puntos/guiones/espacios (DNI o teléfono)
+            const coincideNumero = terminoDigitos.length > 0 && (
+                soloDigitos(c.dni).includes(terminoDigitos) ||
+                soloDigitos(c.telefono).includes(terminoDigitos)
+            );
+
+            return coincideTexto || coincideNumero;
+        });
     }
 
     if (sortColumn) {
