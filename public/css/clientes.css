@@ -607,3 +607,93 @@ body.dark-mode textarea::placeholder {
     box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
     /* Pequeño brillo */
 }
+
+/* --- TABLA DE CLIENTES: CONTENIDO CENTRADO (solo escritorio; en móvil se usa
+   el layout de tarjetas definido en la media query de arriba) --- */
+@media (min-width: 769px) {
+    #tablaClientes th,
+    #tablaClientes td {
+        text-align: center;
+        vertical-align: middle;
+    }
+}
+
+/* --- CABECERAS ORDENABLES --- */
+.th-sortable {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    transition: color 0.2s ease;
+}
+
+.th-sortable:hover {
+    color: #3b82f6;
+}
+
+body.dark-mode .th-sortable:hover {
+    color: #60a5fa;
+}
+
+.sort-icon {
+    font-size: 0.72rem;
+    opacity: 0.7;
+    margin-left: 4px;
+}
+
+/* --- CELDA DE ACCIONES (Ver / Editar / Eliminar) --- */
+.acciones-cell {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-icono-tabla {
+    border: 1px solid transparent;
+    width: 34px;
+    height: 34px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    background: none;
+}
+
+.btn-icono-tabla .material-symbols-outlined {
+    font-size: 19px;
+}
+
+.btn-icono-tabla.editar {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.btn-icono-tabla.editar:hover {
+    background-color: #3b82f6;
+    color: #fff;
+    border-color: #3b82f6;
+}
+
+.btn-icono-tabla.eliminar {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.btn-icono-tabla.eliminar:hover {
+    background-color: #ef4444;
+    color: #fff;
+    border-color: #ef4444;
+}
+
+body.dark-mode .btn-icono-tabla.editar {
+    color: #60a5fa;
+}
+
+body.dark-mode .btn-icono-tabla.editar:hover {
+    color: #fff;
+}

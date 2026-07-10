@@ -51,6 +51,24 @@
             color: #1e293b;
         }
 
+        /* En modo oscuro el hover debe aclararse para contrastar con el fondo */
+        body.dark-mode .tabs {
+            border-bottom-color: #334155;
+        }
+
+        body.dark-mode .tab-btn {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .tab-btn:hover {
+            color: #f8fafc;
+        }
+
+        body.dark-mode .tab-btn.activo {
+            color: #60a5fa;
+            border-bottom-color: #60a5fa;
+        }
+
         .tab-panel {
             display: none;
         }
@@ -617,6 +635,19 @@
                     <input type="text" inputmode="numeric" id="montoPago" required placeholder="Ej: 50.000">
                 </div>
                 <div class="form-group">
+                    <label for="cuotasPago">O pagar por cantidad de cuotas</label>
+                    <div class="cuotas-control">
+                        <button type="button" class="btn-cuota" id="btnRestarCuotaPago">
+                            <span class="material-symbols-outlined">remove</span>
+                        </button>
+                        <input type="number" id="cuotasPago" min="0" value="0" readonly>
+                        <button type="button" class="btn-cuota" id="btnSumarCuotaPago">
+                            <span class="material-symbols-outlined">add</span>
+                        </button>
+                    </div>
+                    <small id="cuotasPagoHint" style="color:#94a3b8; margin-top:6px; display:block;">Elegí un honorario para calcular el valor de cada cuota.</small>
+                </div>
+                <div class="form-group">
                     <label for="metodoPago">Método de Pago *</label>
                     <select id="metodoPago" required>
                         <option value="">Seleccionar...</option>
@@ -699,6 +730,9 @@
         // Variable global para almacenar el saldo deudor actual
         let saldoDeudorActual = 0;
         let expedientesActuales = [];
+        // Estado del selector de cuotas del modal de Pago
+        let valorCuotaPagoActual = 0;
+        let maxCuotasPago = 0;
 
         document.getElementById('btnAbrirModalPago').onclick = () => {
             if (saldoDeudorActual <= 0) {
@@ -717,7 +751,66 @@
             select.innerHTML = '<option value="">Seleccionar honorario...</option>' +
                 expedientesActuales.map(exp => `<option value="${exp.id}">${exp.descripcion || 'Sin descripción'} — $ ${fmt(exp.honorarios_totales)}</option>`).join('');
             document.getElementById('fechaPago').value = new Date().toISOString().split('T')[0];
+            document.getElementById('montoPago').value = '';
+            resetearCuotasPago();
             abrirModal('modalPago');
+        };
+
+        // --- SELECTOR DE CUOTAS DEL MODAL DE PAGO ---
+        // Al elegir un honorario, calculamos el valor de cada cuota y cuántas cuotas
+        // entran dentro del saldo deudor pendiente.
+        document.getElementById('honorarioDestino').addEventListener('change', () => {
+            resetearCuotasPago();
+            const exp = expedientesActuales.find(e => String(e.id) === document.getElementById('honorarioDestino').value);
+            const hint = document.getElementById('cuotasPagoHint');
+            if (!exp) {
+                hint.textContent = 'Elegí un honorario para calcular el valor de cada cuota.';
+                return;
+            }
+            const total = parseFloat(exp.honorarios_totales) || 0;
+            const cuotasTot = parseInt(exp.cuotas_totales) || 1;
+            valorCuotaPagoActual = cuotasTot > 0 ? total / cuotasTot : total;
+            // Cuántas cuotas caben dentro del saldo deudor (la última puede ser parcial)
+            maxCuotasPago = valorCuotaPagoActual > 0 ? Math.ceil(saldoDeudorActual / valorCuotaPagoActual) : 0;
+            hint.textContent = `Valor de cuota: $ ${fmt(valorCuotaPagoActual)} · Podés cubrir hasta ${maxCuotasPago} cuota(s) con el saldo actual.`;
+        });
+
+        function resetearCuotasPago() {
+            valorCuotaPagoActual = 0;
+            maxCuotasPago = 0;
+            document.getElementById('cuotasPago').value = 0;
+            document.getElementById('cuotasPagoHint').textContent = 'Elegí un honorario para calcular el valor de cada cuota.';
+        }
+
+        function actualizarMontoDesdeCuotas() {
+            const cuotas = parseInt(document.getElementById('cuotasPago').value) || 0;
+            const inputMonto = document.getElementById('montoPago');
+            if (cuotas <= 0 || valorCuotaPagoActual <= 0) {
+                inputMonto.value = '';
+                return;
+            }
+            // No permitimos que el auto-cálculo supere el saldo deudor (la última cuota se recorta)
+            const monto = Math.min(Math.round(valorCuotaPagoActual * cuotas), Math.round(saldoDeudorActual));
+            inputMonto.value = new Intl.NumberFormat('es-AR').format(monto);
+        }
+
+        document.getElementById('btnSumarCuotaPago').onclick = () => {
+            if (valorCuotaPagoActual <= 0) return; // Necesita un honorario elegido
+            const input = document.getElementById('cuotasPago');
+            let valor = parseInt(input.value) || 0;
+            if (valor < maxCuotasPago) {
+                input.value = valor + 1;
+                actualizarMontoDesdeCuotas();
+            }
+        };
+
+        document.getElementById('btnRestarCuotaPago').onclick = () => {
+            const input = document.getElementById('cuotasPago');
+            let valor = parseInt(input.value) || 0;
+            if (valor > 0) {
+                input.value = valor - 1;
+                actualizarMontoDesdeCuotas();
+            }
         };
         document.getElementById('btnAbrirModalDeuda').onclick = () => abrirModal('modalDeuda');
         // LÓGICA DE LOS BOTONES + Y - PARA LAS CUOTAS
@@ -747,15 +840,45 @@
         document.getElementById('montoPago').addEventListener('input', formatMonedaInput);
         document.getElementById('montoDeuda').addEventListener('input', formatMonedaInput);
 
+        // Si el usuario escribe un monto libre, deseleccionamos el contador de cuotas
+        document.getElementById('montoPago').addEventListener('input', () => {
+            document.getElementById('cuotasPago').value = 0;
+        });
+
         // ENVÍO DE PAGO
         document.getElementById('formPago').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btnSubmit = e.target.querySelector('button[type="submit"]');
-            btnSubmit.disabled = true;
-            btnSubmit.textContent = 'Guardando...';
 
             const montoRaw = document.getElementById('montoPago').value.replace(/\./g, '');
             const honorarioId = document.getElementById('honorarioDestino').value;
+            const montoNum = parseFloat(montoRaw) || 0;
+            const isDark = document.body.classList.contains('dark-mode');
+
+            // Validación 1: el monto debe ser un número positivo
+            if (montoNum <= 0) {
+                Swal.fire({
+                    icon: 'warning', title: 'Monto inválido',
+                    text: 'Ingresá un monto de pago mayor a cero.',
+                    background: isDark ? '#1e293b' : '#fff', color: isDark ? '#f8fafc' : '#1e293b',
+                    confirmButtonColor: '#3b82f6'
+                });
+                return;
+            }
+
+            // Validación 2: no se puede pagar más que el saldo deudor pendiente
+            if (montoNum > Math.round(saldoDeudorActual)) {
+                Swal.fire({
+                    icon: 'warning', title: 'Pago superior a la deuda',
+                    text: `El pago no puede superar el saldo deudor de $ ${fmt(saldoDeudorActual)}.`,
+                    background: isDark ? '#1e293b' : '#fff', color: isDark ? '#f8fafc' : '#1e293b',
+                    confirmButtonColor: '#3b82f6'
+                });
+                return;
+            }
+
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = 'Guardando...';
 
             await fetchPost(`${API}/api/pagos`, {
                 cliente_id: clienteId,
