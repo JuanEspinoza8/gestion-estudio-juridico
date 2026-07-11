@@ -742,6 +742,25 @@ body.dark-mode .badge-vencido {
     color: #f87171;
 }
 
+/* Tarjetas de la lista de turnos en modo oscuro */
+body.dark-mode .turno-card {
+    background: #1e293b;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .turno-card .hora-grande,
+body.dark-mode .turno-card .cliente-nombre {
+    color: #f8fafc;
+}
+
+body.dark-mode .turno-card .turno-motivo {
+    color: #94a3b8;
+}
+
+body.dark-mode .turno-card .turno-divisor {
+    background-color: #334155;
+}
+
 /* Responsive: filtros y leyenda apilados en móvil */
 @media (max-width: 768px) {
     .leyenda-eventos {

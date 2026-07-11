@@ -242,6 +242,9 @@ function renderCalendario() {
     calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek',
         height: 'auto',
+        // Forzamos que los eventos se dibujen como bloques con color también en la
+        // vista de Mes (por defecto ahí se muestran como punto sin color de fondo).
+        eventDisplay: 'block',
         locale: 'es',
         slotMinTime: '08:00:00',
         slotMaxTime: '20:00:00',
@@ -396,6 +399,7 @@ function abrirDetalle(id) {
         botones += `<button class="btn-secondary" onclick="cambiarEstadoTurno(${t.id}, 'pendiente')"><span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">undo</span> Reabrir</button>`;
     }
     botones += `<button class="btn-primary" onclick="abrirModalEditar(${t.id})">Editar</button>`;
+    botones += `<button class="btn-secondary" style="background:#ef4444; color:white;" onclick="eliminarTurno(${t.id})"><span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">delete</span> Eliminar</button>`;
     document.getElementById('detalleTurnoAcciones').innerHTML = botones;
 
     document.getElementById('modalDetalleTurno').style.display = 'flex';

@@ -62,6 +62,7 @@ function armarEmail(turno) {
 async function enviarRecordatoriosPendientes() {
     const pendientes = await Turno.obtenerPendientesRecordatorio();
     let enviados = 0, omitidos = 0, errores = 0;
+    const detalleErrores = [];
 
     for (const turno of pendientes) {
         try {
@@ -78,11 +79,12 @@ async function enviarRecordatoriosPendientes() {
             enviados++;
         } catch (error) {
             errores++;
+            detalleErrores.push({ turno: turno.id, error: error.message });
             console.error(`[recordatorios] Falló el turno ${turno.id}:`, error.message);
         }
     }
 
-    return { total: pendientes.length, enviados, omitidos, errores };
+    return { total: pendientes.length, enviados, omitidos, errores, detalleErrores };
 }
 
 module.exports = { enviarRecordatoriosPendientes, armarEmail };
