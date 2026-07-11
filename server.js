@@ -1,6 +1,7 @@
 // server.js
 const express = require('express');
 const cors = require('cors');
+const cron = require('node-cron');
 const db = require('./src/config/db');
 require('dotenv').config();
 
@@ -17,7 +18,9 @@ const documentosRoutes = require('./src/routes/documentosRoutes');
 const notasRoutes = require('./src/routes/notasRoutes');
 const actividadRoutes = require('./src/routes/actividadRoutes');
 const notasRapidasRoutes = require('./src/routes/notasRapidasRoutes');
+const cronRoutes = require('./src/routes/cronRoutes');
 
+const { enviarRecordatoriosPendientes } = require('./src/services/recordatorios');
 const verificarToken = require('./src/middlewares/authMiddleware');
 
 const app = express();
@@ -28,6 +31,7 @@ const PORT = process.env.PORT || 3000;
 
 // RUTAS PÚBLICAS
 app.use('/api/auth', authRoutes);
+app.use('/api/cron', cronRoutes); // Protegida con CRON_SECRET, no con JWT
 
 // RUTAS PRIVADAS
 app.use('/api/clientes', verificarToken, clientesRoutes);
@@ -42,6 +46,20 @@ app.use('/api/actividad', verificarToken, actividadRoutes);
 
 app.get('/', (req, res) => {
     res.json({ mensaje: 'Servidor del Estudio Jurídico funcionando', estado: 'OK' });
+});
+
+// Cron interno: procesa recordatorios cada 5 minutos mientras el proceso esté vivo.
+// En Render free el servicio se duerme, por eso el ping externo (UptimeRobot) al
+// endpoint /api/cron/recordatorios es lo que garantiza el envío.
+cron.schedule('*/5 * * * *', async () => {
+    try {
+        const r = await enviarRecordatoriosPendientes();
+        if (r.enviados > 0 || r.errores > 0) {
+            console.log(`[cron] Recordatorios -> enviados: ${r.enviados}, errores: ${r.errores}, omitidos: ${r.omitidos}`);
+        }
+    } catch (error) {
+        console.error('[cron] Error al procesar recordatorios:', error.message);
+    }
 });
 
 app.listen(PORT, () => {

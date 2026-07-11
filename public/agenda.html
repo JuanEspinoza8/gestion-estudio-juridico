@@ -43,7 +43,27 @@
 
         <div class="tabs">
             <button class="tab-btn activo" onclick="cambiarTabAgenda('calendario', this)">Calendario</button>
-            <button class="tab-btn" onclick="cambiarTabAgenda('completados', this)">Historial (Lista)</button>
+            <button class="tab-btn" onclick="cambiarTabAgenda('lista', this)">Lista de turnos</button>
+        </div>
+
+        <!-- Filtros comunes (afectan calendario y lista) + leyenda de colores -->
+        <div class="agenda-filtros">
+            <div class="filtro-campo">
+                <label for="filtroCliente">Cliente</label>
+                <select id="filtroCliente"><option value="">Todos</option></select>
+            </div>
+            <div class="filtro-campo">
+                <label for="filtroTipo">Tipo de evento</label>
+                <select id="filtroTipo">
+                    <option value="">Todos</option>
+                    <option value="Audiencia">Audiencia</option>
+                    <option value="Mediación">Mediación</option>
+                    <option value="Presentar Escrito">Presentar Escrito</option>
+                    <option value="Reunión Cliente">Reunión Cliente</option>
+                    <option value="Otro">Otro</option>
+                </select>
+            </div>
+            <div id="leyendaEventos" class="leyenda-eventos"></div>
         </div>
 
         <!-- AQUÍ NACE EL CALENDARIO -->
@@ -51,10 +71,17 @@
             <div id="calendar"></div>
         </section>
 
-        <!-- SECCIÓN DE HISTORIAL (Mantenemos la vista de lista para el archivo muerto) -->
-        <section class="agenda-container tab-panel" id="tab-completados">
-            <ul class="lista-turnos" id="contenedorCompletados">
-                <p style="text-align: center; color: #64748b; padding: 20px;">Cargando historial...</p>
+        <!-- LISTA COMPLETA DE TURNOS (ver detalle y cambiar estado) -->
+        <section class="agenda-container tab-panel" id="tab-lista">
+            <div class="estado-chips" id="estadoChips">
+                <button type="button" class="chip activo" data-estado="pendientes">Pendientes</button>
+                <button type="button" class="chip" data-estado="vencidos">Vencidos</button>
+                <button type="button" class="chip" data-estado="completado">Completados</button>
+                <button type="button" class="chip" data-estado="cancelado">Cancelados</button>
+                <button type="button" class="chip" data-estado="todos">Todos</button>
+            </div>
+            <ul class="lista-turnos" id="contenedorLista">
+                <li style="text-align: center; color: #64748b; padding: 20px;">Cargando turnos...</li>
             </ul>
         </section>
     </main>
@@ -71,6 +98,12 @@
                     <label for="clienteId">Cliente (Opcional)</label>
                     <select id="clienteId">
                         <option value="">Cargando clientes...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="causaId">Expediente / Causa (Opcional)</label>
+                    <select id="causaId" disabled>
+                        <option value="">Elegí primero un cliente...</option>
                     </select>
                 </div>
                 <div class="form-row">
@@ -97,6 +130,16 @@
                     <input type="text" id="tipoEventoOtro" style="display:none; margin-top:10px;"
                         placeholder="Especifique el evento...">
                 </div>
+                <div class="form-group">
+                    <label for="recordatorio">Recordatorio por email</label>
+                    <select id="recordatorio">
+                        <option value="0">Sin recordatorio</option>
+                        <option value="60">1 hora antes</option>
+                        <option value="180">3 horas antes</option>
+                        <option value="1440" selected>1 día antes</option>
+                        <option value="2880">2 días antes</option>
+                    </select>
+                </div>
                 <footer class="modal-actions">
                     <button type="button" class="btn-secondary" id="btnCancelarModalTurno">Cancelar</button>
                     <button type="submit" class="btn-primary">Agendar</button>
@@ -118,6 +161,12 @@
                     <label for="editarClienteId">Cliente (Opcional)</label>
                     <select id="editarClienteId">
                         <option value="">Cargando clientes...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editarCausaId">Expediente / Causa (Opcional)</label>
+                    <select id="editarCausaId" disabled>
+                        <option value="">Elegí primero un cliente...</option>
                     </select>
                 </div>
                 <div class="form-row">
@@ -144,19 +193,43 @@
                     <input type="text" id="editarTipoEventoOtro" style="display:none; margin-top:10px;"
                         placeholder="Especifique el evento...">
                 </div>
-                <div class="form-group">
-                    <label for="editarEstado">Estado</label>
-                    <select id="editarEstado">
-                        <option value="pendiente">Pendiente</option>
-                        <option value="completado">Completado</option>
-                        <option value="cancelado">Cancelado</option>
-                    </select>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editarRecordatorio">Recordatorio por email</label>
+                        <select id="editarRecordatorio">
+                            <option value="0">Sin recordatorio</option>
+                            <option value="60">1 hora antes</option>
+                            <option value="180">3 horas antes</option>
+                            <option value="1440">1 día antes</option>
+                            <option value="2880">2 días antes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editarEstado">Estado</label>
+                        <select id="editarEstado">
+                            <option value="pendiente">Pendiente</option>
+                            <option value="completado">Completado</option>
+                            <option value="cancelado">Cancelado</option>
+                        </select>
+                    </div>
                 </div>
                 <footer class="modal-actions">
                     <button type="button" class="btn-secondary" id="btnCancelarModalEditar">Cancelar</button>
                     <button type="submit" class="btn-primary">Guardar Cambios</button>
                 </footer>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal: DETALLE DE TURNO -->
+    <div id="modalDetalleTurno" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2>Detalle del turno</h2>
+                <button class="btn-close" id="btnCerrarModalDetalle">&times;</button>
+            </header>
+            <div class="detalle-turno" id="detalleTurnoBody"></div>
+            <footer class="modal-actions" id="detalleTurnoAcciones"></footer>
         </div>
     </div>
 

@@ -510,3 +510,248 @@ body.dark-mode .fc-col-header-cell.fc-day-today .fc-col-header-cell-cushion {
 #calendar tbody tr:hover {
     background-color: transparent !important;
 }
+
+/* =========================================
+   5. FILTROS, LEYENDA Y LISTA DE TURNOS
+   ========================================= */
+.agenda-filtros {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.filtro-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.filtro-campo label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #64748b;
+    font-weight: 700;
+}
+
+.filtro-campo select {
+    padding: 8px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: white;
+    color: #334155;
+    font-family: inherit;
+    font-size: 0.9rem;
+    min-width: 180px;
+    cursor: pointer;
+}
+
+.leyenda-eventos {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-left: auto;
+    padding-bottom: 4px;
+}
+
+.leyenda-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+
+.leyenda-punto {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+/* Chips de estado de la lista */
+.estado-chips {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.chip {
+    padding: 7px 16px;
+    border: 1px solid #cbd5e1;
+    background: white;
+    color: #475569;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chip:hover {
+    border-color: #3b82f6;
+    color: #3b82f6;
+}
+
+.chip.activo {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+}
+
+/* Badges de la tarjeta de turno */
+.turno-badges {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.badge-vencido {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+}
+
+/* Botones de acción de la lista */
+.btn-icono-turno {
+    border: 1px solid transparent;
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    color: #64748b;
+    transition: all 0.2s ease;
+}
+
+.btn-icono-turno .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.btn-icono-turno:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+.btn-icono-turno.completar:hover {
+    background: #10b981;
+    color: white;
+}
+
+.btn-icono-turno.cancelar:hover,
+.btn-icono-turno.eliminar:hover {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-icono-turno.reabrir:hover,
+.btn-icono-turno.editar:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+/* Modal de detalle */
+.detalle-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.detalle-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+}
+
+.detalle-grid label {
+    display: block;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #94a3b8;
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+.detalle-grid p {
+    font-size: 0.95rem;
+    color: #1e293b;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+/* --- DARK MODE de la sección --- */
+body.dark-mode .filtro-campo select,
+body.dark-mode .chip {
+    background: #1e293b;
+    border-color: #334155;
+    color: #cbd5e1;
+}
+
+body.dark-mode .chip:hover {
+    border-color: #60a5fa;
+    color: #60a5fa;
+}
+
+body.dark-mode .chip.activo {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+}
+
+body.dark-mode .btn-icono-turno {
+    background: #334155;
+    color: #cbd5e1;
+}
+
+body.dark-mode .btn-icono-turno:hover {
+    background: #475569;
+    color: #f8fafc;
+}
+
+body.dark-mode .detalle-header {
+    border-bottom-color: #334155;
+}
+
+body.dark-mode .detalle-grid p {
+    color: #f8fafc;
+}
+
+body.dark-mode .badge-vencido {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #f87171;
+}
+
+/* Responsive: filtros y leyenda apilados en móvil */
+@media (max-width: 768px) {
+    .leyenda-eventos {
+        margin-left: 0;
+    }
+    .filtro-campo select {
+        min-width: 0;
+        width: 100%;
+    }
+    .turno-badges {
+        flex-direction: row;
+    }
+}
