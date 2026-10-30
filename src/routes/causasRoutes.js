@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Causa = require('../models/Causa');
+const storage = require('../services/storage');
 const { logActividad } = require('../utils/logger');
 
 // GET: Obtener todas las causas del estudio
@@ -38,10 +39,12 @@ router.put('/:id', async (req, res) => {
     res.json(resultado);
 });
 
-// DELETE: Eliminar una causa
+// DELETE: Eliminar una causa con sus documentos (registros y archivos)
 router.delete('/:id', async (req, res) => {
     const causa = await Causa.eliminar(req.params.id);
     if (!causa) return res.status(404).json({ error: 'Causa no encontrada' });
+
+    await storage.eliminar(causa.rutasArchivos);
 
     logActividad(
         req.usuario ? req.usuario.id : 1,

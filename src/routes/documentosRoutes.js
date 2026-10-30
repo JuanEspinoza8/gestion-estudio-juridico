@@ -1,15 +1,14 @@
+// src/routes/documentosRoutes.js
+// PDFs de las causas. Se guardan en un bucket privado y se abren con una URL
+// firmada que dura un minuto y solo pide un usuario autenticado.
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const { createClient } = require('@supabase/supabase-js');
-const db = require('../config/db');
+const Causa = require('../models/Causa');
+const Documento = require('../models/Documento');
+const storage = require('../services/storage');
 const HttpError = require('../utils/httpError');
 const { logActividad } = require('../utils/logger');
-
-// Inicializar Supabase Storage
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Configurar multer (guardar archivo en memoria)
 const upload = multer({
@@ -23,6 +22,12 @@ const upload = multer({
         }
     }
 });
+
+// El mimetype lo declara el navegador: además se verifica que el contenido
+// empiece con la firma de un PDF.
+function esPdf(buffer) {
+    return buffer.subarray(0, 4).toString('latin1') === '%PDF';
+}
 
 // El nombre original lo elige quien sube el archivo: se guarda sin rutas, sin
 // caracteres de control ni < > " y con largo acotado. (El frontend además lo
@@ -40,9 +45,18 @@ function limpiarNombreArchivo(nombre) {
 
 // GET: Obtener documentos de una causa específica
 router.get('/causa/:causaId', async (req, res) => {
-    const query = 'SELECT * FROM documentos_causa WHERE causa_id = $1 ORDER BY subido_en DESC;';
-    const { rows } = await db.query(query, [req.params.causaId]);
-    res.json(rows);
+    const documentos = await Documento.obtenerPorCausa(req.params.causaId);
+    res.json(documentos);
+});
+
+// GET: URL firmada (60 s) para abrir un documento
+router.get('/:id/url', async (req, res) => {
+    const documento = await Documento.obtenerPorId(req.params.id);
+    if (!documento) {
+        return res.status(404).json({ error: 'Documento no encontrado' });
+    }
+    const url = await storage.urlFirmada(documento.ruta_archivo);
+    res.json({ url, expira_en: storage.DURACION_URL_FIRMADA });
 });
 
 // POST: Subir un documento (PDF)
@@ -50,74 +64,45 @@ router.post('/', upload.single('pdf'), async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: 'No se envió ningún archivo' });
     }
+    if (!esPdf(req.file.buffer)) {
+        return res.status(400).json({ error: 'El archivo no es un PDF válido' });
+    }
 
-    // Convertir el nombre del archivo para solucionar el problema de las tildes corruptas
-    req.file.originalname = limpiarNombreArchivo(Buffer.from(req.file.originalname, 'latin1').toString('utf8'));
-
-    const { causa_id } = req.body;
-    if (!causa_id) {
+    const causaId = Number(req.body.causa_id);
+    if (!Number.isInteger(causaId) || causaId <= 0) {
         return res.status(400).json({ error: 'Se requiere el ID de la causa' });
     }
-
-    const fileName = `${Date.now()}_${req.file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-    const filePath = `expediente_${causa_id}/${fileName}`;
-
-    // Subir a Supabase Storage (bucket: documentos)
-    const { error: uploadError } = await supabase.storage
-        .from('documentos')
-        .upload(filePath, req.file.buffer, {
-            contentType: 'application/pdf',
-            upsert: false
-        });
-
-    if (uploadError) {
-        console.error('Error en Supabase Storage:', uploadError);
-        return res.status(500).json({ error: 'Error al subir el archivo a la nube' });
+    if (!(await Causa.obtenerPorId(causaId))) {
+        return res.status(404).json({ error: 'Causa no encontrada' });
     }
 
-    // Obtener URL Pública
-    const { data: publicUrlData } = supabase.storage
-        .from('documentos')
-        .getPublicUrl(filePath);
+    // latin1 -> utf8 corrige las tildes que multer decodifica mal
+    const nombreArchivo = limpiarNombreArchivo(Buffer.from(req.file.originalname, 'latin1').toString('utf8'));
+    const rutaArchivo = `expediente_${causaId}/${Date.now()}_${nombreArchivo.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
 
-    const url_archivo = publicUrlData.publicUrl;
+    await storage.subirPdf(rutaArchivo, req.file.buffer);
 
-    // Guardar registro en PostgreSQL
-    const query = `
-        INSERT INTO documentos_causa (causa_id, nombre_archivo, url_archivo)
-        VALUES ($1, $2, $3) RETURNING *;
-    `;
-    const { rows } = await db.query(query, [causa_id, req.file.originalname, url_archivo]);
+    let documento;
+    try {
+        documento = await Documento.crear({ causa_id: causaId, nombre_archivo: nombreArchivo, ruta_archivo: rutaArchivo });
+    } catch (error) {
+        // Si no se pudo registrar en la base, el archivo subido quedaría huérfano
+        await storage.eliminar([rutaArchivo]);
+        throw error;
+    }
 
-    // Registrar actividad
-    logActividad(
-        req.usuario ? req.usuario.id : 1,
-        null,
-        'DOCUMENTO_SUBIDO',
-        `Se subió el documento ${req.file.originalname} al expediente.`
-    );
+    logActividad(req.usuario.id, null, 'DOCUMENTO_SUBIDO', `Se subió el documento ${nombreArchivo} al expediente.`);
 
-    res.status(201).json(rows[0]);
+    res.status(201).json(documento);
 });
 
 // DELETE: Eliminar un documento
 router.delete('/:id', async (req, res) => {
-    const docId = req.params.id;
-
-    const { rows: docs } = await db.query('SELECT * FROM documentos_causa WHERE id = $1', [docId]);
-    if (docs.length === 0) {
+    const documento = await Documento.eliminar(req.params.id);
+    if (!documento) {
         return res.status(404).json({ error: 'Documento no encontrado' });
     }
-
-    const doc = docs[0];
-    const urlParts = doc.url_archivo.split('/documentos/');
-    if (urlParts.length > 1) {
-        const filePath = urlParts[1];
-        await supabase.storage.from('documentos').remove([filePath]);
-    }
-
-    await db.query('DELETE FROM documentos_causa WHERE id = $1', [docId]);
-
+    await storage.eliminar([documento.ruta_archivo]);
     res.json({ mensaje: 'Documento eliminado correctamente' });
 });
 

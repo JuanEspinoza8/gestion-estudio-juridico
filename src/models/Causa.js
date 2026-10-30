@@ -48,10 +48,27 @@ class Causa {
         return rows;
     }
 
-    static async eliminar(id) {
-        const query = 'DELETE FROM causas_judiciales WHERE id = $1 RETURNING *;';
-        const { rows } = await db.query(query, [id]);
+    static async obtenerPorId(id) {
+        const { rows } = await db.query('SELECT * FROM causas_judiciales WHERE id = $1;', [id]);
         return rows[0] || null;
+    }
+
+    /**
+     * Elimina la causa en una transacción: borra los registros de sus documentos y
+     * desvincula los turnos que la referenciaban (el turno queda en la agenda).
+     * Devuelve la causa con las rutas de sus archivos, para borrarlos del storage.
+     */
+    static async eliminar(id) {
+        return db.transaction(async (tx) => {
+            const { rows: docs } = await tx.query(
+                'DELETE FROM documentos_causa WHERE causa_id = $1 RETURNING ruta_archivo;',
+                [id]
+            );
+            await tx.query('UPDATE turnos SET causa_id = NULL WHERE causa_id = $1;', [id]);
+            const { rows } = await tx.query('DELETE FROM causas_judiciales WHERE id = $1 RETURNING *;', [id]);
+            if (rows.length === 0) return null;
+            return { ...rows[0], rutasArchivos: docs.map((d) => d.ruta_archivo) };
+        });
     }
 }
 

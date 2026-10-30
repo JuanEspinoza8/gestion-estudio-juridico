@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Cliente = require('../models/Cliente');
+const Documento = require('../models/Documento');
+const storage = require('../services/storage');
 const HttpError = require('../utils/httpError');
 const { logActividad } = require('../utils/logger');
 
@@ -59,10 +61,13 @@ router.put('/:id', async (req, res) => {
 
 // DELETE: Eliminar un cliente y todos sus datos asociados
 router.delete('/:id', async (req, res) => {
+    // Las rutas se leen antes: después del borrado en cascada ya no existen
+    const rutasArchivos = await Documento.rutasPorCliente(req.params.id);
     const clienteEliminado = await Cliente.eliminar(req.params.id);
     if (!clienteEliminado) {
         return res.status(404).json({ error: 'Cliente no encontrado' });
     }
+    await storage.eliminar(rutasArchivos);
     logActividad(
         req.usuario ? req.usuario.id : 1,
         null,

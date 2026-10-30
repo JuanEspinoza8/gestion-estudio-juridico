@@ -219,7 +219,7 @@ async function cargarDocumentos(causaId) {
             listaDocs.innerHTML = docs.map(d => `
                 <li class="doc-item">
                     <span class="material-symbols-outlined">picture_as_pdf</span>
-                    <a href="${escapeHtml(d.url_archivo)}" target="_blank" rel="noopener">${escapeHtml(d.nombre_archivo)}</a>
+                    <a href="#" onclick="abrirDocumento(${Number(d.id)}); return false;">${escapeHtml(d.nombre_archivo)}</a>
                     <span style="font-size:0.8rem; color:#94a3b8; margin-left:10px;">${escapeHtml(new Date(d.subido_en).toLocaleDateString('es-AR'))}</span>
                     <button class="btn-eliminar-chico" style="margin-left:auto; cursor:pointer; color:#ef4444; background:none; border:none; display:flex; align-items:center; justify-content:center;" onclick="eliminarDocumento(${Number(d.id)})" title="Eliminar archivo"><span class="material-symbols-outlined" style="font-size:18px;">close</span></button>
                 </li>
@@ -227,6 +227,24 @@ async function cargarDocumentos(causaId) {
         }
     } catch (error) {
         listaDocs.innerHTML = '<li style="color:#64748b; font-size:0.9rem;">El módulo de documentos estará disponible pronto.</li>';
+    }
+}
+
+// Los PDFs están en un bucket privado: se pide al backend una URL firmada
+// (válida por un minuto) y se abre en otra pestaña.
+async function abrirDocumento(id) {
+    // La pestaña se abre antes del await para que el navegador no la bloquee como popup
+    const pestana = window.open('', '_blank');
+    if (pestana) pestana.opener = null;
+    try {
+        const res = await fetch(`${API}/api/documentos/${id}/url`, { headers });
+        if (!res.ok) throw new Error('No se pudo obtener el enlace');
+        const { url } = await res.json();
+        if (pestana) pestana.location.href = url;
+        else window.location.href = url;
+    } catch (error) {
+        if (pestana) pestana.close();
+        Alertas.toast('No se pudo abrir el documento.', 'error');
     }
 }
 
