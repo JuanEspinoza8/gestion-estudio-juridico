@@ -170,7 +170,7 @@ document.getElementById('formPago').addEventListener('submit', async (e) => {
     cargarTodo();
 });
 
-// ENVÍO DE DEUDA (Le mandamos a Juan la cantidad de cuotas)
+// ENVÍO DE DEUDA (honorario y en cuántas cuotas se divide)
 document.getElementById('formDeuda').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btnSubmit = e.target.querySelector('button[type="submit"]');

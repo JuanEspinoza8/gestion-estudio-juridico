@@ -9,13 +9,12 @@ let guardarTimeout = null;
 document.addEventListener('DOMContentLoaded', async () => {
     if (!requerirSesion()) return;
 
-    // --- MEJORA UI-01: Saludo Dinámico ---
+    // Saludo con el nombre del usuario
     const usuarioNombre = localStorage.getItem('usuario_nombre');
     const subtitle = document.querySelector('.subtitle');
     if (subtitle) {
         subtitle.textContent = `Bienvenido, ${usuarioNombre || 'Usuario'}`;
     }
-    // -------------------------------------
 
     cargarResumenGeneral();
     initNotasRapidas();
