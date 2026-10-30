@@ -264,7 +264,7 @@ function renderCalendario() {
             return {
                 html: `<div style="display: flex; align-items: center; gap: 5px; padding: 2px 4px; overflow: hidden;">
                            <span class="material-symbols-outlined" style="font-size: 15px; flex-shrink: 0;">${icon}</span>
-                           <span style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.85em;">${arg.event.title}</span>
+                           <span style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.85em;">${escapeHtml(arg.event.title)}</span>
                        </div>`
             };
         },
@@ -324,29 +324,29 @@ function renderTarjetaTurno(t) {
     const cliente = t.nombre_completo || 'Sin cliente';
     const causa = t.caratula ? `${t.caratula}${t.nro_expediente ? ` · Nro ${t.nro_expediente}` : ''}` : '';
     const evento = t.motivo || t.tipo_evento;
-    const badge = `<span class="badge-estado badge-${t.estado}">${t.estado}</span>`;
+    const badge = `<span class="badge-estado badge-${escapeHtml(t.estado)}">${escapeHtml(t.estado)}</span>`;
     const vencido = turnoEsVencido(t) ? '<span class="badge-vencido">Vencido</span>' : '';
 
-    let acciones = `<button class="btn-icono-turno" title="Ver detalle" onclick="abrirDetalle(${t.id})"><span class="material-symbols-outlined">visibility</span></button>`;
+    let acciones = `<button class="btn-icono-turno" title="Ver detalle" onclick="abrirDetalle(${Number(t.id)})"><span class="material-symbols-outlined">visibility</span></button>`;
     if (t.estado === 'pendiente') {
-        acciones += `<button class="btn-icono-turno completar" title="Marcar completado" onclick="cambiarEstadoTurno(${t.id}, 'completado')"><span class="material-symbols-outlined">check_circle</span></button>`;
-        acciones += `<button class="btn-icono-turno cancelar" title="Cancelar turno" onclick="cambiarEstadoTurno(${t.id}, 'cancelado')"><span class="material-symbols-outlined">cancel</span></button>`;
+        acciones += `<button class="btn-icono-turno completar" title="Marcar completado" onclick="cambiarEstadoTurno(${Number(t.id)}, 'completado')"><span class="material-symbols-outlined">check_circle</span></button>`;
+        acciones += `<button class="btn-icono-turno cancelar" title="Cancelar turno" onclick="cambiarEstadoTurno(${Number(t.id)}, 'cancelado')"><span class="material-symbols-outlined">cancel</span></button>`;
     } else {
-        acciones += `<button class="btn-icono-turno reabrir" title="Reabrir (volver a pendiente)" onclick="cambiarEstadoTurno(${t.id}, 'pendiente')"><span class="material-symbols-outlined">undo</span></button>`;
+        acciones += `<button class="btn-icono-turno reabrir" title="Reabrir (volver a pendiente)" onclick="cambiarEstadoTurno(${Number(t.id)}, 'pendiente')"><span class="material-symbols-outlined">undo</span></button>`;
     }
-    acciones += `<button class="btn-icono-turno editar" title="Editar" onclick="abrirModalEditar(${t.id})"><span class="material-symbols-outlined">edit</span></button>`;
-    acciones += `<button class="btn-icono-turno eliminar" title="Eliminar" onclick="eliminarTurno(${t.id})"><span class="material-symbols-outlined">delete</span></button>`;
+    acciones += `<button class="btn-icono-turno editar" title="Editar" onclick="abrirModalEditar(${Number(t.id)})"><span class="material-symbols-outlined">edit</span></button>`;
+    acciones += `<button class="btn-icono-turno eliminar" title="Eliminar" onclick="eliminarTurno(${Number(t.id)})"><span class="material-symbols-outlined">delete</span></button>`;
 
     return `
         <li class="turno-card ${t.estado === 'completado' ? 'completado' : t.estado === 'cancelado' ? 'cancelado' : ''}" style="border-left-color:${color}">
             <div class="turno-hora-bloque">
-                <div class="hora-grande">${hora}</div>
-                <div class="hora-sufijo">${fecha}</div>
+                <div class="hora-grande">${escapeHtml(hora)}</div>
+                <div class="hora-sufijo">${escapeHtml(fecha)}</div>
             </div>
             <div class="turno-divisor"></div>
             <div class="turno-info">
-                <div class="cliente-nombre"><span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle; color:${color};">${iconoDeEvento(t.tipo_evento)}</span> ${evento}</div>
-                <div class="turno-motivo">${cliente}${causa ? ` — ${causa}` : ''}</div>
+                <div class="cliente-nombre"><span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle; color:${color};">${iconoDeEvento(t.tipo_evento)}</span> ${escapeHtml(evento)}</div>
+                <div class="turno-motivo">${escapeHtml(cliente)}${causa ? ` — ${escapeHtml(causa)}` : ''}</div>
             </div>
             <div class="turno-badges">${vencido}${badge}</div>
             <div class="turno-acciones">${acciones}</div>
@@ -377,29 +377,29 @@ function abrirDetalle(id) {
         <div class="detalle-header">
             <span class="material-symbols-outlined" style="color:${color}; font-size:28px;">${iconoDeEvento(t.tipo_evento)}</span>
             <div style="flex:1;">
-                <strong>${t.motivo || t.tipo_evento}</strong><br>
-                <small style="color:#94a3b8;">${t.tipo_evento}</small>
+                <strong>${escapeHtml(t.motivo || t.tipo_evento)}</strong><br>
+                <small style="color:#94a3b8;">${escapeHtml(t.tipo_evento)}</small>
             </div>
-            <span class="badge-estado badge-${t.estado}">${t.estado}</span>
+            <span class="badge-estado badge-${escapeHtml(t.estado)}">${escapeHtml(t.estado)}</span>
         </div>
         <div class="detalle-grid">
-            <div><label>Fecha</label><p>${fmtFechaLarga(t.fecha)}</p></div>
-            <div><label>Hora</label><p>${String(t.hora).substring(0, 5)} hs</p></div>
-            <div><label>Cliente</label><p>${t.nombre_completo || '—'}</p></div>
-            <div><label>Expediente / Causa</label><p>${causa}</p></div>
+            <div><label>Fecha</label><p>${escapeHtml(fmtFechaLarga(t.fecha))}</p></div>
+            <div><label>Hora</label><p>${escapeHtml(String(t.hora).substring(0, 5))} hs</p></div>
+            <div><label>Cliente</label><p>${escapeHtml(t.nombre_completo || '—')}</p></div>
+            <div><label>Expediente / Causa</label><p>${escapeHtml(causa)}</p></div>
             <div><label>Recordatorio</label><p>${etiquetaRecordatorio(t.recordatorio_offset_min)}</p></div>
         </div>
     `;
 
     let botones = '';
     if (t.estado === 'pendiente') {
-        botones += `<button class="btn-secondary" onclick="cambiarEstadoTurno(${t.id}, 'completado')"><span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">check_circle</span> Completar</button>`;
-        botones += `<button class="btn-secondary" onclick="cambiarEstadoTurno(${t.id}, 'cancelado')"><span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">cancel</span> Cancelar turno</button>`;
+        botones += `<button class="btn-secondary" onclick="cambiarEstadoTurno(${Number(t.id)}, 'completado')"><span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">check_circle</span> Completar</button>`;
+        botones += `<button class="btn-secondary" onclick="cambiarEstadoTurno(${Number(t.id)}, 'cancelado')"><span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">cancel</span> Cancelar turno</button>`;
     } else {
-        botones += `<button class="btn-secondary" onclick="cambiarEstadoTurno(${t.id}, 'pendiente')"><span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">undo</span> Reabrir</button>`;
+        botones += `<button class="btn-secondary" onclick="cambiarEstadoTurno(${Number(t.id)}, 'pendiente')"><span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">undo</span> Reabrir</button>`;
     }
-    botones += `<button class="btn-primary" onclick="abrirModalEditar(${t.id})">Editar</button>`;
-    botones += `<button class="btn-secondary" style="background:#ef4444; color:white;" onclick="eliminarTurno(${t.id})"><span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">delete</span> Eliminar</button>`;
+    botones += `<button class="btn-primary" onclick="abrirModalEditar(${Number(t.id)})">Editar</button>`;
+    botones += `<button class="btn-secondary" style="background:#ef4444; color:white;" onclick="eliminarTurno(${Number(t.id)})"><span class="material-symbols-outlined" style="font-size:16px; vertical-align:middle;">delete</span> Eliminar</button>`;
     document.getElementById('detalleTurnoAcciones').innerHTML = botones;
 
     document.getElementById('modalDetalleTurno').style.display = 'flex';
@@ -518,7 +518,7 @@ async function cargarDesplegableClientes(selectId) {
         if (res.ok) {
             const clientes = await res.json();
             select.innerHTML = '<option value="">Sin cliente asociado (Tarea interna)</option>' +
-                clientes.map(c => '<option value="' + c.id + '">' + c.nombre_completo + ' (DNI: ' + (c.dni || '-') + ')</option>').join('');
+                clientes.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.nombre_completo)} (DNI: ${escapeHtml(c.dni || '-')})</option>`).join('');
         }
     } catch (error) {
         console.error("Error al cargar clientes:", error);
@@ -535,7 +535,7 @@ async function poblarFiltroClientes() {
         const clientes = await res.json();
         const sel = document.getElementById('filtroCliente');
         sel.innerHTML = '<option value="">Todos los clientes</option>' +
-            clientes.map(c => `<option value="${c.id}">${c.nombre_completo}</option>`).join('');
+            clientes.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.nombre_completo)}</option>`).join('');
     } catch (error) {
         console.error("Error al poblar filtro de clientes:", error);
     }
@@ -561,7 +561,7 @@ async function cargarCausasDeCliente(clienteId, causaSelectId, causaIdPreSel = '
         });
         const causas = res.ok ? await res.json() : [];
         select.innerHTML = '<option value="">Sin expediente asociado</option>' +
-            causas.map(c => `<option value="${c.id}">${c.caratula || 'Sin carátula'}${c.nro_expediente ? ` (Nro ${c.nro_expediente})` : ''}</option>`).join('');
+            causas.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.caratula || 'Sin carátula')}${c.nro_expediente ? ` (Nro ${escapeHtml(c.nro_expediente)})` : ''}</option>`).join('');
         if (causaIdPreSel) select.value = String(causaIdPreSel);
     } catch (error) {
         select.innerHTML = '<option value="">Sin expediente asociado</option>';

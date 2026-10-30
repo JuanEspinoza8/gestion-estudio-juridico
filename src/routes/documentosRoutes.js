@@ -24,6 +24,20 @@ const upload = multer({
     }
 });
 
+// El nombre original lo elige quien sube el archivo: se guarda sin rutas, sin
+// caracteres de control ni < > " y con largo acotado. (El frontend además lo
+// escapa al mostrarlo.)
+function limpiarNombreArchivo(nombre) {
+    const limpio = nombre
+        .split(/[\\/]/)
+        .pop()
+        // eslint-disable-next-line no-control-regex
+        .replace(/[\u0000-\u001f\u007f<>"]/g, '')
+        .trim()
+        .slice(0, 200);
+    return limpio || 'documento.pdf';
+}
+
 // GET: Obtener documentos de una causa específica
 router.get('/causa/:causaId', async (req, res) => {
     const query = 'SELECT * FROM documentos_causa WHERE causa_id = $1 ORDER BY subido_en DESC;';
@@ -38,7 +52,7 @@ router.post('/', upload.single('pdf'), async (req, res) => {
     }
 
     // Convertir el nombre del archivo para solucionar el problema de las tildes corruptas
-    req.file.originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+    req.file.originalname = limpiarNombreArchivo(Buffer.from(req.file.originalname, 'latin1').toString('utf8'));
 
     const { causa_id } = req.body;
     if (!causa_id) {

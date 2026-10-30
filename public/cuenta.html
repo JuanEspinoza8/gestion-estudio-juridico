@@ -708,6 +708,7 @@
         </div>
     </div>
 
+    <script src="./js/utils.js"></script>
     <script>
         const API = 'https://api-estudio-juridico-oma1.onrender.com';
         const params = new URLSearchParams(window.location.search);
@@ -749,7 +750,7 @@
             // Cargar honorarios disponibles en el select
             const select = document.getElementById('honorarioDestino');
             select.innerHTML = '<option value="">Seleccionar honorario...</option>' +
-                expedientesActuales.map(exp => `<option value="${exp.id}">${exp.descripcion || 'Sin descripción'} — $ ${fmt(exp.honorarios_totales)}</option>`).join('');
+                expedientesActuales.map(exp => `<option value="${escapeHtml(exp.id)}">${escapeHtml(exp.descripcion || 'Sin descripción')} — $ ${fmt(exp.honorarios_totales)}</option>`).join('');
             document.getElementById('fechaPago').value = new Date().toISOString().split('T')[0];
             document.getElementById('montoPago').value = '';
             resetearCuotasPago();
@@ -957,9 +958,9 @@
                 const c = await resC.json();
                 document.getElementById('tituloCliente').textContent = c.nombre_completo;
                 document.getElementById('infoCliente').innerHTML = `
-                    <div class="info-campo"><label>DNI</label><p>${c.dni ? String(c.dni).replace(/\B(?=(\d{3})+(?!\d))/g, ".") : '-'}</p></div>
-                    <div class="info-campo"><label>Teléfono</label><p>${c.telefono || '—'}</p></div>
-                    <div class="info-campo"><label>Email</label><p>${c.email || '—'}</p></div>
+                    <div class="info-campo"><label>DNI</label><p>${c.dni ? escapeHtml(String(c.dni).replace(/\B(?=(\d{3})+(?!\d))/g, ".")) : '-'}</p></div>
+                    <div class="info-campo"><label>Teléfono</label><p>${escapeHtml(c.telefono || '—')}</p></div>
+                    <div class="info-campo"><label>Email</label><p>${escapeHtml(c.email || '—')}</p></div>
                 `;
 
                 // 2. Saldos y Pagos
@@ -977,7 +978,7 @@
                     : pagos.map(p => `<tr>
                         <td data-label="Fecha">${fmtFecha(p.fecha_pago)}</td>
                         <td data-label="Monto"><strong>$ ${fmt(p.monto)}</strong></td>
-                        <td data-label="Método">${p.metodo_pago || '—'}</td>
+                        <td data-label="Método">${escapeHtml(p.metodo_pago || '—')}</td>
                       </tr>`).join('');
 
                 const exps = await resE.json();
@@ -990,11 +991,11 @@
                     : exps.map(exp => `
                         <div class="expediente-item">
                             <div class="expediente-info">
-                                <strong>${exp.descripcion || 'Sin descripción'}</strong>
-                                <p>Cargado el ${fmtFechaHora(exp.creado_en)}</p>
+                                <strong>${escapeHtml(exp.descripcion || 'Sin descripción')}</strong>
+                                <p>Cargado el ${escapeHtml(fmtFechaHora(exp.creado_en))}</p>
                             </div>
                             <span class="expediente-monto">$ ${fmt(exp.honorarios_totales)}</span>
-                            <button class="btn-eliminar-chico" style="display:inline-flex; align-items:center; justify-content:center; border:none; background:none; color:#ef4444; cursor:pointer;" onclick="eliminarExpediente(${exp.id})" title="Eliminar"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button>
+                            <button class="btn-eliminar-chico" style="display:inline-flex; align-items:center; justify-content:center; border:none; background:none; color:#ef4444; cursor:pointer;" onclick="eliminarExpediente(${Number(exp.id)})" title="Eliminar"><span class="material-symbols-outlined" style="font-size:18px;">delete</span></button>
                         </div>`).join('');
 
                 // 3. ACTUALIZACIÓN AUTOMÁTICA DE LA TARJETA DE CUOTAS
@@ -1067,8 +1068,8 @@
                         <li class="nota-item" style="border-left-color: ${item.color}">
                             <div style="margin-right: 10px;"><span class="material-symbols-outlined" style="color:${item.color}">${item.icono}</span></div>
                             <div class="nota-contenido">
-                                <p><strong>${item.titulo}</strong></p>
-                                <div class="nota-fecha">${fmtFecha(item.fecha)}</div>
+                                <p><strong>${escapeHtml(item.titulo)}</strong></p>
+                                <div class="nota-fecha">${escapeHtml(fmtFecha(item.fecha))}</div>
                             </div>
                             ${item.monto !== null ? `<div style="font-size: 1.1rem; font-weight: bold; color: ${item.color};">$ ${fmt(item.monto)}</div>` : ''}
                         </li>
@@ -1087,15 +1088,15 @@
                     return `
                     <li class="nota-item" style="${n.estado === 'completado' ? 'opacity:0.6;' : ''}">
                         <div class="nota-contenido">
-                            <p>${n.contenido}</p>
+                            <p>${escapeHtml(n.contenido)}</p>
                             <div class="nota-fecha">
-                                Creado: ${fmtFechaHora(n.creado_en)}
-                                ${n.fecha_vencimiento ? `<br><span class="material-symbols-outlined" style="font-size:14px; vertical-align:middle; color:${vencida ? '#ef4444' : '#f59e0b'}">warning</span> Vence: <strong style="${vencida ? 'color:#ef4444;' : 'color:#f59e0b;'}">${fmtFecha(n.fecha_vencimiento)}</strong>` : ''}
+                                Creado: ${escapeHtml(fmtFechaHora(n.creado_en))}
+                                ${n.fecha_vencimiento ? `<br><span class="material-symbols-outlined" style="font-size:14px; vertical-align:middle; color:${vencida ? '#ef4444' : '#f59e0b'}">warning</span> Vence: <strong style="${vencida ? 'color:#ef4444;' : 'color:#f59e0b;'}">${escapeHtml(fmtFecha(n.fecha_vencimiento))}</strong>` : ''}
                             </div>
                         </div>
                         <div style="display:flex; flex-direction:column; gap:6px;">
-                            ${n.estado !== 'completado' ? `<button class="btn-eliminar-chico" style="color:#10b981;" onclick="completarNota(${n.id})"><span class="material-symbols-outlined">check_circle</span></button>` : `<span class="material-symbols-outlined" style="color:#10b981;">task_alt</span>`}
-                            <button class="btn-eliminar-chico" onclick="eliminarNota(${n.id})"><span class="material-symbols-outlined">delete</span></button>
+                            ${n.estado !== 'completado' ? `<button class="btn-eliminar-chico" style="color:#10b981;" onclick="completarNota(${Number(n.id)})"><span class="material-symbols-outlined">check_circle</span></button>` : `<span class="material-symbols-outlined" style="color:#10b981;">task_alt</span>`}
+                            <button class="btn-eliminar-chico" onclick="eliminarNota(${Number(n.id)})"><span class="material-symbols-outlined">delete</span></button>
                         </div>
                     </li>`;
                 }).join('');

@@ -63,10 +63,10 @@ async function cargarResumenGeneral() {
         } else {
             listaTurnos.innerHTML = turnosHoy.map(t => `
                 <li>
-                    <span class="hora">${t.hora.substring(0, 5)}</span>
+                    <span class="hora">${escapeHtml(t.hora.substring(0, 5))}</span>
                     <div class="detalle">
-                        <strong>${t.nombre_completo}</strong>
-                        <span>${t.motivo}</span>
+                        <strong>${escapeHtml(t.nombre_completo)}</strong>
+                        <span>${escapeHtml(t.motivo)}</span>
                     </div>
                 </li>
             `).join('');
@@ -85,9 +85,9 @@ async function cargarResumenGeneral() {
                 <li style="align-items:flex-start;">
                     <span class="material-symbols-outlined" style="color:#3b82f6;">notifications_active</span>
                     <div class="detalle">
-                        <strong>${accionLimpia} ${a.cliente_nombre ? `(${a.cliente_nombre})` : ''}</strong>
-                        <span>${a.detalles || ''}</span>
-                        <span style="color:#94a3b8; font-size:0.8rem;">${fechaFormateada}</span>
+                        <strong>${escapeHtml(accionLimpia)} ${a.cliente_nombre ? `(${escapeHtml(a.cliente_nombre)})` : ''}</strong>
+                        <span>${escapeHtml(a.detalles)}</span>
+                        <span style="color:#94a3b8; font-size:0.8rem;">${escapeHtml(fechaFormateada)}</span>
                     </div>
                 </li>`;
             }).join('');

@@ -38,7 +38,7 @@ async function cargarClientesEnSelect() {
         const clientes = await res.json();
         const select = document.getElementById('clienteId');
         select.innerHTML = '<option value="">Seleccionar cliente...</option>' + 
-            clientes.map(c => `<option value="${c.id}">${c.nombre_completo}</option>`).join('');
+            clientes.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.nombre_completo)}</option>`).join('');
     } catch (error) {
         console.error('Error al cargar clientes:', error);
     }
@@ -52,10 +52,10 @@ function renderizarLista(causas) {
     }
 
     lista.innerHTML = causas.map(c => `
-        <li class="item-exp" onclick="seleccionarExpediente(${c.id}, this)">
-            <strong>${c.caratula}</strong>
-            <span>Nro: ${c.nro_expediente} | ${c.cliente_nombre}</span>
-            <span class="estado-badge" style="${getEstiloEstado(c.estado)}">${c.estado}</span>
+        <li class="item-exp" onclick="seleccionarExpediente(${Number(c.id)}, this)">
+            <strong>${escapeHtml(c.caratula)}</strong>
+            <span>Nro: ${escapeHtml(c.nro_expediente)} | ${escapeHtml(c.cliente_nombre)}</span>
+            <span class="estado-badge" style="${getEstiloEstado(c.estado)}">${escapeHtml(c.estado)}</span>
         </li>
     `).join('');
 }
@@ -219,9 +219,9 @@ async function cargarDocumentos(causaId) {
             listaDocs.innerHTML = docs.map(d => `
                 <li class="doc-item">
                     <span class="material-symbols-outlined">picture_as_pdf</span>
-                    <a href="${d.url_archivo}" target="_blank">${d.nombre_archivo}</a>
-                    <span style="font-size:0.8rem; color:#94a3b8; margin-left:10px;">${new Date(d.subido_en).toLocaleDateString('es-AR')}</span>
-                    <button class="btn-eliminar-chico" style="margin-left:auto; cursor:pointer; color:#ef4444; background:none; border:none; display:flex; align-items:center; justify-content:center;" onclick="eliminarDocumento(${d.id})" title="Eliminar archivo"><span class="material-symbols-outlined" style="font-size:18px;">close</span></button>
+                    <a href="${escapeHtml(d.url_archivo)}" target="_blank" rel="noopener">${escapeHtml(d.nombre_archivo)}</a>
+                    <span style="font-size:0.8rem; color:#94a3b8; margin-left:10px;">${escapeHtml(new Date(d.subido_en).toLocaleDateString('es-AR'))}</span>
+                    <button class="btn-eliminar-chico" style="margin-left:auto; cursor:pointer; color:#ef4444; background:none; border:none; display:flex; align-items:center; justify-content:center;" onclick="eliminarDocumento(${Number(d.id)})" title="Eliminar archivo"><span class="material-symbols-outlined" style="font-size:18px;">close</span></button>
                 </li>
             `).join('');
         }

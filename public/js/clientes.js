@@ -190,18 +190,18 @@ function renderizarTabla(clientes) {
     tbody.innerHTML = clientes.map(c => `
         <tr>
             <td data-label="Nombre y Apellido">
-                <strong>${c.nombre_completo}</strong>
-                ${c.email ? `<br><small style="color:#64748b">${c.email}</small>` : ''}
+                <strong>${escapeHtml(c.nombre_completo)}</strong>
+                ${c.email ? `<br><small style="color:#64748b">${escapeHtml(c.email)}</small>` : ''}
             </td>
-            <td data-label="DNI">${c.dni ? String(c.dni).replace(/\B(?=(\d{3})+(?!\d))/g, ".") : '-'}</td>
-            <td data-label="Teléfono">${c.telefono || '-'}</td>
+            <td data-label="DNI">${c.dni ? escapeHtml(String(c.dni).replace(/\B(?=(\d{3})+(?!\d))/g, ".")) : '-'}</td>
+            <td data-label="Teléfono">${escapeHtml(c.telefono || '-')}</td>
             <td data-label="Acciones">
                 <div class="acciones-cell">
-                    <button class="btn-ver-cuenta" onclick="verCuenta(${c.id})">Ver Cuenta</button>
-                    <button class="btn-icono-tabla editar" title="Editar cliente" onclick="editarCliente(${c.id})">
+                    <button class="btn-ver-cuenta" onclick="verCuenta(${Number(c.id)})">Ver Cuenta</button>
+                    <button class="btn-icono-tabla editar" title="Editar cliente" onclick="editarCliente(${Number(c.id)})">
                         <span class="material-symbols-outlined">edit</span>
                     </button>
-                    <button class="btn-icono-tabla eliminar" title="Eliminar cliente" onclick="eliminarCliente(${c.id})">
+                    <button class="btn-icono-tabla eliminar" title="Eliminar cliente" onclick="eliminarCliente(${Number(c.id)})">
                         <span class="material-symbols-outlined">delete</span>
                     </button>
                 </div>

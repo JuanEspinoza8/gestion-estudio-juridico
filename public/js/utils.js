@@ -1,4 +1,21 @@
 /* =========================================
+   SEGURIDAD: ESCAPAR HTML
+   ========================================= */
+
+// Convierte un dato en texto seguro para insertarlo en un template HTML
+// (contenido o atributo entre comillas). Todo dato que venga de la API o del
+// usuario y termine en un innerHTML tiene que pasar por acá; si es un solo
+// valor, mejor usar textContent directamente.
+function escapeHtml(valor) {
+    return (valor === null || valor === undefined ? '' : String(valor))
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/* =========================================
    HELPERS DE BÚSQUEDA (normalización de texto)
    ========================================= */
 
@@ -41,14 +58,15 @@ const Alertas = {
                 toast.addEventListener('mouseleave', Swal.resumeTimer)
             }
         });
-        Toast.fire({ icon: icono, title: mensaje });
+        // titleText (y no title) para que el mensaje se muestre como texto, no como HTML
+        Toast.fire({ icon: icono, titleText: mensaje });
     },
 
     // 2. Alerta de Éxito o Error (Grande, con botón de OK)
     mensaje: (titulo, texto, icono = 'success') => {
         const isDark = document.body.classList.contains('dark-mode');
         Swal.fire({
-            title: titulo,
+            titleText: titulo,
             text: texto,
             icon: icono,
             background: isDark ? '#1e293b' : '#fff',
@@ -62,7 +80,7 @@ const Alertas = {
     confirmar: async (titulo, texto, botonConfirmar = 'Sí, borrar') => {
         const isDark = document.body.classList.contains('dark-mode');
         const resultado = await Swal.fire({
-            title: titulo,
+            titleText: titulo,
             text: texto,
             icon: 'warning',
             showCancelButton: true,
