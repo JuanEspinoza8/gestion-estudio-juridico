@@ -3,109 +3,76 @@ const router = express.Router();
 const Turno = require('../models/Turno');
 const { logActividad } = require('../utils/logger');
 
+const EVENTOS_PERMITIDOS = ['Audiencia', 'Mediación', 'Presentar Escrito', 'Reunión Cliente', 'Otro'];
+
 // GET: Turnos de HOY de un usuario (para el dashboard)
 router.get('/usuario/:usuarioId/hoy', async (req, res) => {
-    try {
-        const turnos = await Turno.obtenerHoy(req.params.usuarioId);
-        res.json(turnos);
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener los turnos de hoy' });
-    }
+    const turnos = await Turno.obtenerHoy(req.params.usuarioId);
+    res.json(turnos);
 });
 
 // GET: Todos los próximos turnos de un usuario (para la agenda)
 router.get('/usuario/:usuarioId', async (req, res) => {
-    try {
-        const turnos = await Turno.obtenerProximos(req.params.usuarioId);
-        res.json(turnos);
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener próximos turnos' });
-    }
+    const turnos = await Turno.obtenerProximos(req.params.usuarioId);
+    res.json(turnos);
 });
 
 // GET: Obtener un turno por ID
 router.get('/:id', async (req, res) => {
-    try {
-        const turno = await Turno.obtenerPorId(req.params.id);
-        if (!turno) return res.status(404).json({ error: 'Turno no encontrado' });
-        res.json(turno);
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener el turno' });
-    }
+    const turno = await Turno.obtenerPorId(req.params.id);
+    if (!turno) return res.status(404).json({ error: 'Turno no encontrado' });
+    res.json(turno);
 });
 
 // GET: Todos los turnos de un cliente
 router.get('/cliente/:clienteId', async (req, res) => {
-    try {
-        const turnos = await Turno.obtenerPorCliente(req.params.clienteId);
-        res.json(turnos);
-    } catch (error) {
-        res.status(500).json({ error: 'Error al obtener turnos del cliente' });
-    }
+    const turnos = await Turno.obtenerPorCliente(req.params.clienteId);
+    res.json(turnos);
 });
 
 // POST: Crear un nuevo turno
 router.post('/', async (req, res) => {
-    try {
-        const { tipo_evento } = req.body;
-        const eventosPermitidos = ['Audiencia', 'Mediación', 'Presentar Escrito', 'Reunión Cliente', 'Otro'];
-        if (tipo_evento && !eventosPermitidos.includes(tipo_evento)) {
-            return res.status(400).json({ error: 'Tipo de evento no válido' });
-        }
-
-        const nuevoTurno = new Turno(req.body);
-        const turnoGuardado = await nuevoTurno.guardar();
-        res.status(201).json(turnoGuardado);
-    } catch (error) {
-        res.status(500).json({ error: 'Error al agendar el turno' });
+    const { tipo_evento } = req.body;
+    if (tipo_evento && !EVENTOS_PERMITIDOS.includes(tipo_evento)) {
+        return res.status(400).json({ error: 'Tipo de evento no válido' });
     }
+
+    const nuevoTurno = new Turno(req.body);
+    const turnoGuardado = await nuevoTurno.guardar();
+    res.status(201).json(turnoGuardado);
 });
 
 // PUT: Editar un turno completo
 router.put('/:id', async (req, res) => {
-    try {
-        const { tipo_evento } = req.body;
-        const eventosPermitidos = ['Audiencia', 'Mediación', 'Presentar Escrito', 'Reunión Cliente', 'Otro'];
-        if (tipo_evento && !eventosPermitidos.includes(tipo_evento)) {
-            return res.status(400).json({ error: 'Tipo de evento no válido' });
-        }
-
-        const datos = { ...req.body, id: req.params.id };
-        const turnoActualizado = new Turno(datos);
-        const resultado = await turnoActualizado.guardar();
-        res.json(resultado);
-    } catch (error) {
-        res.status(500).json({ error: 'Error al actualizar el turno' });
+    const { tipo_evento } = req.body;
+    if (tipo_evento && !EVENTOS_PERMITIDOS.includes(tipo_evento)) {
+        return res.status(400).json({ error: 'Tipo de evento no válido' });
     }
+
+    const datos = { ...req.body, id: req.params.id };
+    const turnoActualizado = new Turno(datos);
+    const resultado = await turnoActualizado.guardar();
+    res.json(resultado);
 });
 
 // PUT: Cambiar el estado de un turno (completado, cancelado)
 router.put('/:id/estado', async (req, res) => {
-    try {
-        const { estado } = req.body;
-        const turno = new Turno({ id: req.params.id });
-        const resultado = await turno.cambiarEstado(estado);
-        
-        if (estado === 'completado') {
-            // Buscamos detalles del turno para un log más rico, o al menos anotamos el ID
-            logActividad(req.usuario.id, null, 'TURNO_COMPLETADO', `Se completó un turno de la agenda`);
-        }
-        
-        res.json(resultado);
-    } catch (error) {
-        res.status(500).json({ error: 'Error al actualizar el estado del turno' });
+    const { estado } = req.body;
+    const turno = new Turno({ id: req.params.id });
+    const resultado = await turno.cambiarEstado(estado);
+
+    if (estado === 'completado') {
+        logActividad(req.usuario.id, null, 'TURNO_COMPLETADO', `Se completó un turno de la agenda`);
     }
+
+    res.json(resultado);
 });
 
 // DELETE: Eliminar un turno
 router.delete('/:id', async (req, res) => {
-    try {
-        const resultado = await Turno.eliminar(req.params.id);
-        if (!resultado) return res.status(404).json({ error: 'Turno no encontrado' });
-        res.json({ mensaje: 'Turno eliminado correctamente' });
-    } catch (error) {
-        res.status(500).json({ error: 'Error al eliminar el turno' });
-    }
+    const resultado = await Turno.eliminar(req.params.id);
+    if (!resultado) return res.status(404).json({ error: 'Turno no encontrado' });
+    res.json({ mensaje: 'Turno eliminado correctamente' });
 });
 
 module.exports = router;
