@@ -41,6 +41,12 @@ class Nota {
         return rows;
     }
 
+    static async cambiarEstado(id, estado) {
+        const query = 'UPDATE notas_cliente SET estado = $1 WHERE id = $2 RETURNING *;';
+        const { rows } = await db.query(query, [estado, id]);
+        return rows[0] || null;
+    }
+
     static async eliminar(id) {
         const query = 'DELETE FROM notas_cliente WHERE id = $1 RETURNING *;';
         const { rows } = await db.query(query, [id]);
