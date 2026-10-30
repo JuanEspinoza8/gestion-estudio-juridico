@@ -64,8 +64,8 @@ async function cargarResumenGeneral() {
                 <li>
                     <span class="hora">${escapeHtml(t.hora.substring(0, 5))}</span>
                     <div class="detalle">
-                        <strong>${escapeHtml(t.nombre_completo)}</strong>
-                        <span>${escapeHtml(t.motivo)}</span>
+                        <strong>${escapeHtml(t.nombre_completo || 'Sin cliente (tarea interna)')}</strong>
+                        <span>${escapeHtml(t.motivo || t.tipo_evento)}</span>
                     </div>
                 </li>
             `).join('');
