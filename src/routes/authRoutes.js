@@ -25,11 +25,9 @@ router.post('/login', limiteLogin, validar(esquemas.login), async (req, res) => 
         return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
-    const token = jwt.sign(
-        { id: usuario.id, email: usuario.email, rol: usuario.rol },
-        process.env.JWT_SECRET,
-        { expiresIn: '8h' }
-    );
+    const token = jwt.sign({ id: usuario.id, email: usuario.email, rol: usuario.rol }, process.env.JWT_SECRET, {
+        expiresIn: '8h'
+    });
 
     res.json({
         token,

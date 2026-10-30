@@ -28,7 +28,9 @@ cron.schedule('*/5 * * * *', async () => {
     try {
         const r = await enviarRecordatoriosPendientes();
         if (r.enviados > 0 || r.errores > 0) {
-            console.log(`[cron] Recordatorios -> enviados: ${r.enviados}, errores: ${r.errores}, omitidos: ${r.omitidos}`);
+            console.log(
+                `[cron] Recordatorios -> enviados: ${r.enviados}, errores: ${r.errores}, omitidos: ${r.omitidos}`
+            );
         }
     } catch (error) {
         console.error('[cron] Error al procesar recordatorios:', error.message);

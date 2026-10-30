@@ -84,10 +84,16 @@ test('un pago no puede superar el saldo; uno válido baja el saldo', async () =>
     const { rows } = await mockPg.query('SELECT id FROM expedientes WHERE cliente_id = $1', [martina]);
     const pago = { cliente_id: martina, expediente_id: rows[0].id, metodo_pago: 'Efectivo', fecha_pago: '2026-10-30' };
 
-    const excedido = await request(app).post('/api/pagos').set(demo).send({ ...pago, monto: '400001' });
+    const excedido = await request(app)
+        .post('/api/pagos')
+        .set(demo)
+        .send({ ...pago, monto: '400001' });
     expect(excedido.status).toBe(400);
 
-    const valido = await request(app).post('/api/pagos').set(demo).send({ ...pago, monto: '100000' });
+    const valido = await request(app)
+        .post('/api/pagos')
+        .set(demo)
+        .send({ ...pago, monto: '100000' });
     expect(valido.status).toBe(201);
     const saldo = await request(app).get(`/api/clientes/${martina}/saldo`).set(demo);
     expect(saldo.body.saldo_deudor).toBe(300000);
@@ -111,10 +117,14 @@ test('borrar una causa borra sus documentos y deja sus turnos sin causa', async 
     const url = await request(app).get(`/api/documentos/${doc.body.id}/url`).set(demo);
     expect(url.body.url).toMatch(/^https:\/\/storage\.test\/firmada\/expediente_\d+\/\d+_escrito\.pdf$/);
 
-    const turno = await request(app)
-        .post('/api/turnos')
-        .set(demo)
-        .send({ cliente_id: martina, causa_id: causa.body.id, fecha: '2026-12-01', hora: '10:00', motivo: 'Audiencia', tipo_evento: 'Audiencia' });
+    const turno = await request(app).post('/api/turnos').set(demo).send({
+        cliente_id: martina,
+        causa_id: causa.body.id,
+        fecha: '2026-12-01',
+        hora: '10:00',
+        motivo: 'Audiencia',
+        tipo_evento: 'Audiencia'
+    });
     expect(turno.status).toBe(201);
 
     const borrar = await request(app).delete(`/api/causas/${causa.body.id}`).set(demo);

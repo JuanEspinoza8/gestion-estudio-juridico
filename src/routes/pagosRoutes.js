@@ -50,7 +50,12 @@ router.post('/', validar(esquemas.pago), async (req, res) => {
     const nuevoPago = new Pago(req.body);
     const pagoGuardado = await nuevoPago.guardar();
 
-    logActividad(req.usuario.id, pagoGuardado.cliente_id, 'PAGO_RECIBIDO', `Se recibió un pago de $${pagoGuardado.monto} (${pagoGuardado.metodo_pago || 'efectivo'})`);
+    logActividad(
+        req.usuario.id,
+        pagoGuardado.cliente_id,
+        'PAGO_RECIBIDO',
+        `Se recibió un pago de $${pagoGuardado.monto} (${pagoGuardado.metodo_pago || 'efectivo'})`
+    );
 
     res.status(201).json(pagoGuardado);
 });

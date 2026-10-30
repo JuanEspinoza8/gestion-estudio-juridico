@@ -12,11 +12,7 @@ const fila = { id: USUARIO_A.id, nombre: 'Ana', email: USUARIO_A.email, password
 
 // Cada test usa una IP distinta para que el rate limit de un test no afecte a otro
 let ip = 0;
-const login = (body) =>
-    request(app)
-        .post('/api/auth/login')
-        .set('X-Forwarded-For', `10.0.0.${++ip}`)
-        .send(body);
+const login = (body) => request(app).post('/api/auth/login').set('X-Forwarded-For', `10.0.0.${++ip}`).send(body);
 
 beforeEach(() => {
     jest.resetAllMocks();
@@ -50,7 +46,10 @@ describe('POST /api/auth/login', () => {
 describe('rate limit del login', () => {
     test('después de 10 intentos fallidos desde la misma IP responde 429', async () => {
         const intentar = (password) =>
-            request(app).post('/api/auth/login').set('X-Forwarded-For', '10.9.9.9').send({ email: USUARIO_A.email, password });
+            request(app)
+                .post('/api/auth/login')
+                .set('X-Forwarded-For', '10.9.9.9')
+                .send({ email: USUARIO_A.email, password });
 
         for (let i = 0; i < 10; i++) {
             expect((await intentar('mal')).status).toBe(401);
@@ -62,7 +61,10 @@ describe('rate limit del login', () => {
 
     test('los logins exitosos no cuentan para el límite', async () => {
         const entrar = () =>
-            request(app).post('/api/auth/login').set('X-Forwarded-For', '10.8.8.8').send({ email: USUARIO_A.email, password: 'clave-correcta' });
+            request(app)
+                .post('/api/auth/login')
+                .set('X-Forwarded-For', '10.8.8.8')
+                .send({ email: USUARIO_A.email, password: 'clave-correcta' });
 
         for (let i = 0; i < 12; i++) {
             expect((await entrar()).status).toBe(200);

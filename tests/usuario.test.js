@@ -13,7 +13,11 @@ beforeEach(() => {
 
 describe('Usuario.guardar', () => {
     test('al crear guarda el hash bcrypt, nunca la contraseña en texto plano', async () => {
-        const creado = await new Usuario({ nombre: 'Ana', email: 'ana@estudio.test', password: 'una-clave-larga' }).guardar();
+        const creado = await new Usuario({
+            nombre: 'Ana',
+            email: 'ana@estudio.test',
+            password: 'una-clave-larga'
+        }).guardar();
 
         const [sql, params] = db.query.mock.calls[0];
         expect(sql).toMatch(/INSERT INTO usuarios/);

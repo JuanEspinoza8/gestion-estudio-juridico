@@ -50,7 +50,12 @@ router.post('/', validar(esquemas.cliente), async (req, res) => {
     const nuevoCliente = new Cliente(req.body);
     const clienteGuardado = await nuevoCliente.guardar().catch(traducirDuplicado);
 
-    logActividad(req.usuario.id, clienteGuardado.id, 'NUEVO_CLIENTE', `Cliente registrado: ${clienteGuardado.nombre_completo}`);
+    logActividad(
+        req.usuario.id,
+        clienteGuardado.id,
+        'NUEVO_CLIENTE',
+        `Cliente registrado: ${clienteGuardado.nombre_completo}`
+    );
 
     res.status(201).json(clienteGuardado);
 });

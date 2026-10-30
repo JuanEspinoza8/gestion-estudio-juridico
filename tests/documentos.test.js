@@ -50,7 +50,10 @@ describe('POST /api/documentos', () => {
             .post('/api/documentos')
             .set(auth())
             .field('causa_id', '5')
-            .attach('pdf', Buffer.from('MZ\x90\x00 ejecutable'), { filename: 'virus.pdf', contentType: 'application/pdf' });
+            .attach('pdf', Buffer.from('MZ\x90\x00 ejecutable'), {
+                filename: 'virus.pdf',
+                contentType: 'application/pdf'
+            });
 
         expect(res.status).toBe(400);
         expect(res.body.error).toMatch(/PDF/);

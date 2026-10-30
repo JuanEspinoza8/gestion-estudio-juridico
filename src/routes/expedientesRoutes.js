@@ -21,7 +21,10 @@ router.post('/', validar(esquemas.honorario), async (req, res) => {
     const nuevo = new Expediente(req.body);
     const guardado = await nuevo.guardar().catch((error) => {
         if (error.code === '23505') {
-            throw new HttpError(409, 'Ya existe un expediente/deuda idéntico para este cliente (posible clic duplicado).');
+            throw new HttpError(
+                409,
+                'Ya existe un expediente/deuda idéntico para este cliente (posible clic duplicado).'
+            );
         }
         throw error;
     });

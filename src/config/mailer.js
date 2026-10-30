@@ -12,7 +12,9 @@ function getTransporter() {
 
     const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
     if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
-        console.warn('[mailer] SMTP no configurado (SMTP_HOST/SMTP_USER/SMTP_PASS). Los recordatorios por email quedan deshabilitados.');
+        console.warn(
+            '[mailer] SMTP no configurado (SMTP_HOST/SMTP_USER/SMTP_PASS). Los recordatorios por email quedan deshabilitados.'
+        );
         transporter = null;
         return null;
     }

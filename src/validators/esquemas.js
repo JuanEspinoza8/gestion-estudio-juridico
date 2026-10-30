@@ -86,7 +86,12 @@ const turno = z.object({
     motivo: z.string().trim().min(1, 'El motivo es obligatorio').max(300),
     tipo_evento: z.enum(EVENTOS, 'Tipo de evento no válido').default('Otro'),
     estado: z.enum(ESTADOS_TURNO).default('pendiente'),
-    recordatorio_offset_min: z.coerce.number().int().min(0).max(60 * 24 * 30).optional()
+    recordatorio_offset_min: z.coerce
+        .number()
+        .int()
+        .min(0)
+        .max(60 * 24 * 30)
+        .optional()
 });
 
 const estadoTurno = z.object({

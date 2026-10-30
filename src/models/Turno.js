@@ -8,8 +8,9 @@ const { TZ_ESTUDIO } = require('../config/zonaHoraria');
 class Turno {
     constructor(turno) {
         this.id = turno.id || null;
-        this.cliente_id = (turno.cliente_id === '' || turno.cliente_id === 'null' || !turno.cliente_id) ? null : turno.cliente_id;
-        this.causa_id = (turno.causa_id === '' || turno.causa_id === 'null' || !turno.causa_id) ? null : turno.causa_id;
+        this.cliente_id =
+            turno.cliente_id === '' || turno.cliente_id === 'null' || !turno.cliente_id ? null : turno.cliente_id;
+        this.causa_id = turno.causa_id === '' || turno.causa_id === 'null' || !turno.causa_id ? null : turno.causa_id;
         this.usuario_id = turno.usuario_id;
         this.fecha = turno.fecha;
         this.hora = turno.hora;
@@ -18,9 +19,12 @@ class Turno {
         this.estado = turno.estado || 'pendiente';
         // Minutos de anticipación del recordatorio. 0 o null = sin recordatorio.
         // Si no viene el campo (turno viejo o alta sin especificar), 1440 = 1 día antes.
-        this.recordatorio_offset_min = (turno.recordatorio_offset_min === '' || turno.recordatorio_offset_min === null || turno.recordatorio_offset_min === undefined)
-            ? 1440
-            : parseInt(turno.recordatorio_offset_min, 10);
+        this.recordatorio_offset_min =
+            turno.recordatorio_offset_min === '' ||
+            turno.recordatorio_offset_min === null ||
+            turno.recordatorio_offset_min === undefined
+                ? 1440
+                : parseInt(turno.recordatorio_offset_min, 10);
     }
 
     // Todos los métodos que leen o modifican un turno filtran por usuario_id: cada
@@ -37,7 +41,18 @@ class Turno {
                     recordatorio_enviado = false
                 WHERE id = $9 AND usuario_id = $10 RETURNING *;
             `;
-            const values = [this.cliente_id, this.causa_id, this.fecha, this.hora, this.motivo, this.estado, this.tipo_evento, this.recordatorio_offset_min, this.id, this.usuario_id];
+            const values = [
+                this.cliente_id,
+                this.causa_id,
+                this.fecha,
+                this.hora,
+                this.motivo,
+                this.estado,
+                this.tipo_evento,
+                this.recordatorio_offset_min,
+                this.id,
+                this.usuario_id
+            ];
             const { rows } = await db.query(query, values);
             return rows[0];
         } else {
@@ -45,7 +60,17 @@ class Turno {
                 INSERT INTO turnos (cliente_id, causa_id, usuario_id, fecha, hora, motivo, estado, tipo_evento, recordatorio_offset_min)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *;
             `;
-            const values = [this.cliente_id, this.causa_id, this.usuario_id, this.fecha, this.hora, this.motivo, this.estado, this.tipo_evento, this.recordatorio_offset_min];
+            const values = [
+                this.cliente_id,
+                this.causa_id,
+                this.usuario_id,
+                this.fecha,
+                this.hora,
+                this.motivo,
+                this.estado,
+                this.tipo_evento,
+                this.recordatorio_offset_min
+            ];
             const { rows } = await db.query(query, values);
             this.id = rows[0].id;
             return rows[0];

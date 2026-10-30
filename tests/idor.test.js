@@ -22,7 +22,10 @@ function emularTurnos(sql, params) {
     if (/WHERE t\.cliente_id = \$1 AND t\.usuario_id = \$2/.test(sql)) {
         return filas(...TURNOS.filter((t) => t.cliente_id === Number(params[0]) && t.usuario_id === params[1]));
     }
-    if (/WHERE t\.id = \$1 AND t\.usuario_id = \$2/.test(sql) || /DELETE FROM turnos WHERE id = \$1 AND usuario_id = \$2/.test(sql)) {
+    if (
+        /WHERE t\.id = \$1 AND t\.usuario_id = \$2/.test(sql) ||
+        /DELETE FROM turnos WHERE id = \$1 AND usuario_id = \$2/.test(sql)
+    ) {
         return filas(...TURNOS.filter((t) => t.id === Number(params[0]) && t.usuario_id === params[1]));
     }
     if (/UPDATE turnos SET estado = \$1 WHERE id = \$2 AND usuario_id = \$3/.test(sql)) {
@@ -71,7 +74,10 @@ describe('agenda (turnos)', () => {
     test('no se puede editar, cambiar de estado ni borrar un turno ajeno', async () => {
         const datos = { fecha: '2026-11-10', hora: '10:00', motivo: 'Hackeado', tipo_evento: 'Otro' };
         const editar = await request(app).put('/api/turnos/2').set(auth(USUARIO_A)).send(datos);
-        const estado = await request(app).put('/api/turnos/2/estado').set(auth(USUARIO_A)).send({ estado: 'cancelado' });
+        const estado = await request(app)
+            .put('/api/turnos/2/estado')
+            .set(auth(USUARIO_A))
+            .send({ estado: 'cancelado' });
         const borrar = await request(app).delete('/api/turnos/2').set(auth(USUARIO_A));
 
         expect([editar.status, estado.status, borrar.status]).toEqual([404, 404, 404]);
@@ -83,10 +89,13 @@ describe('agenda (turnos)', () => {
     });
 
     test('al crear un turno se ignora el usuario_id del body', async () => {
-        const res = await request(app)
-            .post('/api/turnos')
-            .set(auth(USUARIO_A))
-            .send({ usuario_id: USUARIO_B.id, fecha: '2026-11-10', hora: '10:00', motivo: 'Audiencia', tipo_evento: 'Audiencia' });
+        const res = await request(app).post('/api/turnos').set(auth(USUARIO_A)).send({
+            usuario_id: USUARIO_B.id,
+            fecha: '2026-11-10',
+            hora: '10:00',
+            motivo: 'Audiencia',
+            tipo_evento: 'Audiencia'
+        });
 
         expect(res.status).toBe(201);
         const [, params] = db.query.mock.calls.find(([sql]) => /INSERT INTO turnos/.test(sql));
@@ -112,6 +121,9 @@ describe('notas rápidas', () => {
         db.query.mockResolvedValue(filas());
         const res = await request(app).delete('/api/notas-rapidas/5').set(auth(USUARIO_A));
         expect(res.status).toBe(404);
-        expect(db.query).toHaveBeenCalledWith(expect.stringMatching(/WHERE id = \$1 AND usuario_id = \$2/), [5, USUARIO_A.id]);
+        expect(db.query).toHaveBeenCalledWith(expect.stringMatching(/WHERE id = \$1 AND usuario_id = \$2/), [
+            5,
+            USUARIO_A.id
+        ]);
     });
 });

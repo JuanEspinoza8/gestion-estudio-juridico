@@ -25,7 +25,12 @@ class Nota {
                 INSERT INTO notas_cliente (cliente_id, contenido, fecha_vencimiento, estado)
                 VALUES ($1, $2, $3, $4) RETURNING *;
             `;
-            const { rows } = await db.query(query, [this.cliente_id, this.contenido, this.fecha_vencimiento, this.estado]);
+            const { rows } = await db.query(query, [
+                this.cliente_id,
+                this.contenido,
+                this.fecha_vencimiento,
+                this.estado
+            ]);
             this.id = rows[0].id;
             return rows[0];
         }

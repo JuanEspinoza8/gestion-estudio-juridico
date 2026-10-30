@@ -86,7 +86,11 @@ router.post('/', upload.single('pdf'), validar(esquemas.documento), async (req, 
 
     let documento;
     try {
-        documento = await Documento.crear({ causa_id: causaId, nombre_archivo: nombreArchivo, ruta_archivo: rutaArchivo });
+        documento = await Documento.crear({
+            causa_id: causaId,
+            nombre_archivo: nombreArchivo,
+            ruta_archivo: rutaArchivo
+        });
     } catch (error) {
         // Si no se pudo registrar en la base, el archivo subido quedaría huérfano
         await storage.eliminar([rutaArchivo]);

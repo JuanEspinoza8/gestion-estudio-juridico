@@ -8,8 +8,14 @@ const escapeHtml = require('../utils/escapeHtml');
 
 function formatearAnticipacion(min) {
     if (!min || min <= 0) return '';
-    if (min % 1440 === 0) { const d = min / 1440; return d === 1 ? '1 día' : `${d} días`; }
-    if (min % 60 === 0) { const h = min / 60; return h === 1 ? '1 hora' : `${h} horas`; }
+    if (min % 1440 === 0) {
+        const d = min / 1440;
+        return d === 1 ? '1 día' : `${d} días`;
+    }
+    if (min % 60 === 0) {
+        const h = min / 60;
+        return h === 1 ? '1 hora' : `${h} horas`;
+    }
     return `${min} minutos`;
 }
 
@@ -63,7 +69,9 @@ function armarEmail(turno) {
  */
 async function enviarRecordatoriosPendientes() {
     const pendientes = await Turno.obtenerPendientesRecordatorio();
-    let enviados = 0, omitidos = 0, errores = 0;
+    let enviados = 0,
+        omitidos = 0,
+        errores = 0;
     const detalleErrores = [];
 
     for (const turno of pendientes) {

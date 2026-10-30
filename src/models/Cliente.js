@@ -18,7 +18,15 @@ class Cliente {
                 SET nombre_completo = $1, dni = $2, telefono = $3, email = $4, notas = $5, activo = $6
                 WHERE id = $7 RETURNING *;
             `;
-            const values = [this.nombre_completo, this.dni, this.telefono, this.email, this.notas, this.activo, this.id];
+            const values = [
+                this.nombre_completo,
+                this.dni,
+                this.telefono,
+                this.email,
+                this.notas,
+                this.activo,
+                this.id
+            ];
             const { rows } = await db.query(query, values);
             return rows[0];
         } else {
@@ -36,7 +44,7 @@ class Cliente {
     static async obtenerTodos() {
         const query = 'SELECT * FROM clientes WHERE activo = true ORDER BY nombre_completo ASC;';
         const { rows } = await db.query(query);
-        return rows.map(row => new Cliente(row));
+        return rows.map((row) => new Cliente(row));
     }
 
     static async obtenerPorId(id) {
@@ -45,7 +53,7 @@ class Cliente {
         if (rows.length === 0) return null;
         return new Cliente(rows[0]);
     }
-// ==========================================
+    // ==========================================
     // LÓGICA FINANCIERA (US2.5)
     // ==========================================
 
@@ -64,9 +72,9 @@ class Cliente {
         const total_honorarios = parseFloat(rows[0].total_honorarios);
         const cuotas_totales_plan = parseInt(rows[0].cuotas_totales_plan) || 1; // Default a 1 si no hay expedientes
         const total_pagos = parseFloat(rows[0].total_pagos);
-        
+
         const saldo_deudor = total_honorarios - total_pagos;
-        const valor_cuota_promedio = total_honorarios > 0 ? (total_honorarios / cuotas_totales_plan) : 0;
+        const valor_cuota_promedio = total_honorarios > 0 ? total_honorarios / cuotas_totales_plan : 0;
         const cuotas_pagadas = valor_cuota_promedio > 0 ? Math.floor(total_pagos / valor_cuota_promedio) : 0;
 
         return {
@@ -110,7 +118,7 @@ class Cliente {
             ORDER BY deuda_actual DESC;
         `;
         const { rows } = await db.query(query);
-        return rows; 
+        return rows;
     }
 
     /**

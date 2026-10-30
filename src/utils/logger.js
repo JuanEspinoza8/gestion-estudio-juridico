@@ -15,8 +15,8 @@ function logActividad(usuario_id, cliente_id, accion, detalles) {
         accion,
         detalles
     });
-    
-    nuevaActividad.guardar().catch(err => {
+
+    nuevaActividad.guardar().catch((err) => {
         console.error('Error al registrar actividad en el logger:', err);
     });
 }

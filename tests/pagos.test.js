@@ -10,13 +10,18 @@ const { auth, filas } = require('./helpers');
 // Cliente 3 con un honorario (id 10) de $120.000 y $50.000 pagados -> saldo $70.000
 function baseConSaldo({ honorarios = 120000, pagos = 50000 } = {}) {
     db.query.mockImplementation(async (sql, params) => {
-        if (/FROM clientes WHERE id = \$1/.test(sql)) return params[0] === 3 ? filas({ id: 3, nombre_completo: 'Cliente' }) : filas();
+        if (/FROM clientes WHERE id = \$1/.test(sql))
+            return params[0] === 3 ? filas({ id: 3, nombre_completo: 'Cliente' }) : filas();
         if (/FROM expedientes WHERE id = \$1/.test(sql)) {
             const honorariosPorId = { 10: { id: 10, cliente_id: 3 }, 20: { id: 20, cliente_id: 4 } };
             return honorariosPorId[params[0]] ? filas(honorariosPorId[params[0]]) : filas();
         }
         if (/AS total_honorarios/.test(sql)) {
-            return filas({ total_honorarios: String(honorarios), cuotas_totales_plan: '6', total_pagos: String(pagos) });
+            return filas({
+                total_honorarios: String(honorarios),
+                cuotas_totales_plan: '6',
+                total_pagos: String(pagos)
+            });
         }
         if (/INSERT INTO pagos/.test(sql)) {
             const [cliente_id, expediente_id, monto, fecha_pago, metodo_pago] = params;
@@ -27,7 +32,13 @@ function baseConSaldo({ honorarios = 120000, pagos = 50000 } = {}) {
 }
 
 const pagar = (body) => request(app).post('/api/pagos').set(auth()).send(body);
-const pagoValido = { cliente_id: 3, expediente_id: 10, monto: '20000', metodo_pago: 'Efectivo', fecha_pago: '2026-10-30' };
+const pagoValido = {
+    cliente_id: 3,
+    expediente_id: 10,
+    monto: '20000',
+    metodo_pago: 'Efectivo',
+    fecha_pago: '2026-10-30'
+};
 const insertsDePago = () => db.query.mock.calls.filter(([sql]) => /INSERT INTO pagos/.test(sql));
 
 beforeEach(() => {

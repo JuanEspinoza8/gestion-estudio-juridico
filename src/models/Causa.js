@@ -18,14 +18,26 @@ class Causa {
                 SET nro_expediente = $1, caratula = $2, juzgado = $3, estado = $4
                 WHERE id = $5 RETURNING *;
             `;
-            const { rows } = await db.query(query, [this.nro_expediente, this.caratula, this.juzgado, this.estado, this.id]);
+            const { rows } = await db.query(query, [
+                this.nro_expediente,
+                this.caratula,
+                this.juzgado,
+                this.estado,
+                this.id
+            ]);
             return rows[0];
         } else {
             const query = `
                 INSERT INTO causas_judiciales (cliente_id, nro_expediente, caratula, juzgado, estado)
                 VALUES ($1, $2, $3, $4, $5) RETURNING *;
             `;
-            const { rows } = await db.query(query, [this.cliente_id, this.nro_expediente, this.caratula, this.juzgado, this.estado]);
+            const { rows } = await db.query(query, [
+                this.cliente_id,
+                this.nro_expediente,
+                this.caratula,
+                this.juzgado,
+                this.estado
+            ]);
             this.id = rows[0].id;
             return rows[0];
         }
