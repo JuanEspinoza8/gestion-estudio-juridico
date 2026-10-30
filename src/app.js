@@ -1,6 +1,7 @@
 // src/app.js
 // Arma la aplicación Express (middlewares y rutas) sin levantar el servidor,
 // así la usan tanto server.js como los tests.
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -73,11 +74,16 @@ app.use('/api/notas', verificarToken, notasRoutes);
 app.use('/api/notas-rapidas', verificarToken, notasRapidasRoutes);
 app.use('/api/actividad', verificarToken, actividadRoutes);
 
+// Estado del servicio (lo usa el monitor externo para mantener Render despierto)
 app.get('/', (req, res) => {
     res.json({ mensaje: 'Servidor del Estudio Jurídico funcionando', estado: 'OK' });
 });
 
 app.use('/api', rutaNoEncontrada);
+
+// Frontend estático. En producción lo sirve Vercel; esto permite levantar todo
+// el sistema localmente con un solo comando (http://localhost:3000/login.html).
+app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use(manejarErrores);
 
 module.exports = app;
