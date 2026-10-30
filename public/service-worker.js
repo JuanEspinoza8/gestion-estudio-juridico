@@ -1,4 +1,5 @@
-const CACHE_NAME = 'estudio-juridico-v1';
+// Subir la versión cada vez que cambia ASSETS_TO_CACHE: así se descarta la caché vieja
+const CACHE_NAME = 'estudio-juridico-v2';
 const ASSETS_TO_CACHE = [
     './',
     './login.html',
@@ -14,8 +15,6 @@ const ASSETS_TO_CACHE = [
     './css/dashboard.css',
     './css/clientes.css',
     './css/agenda.css',
-    './css/expedientes.css',
-    './css/cuenta.css',
     './js/login.js',
     './js/utils.js',
     './js/dashboard.js',
@@ -25,12 +24,18 @@ const ASSETS_TO_CACHE = [
     './js/theme.js'
 ];
 
-// Instalar Service Worker y almacenar recursos iniciales
+// Instalar Service Worker y almacenar recursos iniciales.
+// Se cachea archivo por archivo: con cache.addAll, si faltaba uno solo no se
+// guardaba ninguno.
 self.addEventListener('install', event => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then(cache => {
-            return cache.addAll(ASSETS_TO_CACHE);
-        }).catch(err => console.log('Error caching assets', err))
+        caches.open(CACHE_NAME).then(cache =>
+            Promise.allSettled(ASSETS_TO_CACHE.map(url => cache.add(url))).then(resultados => {
+                resultados.forEach((r, i) => {
+                    if (r.status === 'rejected') console.log('No se pudo cachear', ASSETS_TO_CACHE[i], r.reason);
+                });
+            })
+        )
     );
     self.skipWaiting();
 });
@@ -48,23 +53,26 @@ self.addEventListener('activate', event => {
 });
 
 // Interceptar peticiones (Estrategia: Network First, falling back to cache)
-// Esto asegura que la app siempre cargue la última versión si hay internet, 
+// Esto asegura que la app siempre cargue la última versión si hay internet,
 // pero carga desde caché si el dispositivo está offline.
 self.addEventListener('fetch', event => {
     // Solo cacheamos GET requests (ignoramos POST a la API, etc)
     if (event.request.method !== 'GET') return;
-    
-    // Ignoramos peticiones a la API externa
-    if (event.request.url.includes('api-estudio-juridico-oma1.onrender.com')) return;
+
+    // Nunca cacheamos la API (local o en Render): son datos de clientes
+    const url = new URL(event.request.url);
+    if (!url.protocol.startsWith('http') || url.pathname.startsWith('/api/')) return;
 
     event.respondWith(
         fetch(event.request)
             .then(response => {
                 // Si la red responde bien, guardamos en caché una copia fresquita
-                const resClone = response.clone();
-                caches.open(CACHE_NAME).then(cache => {
-                    cache.put(event.request, resClone);
-                });
+                if (response.ok) {
+                    const resClone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => {
+                        cache.put(event.request, resClone);
+                    });
+                }
                 return response;
             })
             .catch(() => {
