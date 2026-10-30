@@ -166,8 +166,7 @@ async function vigilarTurnosProximos() {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
     const token = localStorage.getItem('estudio_token');
-    const usuarioId = localStorage.getItem('usuario_id');
-    if (!token || !usuarioId) return;
+    if (!token) return;
 
     let turnos = [];
     const ahoraMs = new Date().getTime();
@@ -176,7 +175,7 @@ async function vigilarTurnosProximos() {
     // OPTIMIZACIÓN: Solo consultamos la API cada 15 minutos para no gastar cuota de Supabase
     if (!ultimaRevision || (ahoraMs - parseInt(ultimaRevision)) > 15 * 60 * 1000) {
         try {
-            const res = await fetch(`https://api-estudio-juridico-oma1.onrender.com/api/turnos/usuario/${usuarioId}`, {
+            const res = await fetch(`https://api-estudio-juridico-oma1.onrender.com/api/turnos`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 

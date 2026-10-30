@@ -93,7 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const nuevoTurno = {
             cliente_id: document.getElementById('clienteId').value || null,
             causa_id: document.getElementById('causaId').value || null,
-            usuario_id: localStorage.getItem('usuario_id'),
             fecha: document.getElementById('fecha').value,
             hora: document.getElementById('hora').value,
             motivo: motivoReal,
@@ -151,7 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const datos = {
             cliente_id: document.getElementById('editarClienteId').value || null,
             causa_id: document.getElementById('editarCausaId').value || null,
-            usuario_id: localStorage.getItem('usuario_id'),
             fecha: document.getElementById('editarFecha').value,
             hora: document.getElementById('editarHora').value,
             motivo: motivoReal,
@@ -192,10 +190,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function cargarTurnos() {
     const token = localStorage.getItem('estudio_token');
-    const usuarioId = localStorage.getItem('usuario_id');
 
     try {
-        const res = await fetch(`${API}/api/turnos/usuario/${usuarioId}`, {
+        const res = await fetch(`${API}/api/turnos`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 

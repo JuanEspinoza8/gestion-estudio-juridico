@@ -23,18 +23,21 @@ class Turno {
             : parseInt(turno.recordatorio_offset_min, 10);
     }
 
+    // Todos los métodos que leen o modifican un turno filtran por usuario_id: cada
+    // abogado solo ve y toca su propia agenda. El usuario_id siempre sale del JWT.
     async guardar() {
         if (this.id) {
             // Al editar un turno reseteamos recordatorio_enviado = false: si se movió
             // la fecha/hora o el offset, el recordatorio debe volver a dispararse.
+            // Devuelve undefined si el turno no existe o es de otro usuario.
             const query = `
                 UPDATE turnos
-                SET cliente_id = $1, causa_id = $2, usuario_id = $3, fecha = $4, hora = $5,
-                    motivo = $6, estado = $7, tipo_evento = $8, recordatorio_offset_min = $9,
+                SET cliente_id = $1, causa_id = $2, fecha = $3, hora = $4,
+                    motivo = $5, estado = $6, tipo_evento = $7, recordatorio_offset_min = $8,
                     recordatorio_enviado = false
-                WHERE id = $10 RETURNING *;
+                WHERE id = $9 AND usuario_id = $10 RETURNING *;
             `;
-            const values = [this.cliente_id, this.causa_id, this.usuario_id, this.fecha, this.hora, this.motivo, this.estado, this.tipo_evento, this.recordatorio_offset_min, this.id];
+            const values = [this.cliente_id, this.causa_id, this.fecha, this.hora, this.motivo, this.estado, this.tipo_evento, this.recordatorio_offset_min, this.id, this.usuario_id];
             const { rows } = await db.query(query, values);
             return rows[0];
         } else {
@@ -50,41 +53,41 @@ class Turno {
     }
 
     async cambiarEstado(nuevoEstado) {
-        const query = 'UPDATE turnos SET estado = $1 WHERE id = $2 RETURNING *;';
-        const { rows } = await db.query(query, [nuevoEstado, this.id]);
+        const query = 'UPDATE turnos SET estado = $1 WHERE id = $2 AND usuario_id = $3 RETURNING *;';
+        const { rows } = await db.query(query, [nuevoEstado, this.id, this.usuario_id]);
         this.estado = nuevoEstado;
         return rows[0];
     }
 
-    static async eliminar(id) {
-        const query = 'DELETE FROM turnos WHERE id = $1 RETURNING *;';
-        const { rows } = await db.query(query, [id]);
+    static async eliminar(id, usuarioId) {
+        const query = 'DELETE FROM turnos WHERE id = $1 AND usuario_id = $2 RETURNING *;';
+        const { rows } = await db.query(query, [id, usuarioId]);
         return rows[0];
     }
 
-    static async obtenerPorId(id) {
+    static async obtenerPorId(id, usuarioId) {
         const query = `
             SELECT t.*, c.nombre_completo, cj.caratula, cj.nro_expediente
             FROM turnos t
             LEFT JOIN clientes c ON t.cliente_id = c.id
             LEFT JOIN causas_judiciales cj ON t.causa_id = cj.id
-            WHERE t.id = $1;
+            WHERE t.id = $1 AND t.usuario_id = $2;
         `;
-        const { rows } = await db.query(query, [id]);
+        const { rows } = await db.query(query, [id, usuarioId]);
         if (rows.length === 0) return null;
         return rows[0];
     }
 
-    static async obtenerPorCliente(clienteId) {
+    static async obtenerPorCliente(clienteId, usuarioId) {
         const query = `
             SELECT t.*, c.nombre_completo, cj.caratula, cj.nro_expediente
             FROM turnos t
             LEFT JOIN clientes c ON t.cliente_id = c.id
             LEFT JOIN causas_judiciales cj ON t.causa_id = cj.id
-            WHERE t.cliente_id = $1
+            WHERE t.cliente_id = $1 AND t.usuario_id = $2
             ORDER BY t.fecha DESC, t.hora DESC;
         `;
-        const { rows } = await db.query(query, [clienteId]);
+        const { rows } = await db.query(query, [clienteId, usuarioId]);
         return rows;
     }
 

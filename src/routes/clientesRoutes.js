@@ -46,7 +46,7 @@ router.post('/', async (req, res) => {
     const nuevoCliente = new Cliente(req.body);
     const clienteGuardado = await nuevoCliente.guardar().catch(traducirDuplicado);
 
-    logActividad(req.usuario ? req.usuario.id : 1, clienteGuardado.id, 'NUEVO_CLIENTE', `Cliente registrado: ${clienteGuardado.nombre_completo}`);
+    logActividad(req.usuario.id, clienteGuardado.id, 'NUEVO_CLIENTE', `Cliente registrado: ${clienteGuardado.nombre_completo}`);
 
     res.status(201).json(clienteGuardado);
 });
@@ -69,7 +69,7 @@ router.delete('/:id', async (req, res) => {
     }
     await storage.eliminar(rutasArchivos);
     logActividad(
-        req.usuario ? req.usuario.id : 1,
+        req.usuario.id,
         null,
         'CLIENTE_ELIMINADO',
         `Cliente eliminado: ${clienteEliminado.nombre_completo} (ID: ${clienteEliminado.id})`

@@ -22,7 +22,7 @@ router.post('/', async (req, res) => {
     const causaGuardada = await nuevaCausa.guardar();
 
     logActividad(
-        req.usuario ? req.usuario.id : 1,
+        req.usuario.id,
         causaGuardada.cliente_id,
         'NUEVO_EXPEDIENTE',
         `Se inició el expediente Nro: ${causaGuardada.nro_expediente}`
@@ -47,7 +47,7 @@ router.delete('/:id', async (req, res) => {
     await storage.eliminar(causa.rutasArchivos);
 
     logActividad(
-        req.usuario ? req.usuario.id : 1,
+        req.usuario.id,
         causa.cliente_id,
         'EXPEDIENTE_ELIMINADO',
         `Se eliminó el expediente Nro: ${causa.nro_expediente}`

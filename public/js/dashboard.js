@@ -31,7 +31,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function cargarResumenGeneral() {
     const token = localStorage.getItem('estudio_token');
-    const usuarioId = localStorage.getItem('usuario_id');
     const headers = {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
@@ -40,9 +39,9 @@ async function cargarResumenGeneral() {
     try {
         const [resClientes, resTurnosHoy, resIngresos, resActividad] = await Promise.all([
             fetch(`${API_BASE}/clientes`, { headers }),
-            fetch(`${API_BASE}/turnos/usuario/${usuarioId}/hoy`, { headers }),
+            fetch(`${API_BASE}/turnos/hoy`, { headers }),
             fetch(`${API_BASE}/pagos/mes-actual`, { headers }),
-            fetch(`${API_BASE}/actividad/usuario/${usuarioId}`, { headers })
+            fetch(`${API_BASE}/actividad`, { headers })
         ]);
 
         const clientes = await resClientes.json();
