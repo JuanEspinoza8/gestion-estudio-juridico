@@ -3,6 +3,7 @@
 // así la usan tanto server.js como los tests.
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 
 const authRoutes = require('./routes/authRoutes');
 const clientesRoutes = require('./routes/clientesRoutes');
@@ -19,9 +20,41 @@ const cronRoutes = require('./routes/cronRoutes');
 const verificarToken = require('./middlewares/authMiddleware');
 const { rutaNoEncontrada, manejarErrores } = require('./middlewares/errorHandler');
 
+// Orígenes del frontend que pueden llamar a la API desde el navegador, separados
+// por coma (ej: https://estudio.vercel.app). Los pedidos sin header Origin
+// (curl, UptimeRobot, mismo origen) no se ven afectados por CORS.
+const origenesPermitidos = (process.env.CORS_ORIGINS || '')
+    .split(',')
+    .map((origen) => origen.trim())
+    .filter(Boolean);
+
 const app = express();
-app.use(cors());
-app.use(express.json());
+
+// Render (y la mayoría de los hosts) ponen un proxy adelante: confiamos en un
+// salto para que req.ip sea la IP real del cliente (la usa el rate limit).
+app.set('trust proxy', 1);
+
+app.use(
+    helmet({
+        // La política aplica a las páginas de public/ cuando las sirve Express.
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                scriptSrc: ["'self'", 'https://cdn.jsdelivr.net'],
+                // El HTML usa atributos onclick="..."; pendiente pasarlos a addEventListener
+                scriptSrcAttr: ["'unsafe-inline'"],
+                styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdn.jsdelivr.net'],
+                fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+                imgSrc: ["'self'", 'data:'],
+                connectSrc: ["'self'"],
+                objectSrc: ["'none'"],
+                frameAncestors: ["'none'"]
+            }
+        }
+    })
+);
+app.use(cors({ origin: origenesPermitidos }));
+app.use(express.json({ limit: '100kb' }));
 
 // RUTAS PÚBLICAS
 app.use('/api/auth', authRoutes);

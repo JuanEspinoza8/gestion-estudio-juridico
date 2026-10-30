@@ -13,6 +13,10 @@ if (!process.env.JWT_SECRET) {
     process.exit(1);
 }
 
+if (!process.env.CORS_ORIGINS) {
+    console.warn('CORS_ORIGINS está vacía: el navegador solo podrá usar la API desde el mismo origen.');
+}
+
 const PORT = process.env.PORT || 3000;
 
 db.verificarConexion();

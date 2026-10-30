@@ -20,9 +20,9 @@ beforeEach(() => {
 });
 
 describe('GET /api/documentos/:id/url', () => {
-    test('sin token no devuelve nada', async () => {
+    test('sin token responde 401', async () => {
         const res = await request(app).get('/api/documentos/3/url');
-        expect(res.status).toBe(403);
+        expect(res.status).toBe(401);
         expect(storage.urlFirmada).not.toHaveBeenCalled();
     });
 
