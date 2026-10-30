@@ -26,14 +26,7 @@ let maxCuotasPago = 0;
 
 document.getElementById('btnAbrirModalPago').onclick = () => {
     if (saldoDeudorActual <= 0) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Sin deuda pendiente',
-            text: 'Este cliente no tiene saldo deudor. No se puede registrar un pago.',
-            background: document.body.classList.contains('dark-mode') ? '#1e293b' : '#fff',
-            color: document.body.classList.contains('dark-mode') ? '#f8fafc' : '#1e293b',
-            confirmButtonColor: '#3b82f6'
-        });
+        Alertas.mensaje('Sin deuda pendiente', 'Este cliente no tiene saldo deudor. No se puede registrar un pago.', 'warning');
         return;
     }
     // Cargar honorarios disponibles en el select
@@ -143,34 +136,23 @@ document.getElementById('formPago').addEventListener('submit', async (e) => {
     const montoRaw = document.getElementById('montoPago').value.replace(/\./g, '');
     const honorarioId = document.getElementById('honorarioDestino').value;
     const montoNum = parseFloat(montoRaw) || 0;
-    const isDark = document.body.classList.contains('dark-mode');
 
     // Validación 1: el monto debe ser un número positivo
     if (montoNum <= 0) {
-        Swal.fire({
-            icon: 'warning', title: 'Monto inválido',
-            text: 'Ingresá un monto de pago mayor a cero.',
-            background: isDark ? '#1e293b' : '#fff', color: isDark ? '#f8fafc' : '#1e293b',
-            confirmButtonColor: '#3b82f6'
-        });
+        Alertas.mensaje('Monto inválido', 'Ingresá un monto de pago mayor a cero.', 'warning');
         return;
     }
 
     // Validación 2: no se puede pagar más que el saldo deudor pendiente
     if (montoNum > Math.round(saldoDeudorActual)) {
-        Swal.fire({
-            icon: 'warning', title: 'Pago superior a la deuda',
-            text: `El pago no puede superar el saldo deudor de $ ${fmt(saldoDeudorActual)}.`,
-            background: isDark ? '#1e293b' : '#fff', color: isDark ? '#f8fafc' : '#1e293b',
-            confirmButtonColor: '#3b82f6'
-        });
+        Alertas.mensaje('Pago superior a la deuda', `El pago no puede superar el saldo deudor de $ ${fmt(saldoDeudorActual)}.`, 'warning');
         return;
     }
 
     btnSubmit.disabled = true;
     btnSubmit.textContent = 'Guardando...';
 
-    await fetchPost('/api/pagos', {
+    const guardado = await fetchPost('/api/pagos', {
         cliente_id: clienteId,
         expediente_id: honorarioId || null,
         monto: montoRaw,
@@ -178,8 +160,11 @@ document.getElementById('formPago').addEventListener('submit', async (e) => {
         fecha_pago: document.getElementById('fechaPago').value
     }, "Pago registrado correctamente");
 
-    cerrarModal('modalPago');
-    document.getElementById('formPago').reset();
+    // Si falló, el modal queda abierto con los datos para corregirlos
+    if (guardado) {
+        cerrarModal('modalPago');
+        document.getElementById('formPago').reset();
+    }
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Guardar Pago';
     cargarTodo();
@@ -193,38 +178,48 @@ document.getElementById('formDeuda').addEventListener('submit', async (e) => {
     btnSubmit.textContent = 'Guardando...';
 
     const montoRaw = document.getElementById('montoDeuda').value.replace(/\./g, ''); // Quita los puntos antes de enviar
-    await fetchPost('/api/expedientes', {
+    const guardado = await fetchPost('/api/expedientes', {
         cliente_id: clienteId,
         descripcion: document.getElementById('descripcionDeuda').value,
         honorarios_totales: montoRaw,
         cuotas_totales: document.getElementById('cantidadCuotas').value
     }, "Honorario agregado al sistema");
 
-    cerrarModal('modalDeuda');
-    document.getElementById('formDeuda').reset();
+    if (guardado) {
+        cerrarModal('modalDeuda');
+        document.getElementById('formDeuda').reset();
+    }
     btnSubmit.disabled = false;
     btnSubmit.textContent = 'Agregar Deuda';
     cargarTodo();
 });
 
 // FUNCIONES DE API Y CARGA
+// Devuelven true si la operación salió bien; si no, muestran el error.
 async function fetchPost(ruta, body, mensajeExito) {
     try {
         const res = await apiFetch(ruta, { method: 'POST', body });
         if (!res.ok) {
-            const e = await res.json();
-            Swal.fire({ icon: 'error', title: 'Error', text: e.error || 'Error al guardar', background: '#1e293b', color: '#f8fafc' });
-        } else if (mensajeExito) {
-            Swal.fire({ icon: 'success', title: '¡Listo!', text: mensajeExito, background: '#1e293b', color: '#f8fafc', timer: 1500, showConfirmButton: false });
+            Alertas.mensaje('Error', await mensajeDeError(res, 'Error al guardar'), 'error');
+            return false;
         }
+        if (mensajeExito) Alertas.toast(mensajeExito);
+        return true;
     } catch (error) {
-        Swal.fire({ icon: 'error', title: 'Conexión Fallida', text: 'Error al conectar con el servidor', background: '#1e293b', color: '#f8fafc' });
+        Alertas.mensaje('Conexión fallida', 'Error al conectar con el servidor', 'error');
+        return false;
     }
 }
 
 async function fetchDelete(ruta) {
-    try { await apiFetch(ruta, { method: 'DELETE' }); }
-    catch (error) { Swal.fire('Error', 'Error de conexión', 'error'); }
+    try {
+        const res = await apiFetch(ruta, { method: 'DELETE' });
+        if (!res.ok) Alertas.mensaje('Error', await mensajeDeError(res, 'No se pudo eliminar'), 'error');
+        return res.ok;
+    } catch (error) {
+        Alertas.toast('Error de conexión', 'error');
+        return false;
+    }
 }
 
 async function cargarTodo() {
@@ -401,17 +396,21 @@ async function completarNota(id) {
     try {
         await apiFetch(`/api/notas/${id}/estado`, { method: 'PUT', body: { estado: 'completado' } });
         cargarTodo();
-    } catch (error) { Swal.fire('Error', 'No se pudo completar', 'error'); }
+    } catch (error) { Alertas.toast('No se pudo completar la nota', 'error'); }
 }
 
 async function eliminarNota(id) {
-    const c = await Swal.fire({ title: '¿Eliminar nota?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#3b82f6', confirmButtonText: 'Sí', cancelButtonText: 'No', background: '#1e293b', color: '#f8fafc' });
-    if (c.isConfirmed) { await fetchDelete(`/api/notas/${id}`); cargarTodo(); }
+    if (await Alertas.confirmar('¿Eliminar nota?', 'Esta acción no se puede deshacer.', 'Sí, eliminar')) {
+        await fetchDelete(`/api/notas/${id}`);
+        cargarTodo();
+    }
 }
 
 async function eliminarExpediente(id) {
-    const c = await Swal.fire({ title: '¿Eliminar honorario?', text: "Afectará el saldo del cliente.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#3b82f6', confirmButtonText: 'Sí', cancelButtonText: 'No', background: '#1e293b', color: '#f8fafc' });
-    if (c.isConfirmed) { await fetchDelete(`/api/expedientes/${id}`); cargarTodo(); }
+    if (await Alertas.confirmar('¿Eliminar honorario?', 'Afectará el saldo del cliente.', 'Sí, eliminar')) {
+        await fetchDelete(`/api/expedientes/${id}`);
+        cargarTodo();
+    }
 }
 
 function fmt(n) { return new Intl.NumberFormat('es-AR').format(parseFloat(n) || 0); }
@@ -425,41 +424,16 @@ function fmtFechaHora(str) { return new Date(str).toLocaleString('es-AR', { day:
 
 // ELIMINAR CLIENTE
 document.getElementById('btnEliminarCliente').onclick = async () => {
-    const isDark = document.body.classList.contains('dark-mode');
-    const confirmado = await Swal.fire({
-        title: '¿Eliminar este cliente?',
-        text: 'Se borrarán todos sus datos, pagos, notas y honorarios. Esta acción no se puede deshacer.',
-        icon: 'warning',
-        showCancelButton: true,
-        background: isDark ? '#1e293b' : '#fff',
-        color: isDark ? '#f8fafc' : '#1e293b',
-        confirmButtonColor: '#ef4444',
-        cancelButtonColor: '#64748b',
-        confirmButtonText: 'Sí, eliminar definitivamente',
-        cancelButtonText: 'Cancelar',
-        reverseButtons: true
-    });
-    if (!confirmado.isConfirmed) return;
+    const confirmado = await Alertas.confirmar(
+        '¿Eliminar este cliente?',
+        'Se borrarán todos sus datos, pagos, notas y honorarios. Esta acción no se puede deshacer.',
+        'Sí, eliminar definitivamente'
+    );
+    if (!confirmado) return;
 
-    try {
-        const res = await apiFetch(`/api/clientes/${clienteId}`, { method: 'DELETE' });
-        if (res.ok) {
-            await Swal.fire({
-                icon: 'success',
-                title: 'Cliente eliminado',
-                text: 'Redirigiendo al listado...',
-                background: isDark ? '#1e293b' : '#fff',
-                color: isDark ? '#f8fafc' : '#1e293b',
-                timer: 1500,
-                showConfirmButton: false
-            });
-            window.location.href = 'clientes.html';
-        } else {
-            const err = await res.json();
-            Swal.fire({ icon: 'error', title: 'Error', text: err.error || 'No se pudo eliminar', background: isDark ? '#1e293b' : '#fff', color: isDark ? '#f8fafc' : '#1e293b' });
-        }
-    } catch (error) {
-        Swal.fire('Error', 'Error de conexión con el servidor', 'error');
+    if (await fetchDelete(`/api/clientes/${clienteId}`)) {
+        Alertas.toast('Cliente eliminado. Volviendo al listado...');
+        setTimeout(() => { window.location.href = 'clientes.html'; }, 1500);
     }
 };
 
