@@ -45,7 +45,8 @@ app.use(
                 // El HTML usa atributos onclick="..."; pendiente pasarlos a addEventListener
                 scriptSrcAttr: ["'unsafe-inline'"],
                 styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdn.jsdelivr.net'],
-                fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+                // data: para la fuente de íconos que FullCalendar trae embebida
+                fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
                 imgSrc: ["'self'", 'data:'],
                 connectSrc: ["'self'"],
                 objectSrc: ["'none'"],
