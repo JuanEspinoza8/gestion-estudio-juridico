@@ -62,6 +62,12 @@ class Causa {
             throw error;
         }
     }
+
+    static async eliminar(id) {
+        const query = 'DELETE FROM causas_judiciales WHERE id = $1 RETURNING *;';
+        const { rows } = await db.query(query, [id]);
+        return rows[0] || null;
+    }
 }
 
 module.exports = Causa;
