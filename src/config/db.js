@@ -1,5 +1,23 @@
 // src/config/db.js
+const fs = require('fs');
 const { Pool } = require('pg');
+
+/**
+ * SSL de la conexión. Supabase lo exige.
+ * - DB_SSL_CA: ruta al certificado CA de Supabase (Project Settings → Database →
+ *   SSL Configuration → Download certificate) o su contenido PEM. Con él se
+ *   verifica que el servidor sea realmente Supabase.
+ * - Sin DB_SSL_CA: la conexión va cifrada pero sin verificar el certificado
+ *   (rejectUnauthorized: false), así funcionaba hasta ahora.
+ * - DB_SSL=false: sin SSL, para un Postgres local.
+ */
+function configuracionSsl(env = process.env) {
+    if (env.DB_SSL === 'false') return false;
+    const ca = env.DB_SSL_CA;
+    if (!ca) return { rejectUnauthorized: false };
+    const pem = ca.includes('BEGIN CERTIFICATE') ? ca.replace(/\\n/g, '\n') : fs.readFileSync(ca, 'utf8');
+    return { ca: pem, rejectUnauthorized: true };
+}
 
 // Configuración del Pool de conexiones
 const pool = new Pool({
@@ -8,10 +26,7 @@ const pool = new Pool({
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
-    // Configuraciones de seguridad para Supabase (SSL es obligatorio)
-    ssl: {
-        rejectUnauthorized: false
-    }
+    ssl: configuracionSsl()
 });
 
 // Verificación inicial de conexión (se llama al arrancar el servidor)
@@ -44,5 +59,6 @@ async function transaction(fn) {
 module.exports = {
     query: (text, params) => pool.query(text, params),
     transaction,
-    verificarConexion
+    verificarConexion,
+    configuracionSsl
 };
