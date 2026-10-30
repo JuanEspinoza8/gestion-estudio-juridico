@@ -45,6 +45,11 @@ class Expediente {
         return rows.map(row => new Expediente(row));
     }
 
+    static async obtenerPorId(id) {
+        const { rows } = await db.query('SELECT * FROM expedientes WHERE id = $1;', [id]);
+        return rows.length ? new Expediente(rows[0]) : null;
+    }
+
     static async eliminar(id) {
         const query = 'DELETE FROM expedientes WHERE id = $1 RETURNING *;';
         const { rows } = await db.query(query, [id]);

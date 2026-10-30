@@ -4,6 +4,11 @@ const express = require('express');
 const router = express.Router();
 const Expediente = require('../models/Expediente');
 const HttpError = require('../utils/httpError');
+const esquemas = require('../validators/esquemas');
+const { validar, validarIdParam } = require('../middlewares/validar');
+
+router.param('id', validarIdParam);
+router.param('clienteId', validarIdParam);
 
 // GET: Expedientes de un cliente
 router.get('/cliente/:clienteId', async (req, res) => {
@@ -12,12 +17,8 @@ router.get('/cliente/:clienteId', async (req, res) => {
 });
 
 // POST: Crear nuevo expediente (agregar deuda/honorario)
-router.post('/', async (req, res) => {
-    const { cliente_id, descripcion, honorarios_totales, cuotas_totales } = req.body;
-    if (!cliente_id || !honorarios_totales) {
-        return res.status(400).json({ error: 'cliente_id y honorarios_totales son requeridos' });
-    }
-    const nuevo = new Expediente({ cliente_id, descripcion, honorarios_totales, cuotas_totales });
+router.post('/', validar(esquemas.honorario), async (req, res) => {
+    const nuevo = new Expediente(req.body);
     const guardado = await nuevo.guardar().catch((error) => {
         if (error.code === '23505') {
             throw new HttpError(409, 'Ya existe un expediente/deuda idéntico para este cliente (posible clic duplicado).');

@@ -3,6 +3,11 @@ const express = require('express');
 const router = express.Router();
 const Nota = require('../models/Nota');
 const db = require('../config/db');
+const esquemas = require('../validators/esquemas');
+const { validar, validarIdParam } = require('../middlewares/validar');
+
+router.param('id', validarIdParam);
+router.param('clienteId', validarIdParam);
 
 // GET: Obtener próximos vencimientos de notas (para dashboard)
 router.get('/proximos', async (req, res) => {
@@ -17,18 +22,14 @@ router.get('/cliente/:clienteId', async (req, res) => {
 });
 
 // POST: Agregar una nota a un cliente
-router.post('/', async (req, res) => {
-    const { cliente_id, contenido, fecha_vencimiento } = req.body;
-    if (!cliente_id || !contenido) {
-        return res.status(400).json({ error: 'cliente_id y contenido son requeridos' });
-    }
-    const nuevaNota = new Nota({ cliente_id, contenido, fecha_vencimiento });
+router.post('/', validar(esquemas.nota), async (req, res) => {
+    const nuevaNota = new Nota(req.body);
     const notaGuardada = await nuevaNota.guardar();
     res.status(201).json(notaGuardada);
 });
 
 // PUT: Cambiar el estado de una nota (completada)
-router.put('/:id/estado', async (req, res) => {
+router.put('/:id/estado', validar(esquemas.estadoNota), async (req, res) => {
     const { estado } = req.body;
     const query = 'UPDATE notas_cliente SET estado = $1 WHERE id = $2 RETURNING *;';
     const { rows } = await db.query(query, [estado, req.params.id]);

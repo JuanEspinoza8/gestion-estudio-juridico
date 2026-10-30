@@ -4,9 +4,13 @@ const Cliente = require('../models/Cliente');
 const Documento = require('../models/Documento');
 const storage = require('../services/storage');
 const HttpError = require('../utils/httpError');
+const esquemas = require('../validators/esquemas');
+const { validar, validarIdParam } = require('../middlewares/validar');
 const { logActividad } = require('../utils/logger');
 
 const MSJ_DUPLICADO = 'El DNI o Email ya se encuentra registrado en el sistema.';
+
+router.param('id', validarIdParam);
 
 // GET: Obtener todos los clientes activos
 router.get('/', async (req, res) => {
@@ -42,7 +46,7 @@ router.get('/:id/saldo', async (req, res) => {
 });
 
 // POST: Crear un nuevo cliente
-router.post('/', async (req, res) => {
+router.post('/', validar(esquemas.cliente), async (req, res) => {
     const nuevoCliente = new Cliente(req.body);
     const clienteGuardado = await nuevoCliente.guardar().catch(traducirDuplicado);
 
@@ -52,7 +56,7 @@ router.post('/', async (req, res) => {
 });
 
 // PUT: Actualizar un cliente
-router.put('/:id', async (req, res) => {
+router.put('/:id', validar(esquemas.cliente), async (req, res) => {
     const datos = { ...req.body, id: req.params.id };
     const clienteActualizado = new Cliente(datos);
     const resultado = await clienteActualizado.guardar().catch(traducirDuplicado);

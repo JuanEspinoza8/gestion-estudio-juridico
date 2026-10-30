@@ -2,6 +2,10 @@
 const express = require('express');
 const router = express.Router();
 const NotaRapida = require('../models/NotaRapida');
+const esquemas = require('../validators/esquemas');
+const { validar, validarIdParam } = require('../middlewares/validar');
+
+router.param('id', validarIdParam);
 
 // GET: Obtener nota paginada del usuario autenticado
 router.get('/', async (req, res) => {
@@ -13,9 +17,9 @@ router.get('/', async (req, res) => {
 });
 
 // POST: Crear nueva página de nota
-router.post('/', async (req, res) => {
+router.post('/', validar(esquemas.notaRapidaNueva), async (req, res) => {
     const usuarioId = req.usuario.id;
-    const contenido = req.body.contenido || '';
+    const { contenido } = req.body;
 
     const nuevaNota = new NotaRapida({ usuario_id: usuarioId, contenido });
     const notaGuardada = await nuevaNota.guardar();
@@ -23,14 +27,10 @@ router.post('/', async (req, res) => {
 });
 
 // PUT: Actualizar contenido de una nota
-router.put('/:id', async (req, res) => {
+router.put('/:id', validar(esquemas.notaRapida), async (req, res) => {
     const usuarioId = req.usuario.id;
     const notaId = req.params.id;
     const { contenido } = req.body;
-
-    if (contenido === undefined) {
-        return res.status(400).json({ error: 'El campo contenido es requerido' });
-    }
 
     const nota = new NotaRapida({ id: notaId, usuario_id: usuarioId, contenido });
     const notaActualizada = await nota.guardar();

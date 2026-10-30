@@ -112,6 +112,6 @@ describe('notas rápidas', () => {
         db.query.mockResolvedValue(filas());
         const res = await request(app).delete('/api/notas-rapidas/5').set(auth(USUARIO_A));
         expect(res.status).toBe(404);
-        expect(db.query).toHaveBeenCalledWith(expect.stringMatching(/WHERE id = \$1 AND usuario_id = \$2/), ['5', USUARIO_A.id]);
+        expect(db.query).toHaveBeenCalledWith(expect.stringMatching(/WHERE id = \$1 AND usuario_id = \$2/), [5, USUARIO_A.id]);
     });
 });

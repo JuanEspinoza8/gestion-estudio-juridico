@@ -2,11 +2,14 @@ const express = require('express');
 const router = express.Router();
 const Turno = require('../models/Turno');
 const { logActividad } = require('../utils/logger');
+const esquemas = require('../validators/esquemas');
+const { validar, validarIdParam } = require('../middlewares/validar');
 
 // La agenda es personal: el usuario sale siempre del JWT (req.usuario.id) y se
 // ignora cualquier usuario_id que mande el cliente en la URL o en el body.
 
-const EVENTOS_PERMITIDOS = ['Audiencia', 'Mediación', 'Presentar Escrito', 'Reunión Cliente', 'Otro'];
+router.param('id', validarIdParam);
+router.param('clienteId', validarIdParam);
 
 // GET: Todos los turnos del usuario (para la agenda)
 router.get('/', async (req, res) => {
@@ -43,24 +46,14 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST: Crear un nuevo turno
-router.post('/', async (req, res) => {
-    const { tipo_evento } = req.body;
-    if (tipo_evento && !EVENTOS_PERMITIDOS.includes(tipo_evento)) {
-        return res.status(400).json({ error: 'Tipo de evento no válido' });
-    }
-
+router.post('/', validar(esquemas.turno), async (req, res) => {
     const nuevoTurno = new Turno({ ...req.body, usuario_id: req.usuario.id });
     const turnoGuardado = await nuevoTurno.guardar();
     res.status(201).json(turnoGuardado);
 });
 
 // PUT: Editar un turno completo
-router.put('/:id', async (req, res) => {
-    const { tipo_evento } = req.body;
-    if (tipo_evento && !EVENTOS_PERMITIDOS.includes(tipo_evento)) {
-        return res.status(400).json({ error: 'Tipo de evento no válido' });
-    }
-
+router.put('/:id', validar(esquemas.turno), async (req, res) => {
     const turno = new Turno({ ...req.body, id: req.params.id, usuario_id: req.usuario.id });
     const resultado = await turno.guardar();
     if (!resultado) return res.status(404).json({ error: 'Turno no encontrado' });
@@ -68,7 +61,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // PUT: Cambiar el estado de un turno (completado, cancelado)
-router.put('/:id/estado', async (req, res) => {
+router.put('/:id/estado', validar(esquemas.estadoTurno), async (req, res) => {
     const { estado } = req.body;
     const turno = new Turno({ id: req.params.id, usuario_id: req.usuario.id });
     const resultado = await turno.cambiarEstado(estado);

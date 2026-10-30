@@ -3,6 +3,8 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const rateLimit = require('express-rate-limit');
 const Usuario = require('../models/Usuario');
+const esquemas = require('../validators/esquemas');
+const { validar } = require('../middlewares/validar');
 
 // Frena la fuerza bruta de contraseñas: 10 intentos fallidos por IP cada 15
 // minutos. Los logins exitosos no cuentan.
@@ -15,7 +17,7 @@ const limiteLogin = rateLimit({
     message: { error: 'Demasiados intentos de inicio de sesión. Probá de nuevo en 15 minutos.' }
 });
 
-router.post('/login', limiteLogin, async (req, res) => {
+router.post('/login', limiteLogin, validar(esquemas.login), async (req, res) => {
     const { email, password } = req.body;
 
     const usuario = await Usuario.obtenerPorEmail(email);

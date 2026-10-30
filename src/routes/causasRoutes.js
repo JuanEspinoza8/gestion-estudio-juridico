@@ -2,7 +2,12 @@ const express = require('express');
 const router = express.Router();
 const Causa = require('../models/Causa');
 const storage = require('../services/storage');
+const esquemas = require('../validators/esquemas');
+const { validar, validarIdParam } = require('../middlewares/validar');
 const { logActividad } = require('../utils/logger');
+
+router.param('id', validarIdParam);
+router.param('clienteId', validarIdParam);
 
 // GET: Obtener todas las causas del estudio
 router.get('/', async (req, res) => {
@@ -17,7 +22,7 @@ router.get('/cliente/:clienteId', async (req, res) => {
 });
 
 // POST: Crear una nueva causa
-router.post('/', async (req, res) => {
+router.post('/', validar(esquemas.causa), async (req, res) => {
     const nuevaCausa = new Causa(req.body);
     const causaGuardada = await nuevaCausa.guardar();
 
@@ -32,10 +37,11 @@ router.post('/', async (req, res) => {
 });
 
 // PUT: Actualizar una causa
-router.put('/:id', async (req, res) => {
+router.put('/:id', validar(esquemas.causaEdicion), async (req, res) => {
     const datos = { ...req.body, id: req.params.id };
     const causaActualizada = new Causa(datos);
     const resultado = await causaActualizada.guardar();
+    if (!resultado) return res.status(404).json({ error: 'Causa no encontrada' });
     res.json(resultado);
 });
 

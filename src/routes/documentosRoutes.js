@@ -8,6 +8,8 @@ const Causa = require('../models/Causa');
 const Documento = require('../models/Documento');
 const storage = require('../services/storage');
 const HttpError = require('../utils/httpError');
+const esquemas = require('../validators/esquemas');
+const { validar, validarIdParam } = require('../middlewares/validar');
 const { logActividad } = require('../utils/logger');
 
 // Configurar multer (guardar archivo en memoria)
@@ -43,6 +45,9 @@ function limpiarNombreArchivo(nombre) {
     return limpio || 'documento.pdf';
 }
 
+router.param('id', validarIdParam);
+router.param('causaId', validarIdParam);
+
 // GET: Obtener documentos de una causa específica
 router.get('/causa/:causaId', async (req, res) => {
     const documentos = await Documento.obtenerPorCausa(req.params.causaId);
@@ -60,7 +65,7 @@ router.get('/:id/url', async (req, res) => {
 });
 
 // POST: Subir un documento (PDF)
-router.post('/', upload.single('pdf'), async (req, res) => {
+router.post('/', upload.single('pdf'), validar(esquemas.documento), async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: 'No se envió ningún archivo' });
     }
@@ -68,10 +73,7 @@ router.post('/', upload.single('pdf'), async (req, res) => {
         return res.status(400).json({ error: 'El archivo no es un PDF válido' });
     }
 
-    const causaId = Number(req.body.causa_id);
-    if (!Number.isInteger(causaId) || causaId <= 0) {
-        return res.status(400).json({ error: 'Se requiere el ID de la causa' });
-    }
+    const causaId = req.body.causa_id;
     if (!(await Causa.obtenerPorId(causaId))) {
         return res.status(404).json({ error: 'Causa no encontrada' });
     }
