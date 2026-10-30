@@ -1,9 +1,10 @@
-const API = 'https://api-estudio-juridico-oma1.onrender.com';
+// public/js/cuenta.js
+// Cuenta corriente de un cliente: datos, honorarios, pagos, cuotas, notas y línea de tiempo.
+
 const params = new URLSearchParams(window.location.search);
 const clienteId = params.get('id');
-const token = localStorage.getItem('estudio_token');
 
-if (!token || !clienteId) window.location.href = 'clientes.html';
+if (requerirSesion() && !clienteId) window.location.href = 'clientes.html';
 
 // LÓGICA DE INTERFAZ
 function cambiarTab(nombre, btn) {
@@ -169,7 +170,7 @@ document.getElementById('formPago').addEventListener('submit', async (e) => {
     btnSubmit.disabled = true;
     btnSubmit.textContent = 'Guardando...';
 
-    await fetchPost(`${API}/api/pagos`, {
+    await fetchPost('/api/pagos', {
         cliente_id: clienteId,
         expediente_id: honorarioId || null,
         monto: montoRaw,
@@ -192,7 +193,7 @@ document.getElementById('formDeuda').addEventListener('submit', async (e) => {
     btnSubmit.textContent = 'Guardando...';
 
     const montoRaw = document.getElementById('montoDeuda').value.replace(/\./g, ''); // Quita los puntos antes de enviar
-    await fetchPost(`${API}/api/expedientes`, {
+    await fetchPost('/api/expedientes', {
         cliente_id: clienteId,
         descripcion: document.getElementById('descripcionDeuda').value,
         honorarios_totales: montoRaw,
@@ -207,13 +208,9 @@ document.getElementById('formDeuda').addEventListener('submit', async (e) => {
 });
 
 // FUNCIONES DE API Y CARGA
-async function fetchPost(url, body, mensajeExito) {
+async function fetchPost(ruta, body, mensajeExito) {
     try {
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify(body)
-        });
+        const res = await apiFetch(ruta, { method: 'POST', body });
         if (!res.ok) {
             const e = await res.json();
             Swal.fire({ icon: 'error', title: 'Error', text: e.error || 'Error al guardar', background: '#1e293b', color: '#f8fafc' });
@@ -225,21 +222,20 @@ async function fetchPost(url, body, mensajeExito) {
     }
 }
 
-async function fetchDelete(url) {
-    try { await fetch(url, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } }); }
+async function fetchDelete(ruta) {
+    try { await apiFetch(ruta, { method: 'DELETE' }); }
     catch (error) { Swal.fire('Error', 'Error de conexión', 'error'); }
 }
 
 async function cargarTodo() {
-    const h = { 'Authorization': `Bearer ${token}` };
     try {
         const [resC, resS, resP, resE, resN, resT] = await Promise.all([
-            fetch(`${API}/api/clientes/${clienteId}`, { headers: h }),
-            fetch(`${API}/api/clientes/${clienteId}/saldo`, { headers: h }),
-            fetch(`${API}/api/pagos/cliente/${clienteId}`, { headers: h }),
-            fetch(`${API}/api/expedientes/cliente/${clienteId}`, { headers: h }),
-            fetch(`${API}/api/notas/cliente/${clienteId}`, { headers: h }),
-            fetch(`${API}/api/turnos/cliente/${clienteId}`, { headers: h })
+            apiFetch(`/api/clientes/${clienteId}`),
+            apiFetch(`/api/clientes/${clienteId}/saldo`),
+            apiFetch(`/api/pagos/cliente/${clienteId}`),
+            apiFetch(`/api/expedientes/cliente/${clienteId}`),
+            apiFetch(`/api/notas/cliente/${clienteId}`),
+            apiFetch(`/api/turnos/cliente/${clienteId}`)
         ]);
 
         // 1. Datos del Cliente
@@ -396,26 +392,26 @@ async function agregarNota() {
     if (!ta.value.trim()) return ta.focus();
     const payload = { cliente_id: clienteId, contenido: ta.value.trim() };
     if (dateInput && dateInput.value) payload.fecha_vencimiento = dateInput.value;
-    await fetchPost(`${API}/api/notas`, payload, null);
+    await fetchPost('/api/notas', payload, null);
     ta.value = ''; if (dateInput) dateInput.value = '';
     cargarTodo();
 }
 
 async function completarNota(id) {
     try {
-        await fetch(`${API}/api/notas/${id}/estado`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ estado: 'completado' }) });
+        await apiFetch(`/api/notas/${id}/estado`, { method: 'PUT', body: { estado: 'completado' } });
         cargarTodo();
     } catch (error) { Swal.fire('Error', 'No se pudo completar', 'error'); }
 }
 
 async function eliminarNota(id) {
     const c = await Swal.fire({ title: '¿Eliminar nota?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#3b82f6', confirmButtonText: 'Sí', cancelButtonText: 'No', background: '#1e293b', color: '#f8fafc' });
-    if (c.isConfirmed) { await fetchDelete(`${API}/api/notas/${id}`); cargarTodo(); }
+    if (c.isConfirmed) { await fetchDelete(`/api/notas/${id}`); cargarTodo(); }
 }
 
 async function eliminarExpediente(id) {
     const c = await Swal.fire({ title: '¿Eliminar honorario?', text: "Afectará el saldo del cliente.", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#3b82f6', confirmButtonText: 'Sí', cancelButtonText: 'No', background: '#1e293b', color: '#f8fafc' });
-    if (c.isConfirmed) { await fetchDelete(`${API}/api/expedientes/${id}`); cargarTodo(); }
+    if (c.isConfirmed) { await fetchDelete(`/api/expedientes/${id}`); cargarTodo(); }
 }
 
 function fmt(n) { return new Intl.NumberFormat('es-AR').format(parseFloat(n) || 0); }
@@ -426,7 +422,6 @@ function fmtFecha(str) {
     return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('es-AR');
 }
 function fmtFechaHora(str) { return new Date(str).toLocaleString('es-AR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }); }
-function cerrarSesion() { localStorage.clear(); window.location.href = 'login.html'; }
 
 // ELIMINAR CLIENTE
 document.getElementById('btnEliminarCliente').onclick = async () => {
@@ -447,10 +442,7 @@ document.getElementById('btnEliminarCliente').onclick = async () => {
     if (!confirmado.isConfirmed) return;
 
     try {
-        const res = await fetch(`${API}/api/clientes/${clienteId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await apiFetch(`/api/clientes/${clienteId}`, { method: 'DELETE' });
         if (res.ok) {
             await Swal.fire({
                 icon: 'success',

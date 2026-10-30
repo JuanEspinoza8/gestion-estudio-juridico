@@ -1,5 +1,5 @@
 // Subir la versión cada vez que cambia ASSETS_TO_CACHE: así se descarta la caché vieja
-const CACHE_NAME = 'estudio-juridico-v3';
+const CACHE_NAME = 'estudio-juridico-v4';
 const ASSETS_TO_CACHE = [
     './',
     './login.html',
@@ -17,6 +17,8 @@ const ASSETS_TO_CACHE = [
     './css/agenda.css',
     './css/expedientes.css',
     './css/cuenta.css',
+    './js/config.js',
+    './js/api.js',
     './js/login.js',
     './js/utils.js',
     './js/dashboard.js',

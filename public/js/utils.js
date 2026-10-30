@@ -96,29 +96,6 @@ const Alertas = {
     }
 };
 
-// --- INTERCEPTOR GLOBAL DE SESIÓN EXPIRADA ---
-// Sobreescribimos el fetch nativo para capturar respuestas 401 en cualquier lugar de la app
-const _fetchOriginal = window.fetch;
-window.fetch = async function (...args) {
-    const response = await _fetchOriginal.apply(this, args);
-    if (response.status === 401) {
-        localStorage.clear();
-        const isDark = document.body.classList.contains('dark-mode');
-        await Swal.fire({
-            icon: 'info',
-            title: 'Sesión expirada',
-            text: 'Tu sesión ha expirado. Por favor, iniciá sesión nuevamente.',
-            background: isDark ? '#1e293b' : '#fff',
-            color: isDark ? '#f8fafc' : '#1e293b',
-            confirmButtonColor: '#3b82f6',
-            confirmButtonText: 'Ir al Login',
-            allowOutsideClick: false
-        });
-        window.location.href = 'login.html';
-    }
-    return response;
-};
-
 // --- MENU HAMBURGUESA (MOBILE) ---
 document.addEventListener('DOMContentLoaded', () => {
     const menuToggle = document.getElementById('menuToggle');
@@ -165,8 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function vigilarTurnosProximos() {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
-    const token = localStorage.getItem('estudio_token');
-    if (!token) return;
+    if (!obtenerToken()) return;
 
     let turnos = [];
     const ahoraMs = new Date().getTime();
@@ -175,9 +151,7 @@ async function vigilarTurnosProximos() {
     // OPTIMIZACIÓN: Solo consultamos la API cada 15 minutos para no gastar cuota de Supabase
     if (!ultimaRevision || (ahoraMs - parseInt(ultimaRevision)) > 15 * 60 * 1000) {
         try {
-            const res = await fetch(`https://api-estudio-juridico-oma1.onrender.com/api/turnos`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const res = await apiFetch('/api/turnos');
 
             if (!res.ok) return;
             turnos = await res.json();

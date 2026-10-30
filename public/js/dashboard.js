@@ -1,7 +1,5 @@
 // public/js/dashboard.js
 
-const API_BASE = 'https://api-estudio-juridico-oma1.onrender.com/api';
-
 // Estado global de notas rápidas
 let notaActualId = null;
 let notaPaginaActual = 1;
@@ -9,13 +7,7 @@ let notaTotalPaginas = 0;
 let guardarTimeout = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const token = localStorage.getItem('estudio_token');
-    const usuarioId = localStorage.getItem('usuario_id');
-
-    if (!token || !usuarioId) {
-        window.location.href = 'login.html';
-        return;
-    }
+    if (!requerirSesion()) return;
 
     // --- MEJORA UI-01: Saludo Dinámico ---
     const usuarioNombre = localStorage.getItem('usuario_nombre');
@@ -30,18 +22,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function cargarResumenGeneral() {
-    const token = localStorage.getItem('estudio_token');
-    const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-    };
-
     try {
         const [resClientes, resTurnosHoy, resIngresos, resActividad] = await Promise.all([
-            fetch(`${API_BASE}/clientes`, { headers }),
-            fetch(`${API_BASE}/turnos/hoy`, { headers }),
-            fetch(`${API_BASE}/pagos/mes-actual`, { headers }),
-            fetch(`${API_BASE}/actividad`, { headers })
+            apiFetch('/api/clientes'),
+            apiFetch('/api/turnos/hoy'),
+            apiFetch('/api/pagos/mes-actual'),
+            apiFetch('/api/actividad')
         ]);
 
         const clientes = await resClientes.json();
@@ -101,14 +87,6 @@ async function cargarResumenGeneral() {
 // NOTAS RÁPIDAS
 // ===========================================
 
-function getHeaders() {
-    const token = localStorage.getItem('estudio_token');
-    return {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-    };
-}
-
 async function initNotasRapidas() {
     const textarea = document.getElementById('notaRapidaTexto');
     const btnNueva = document.getElementById('btnNuevaNota');
@@ -142,9 +120,7 @@ async function initNotasRapidas() {
 
 async function cargarNotaRapida(page) {
     try {
-        const res = await fetch(`${API_BASE}/notas-rapidas?page=${page}`, {
-            headers: getHeaders()
-        });
+        const res = await apiFetch(`/api/notas-rapidas?page=${page}`);
 
         if (!res.ok) throw new Error('Error al cargar nota');
 
@@ -181,11 +157,7 @@ async function cargarNotaRapida(page) {
 
 async function guardarNotaRapida(id, contenido) {
     try {
-        await fetch(`${API_BASE}/notas-rapidas/${id}`, {
-            method: 'PUT',
-            headers: getHeaders(),
-            body: JSON.stringify({ contenido })
-        });
+        await apiFetch(`/api/notas-rapidas/${id}`, { method: 'PUT', body: { contenido } });
     } catch (error) {
         console.error('Error al guardar nota rápida:', error);
     }
@@ -193,11 +165,7 @@ async function guardarNotaRapida(id, contenido) {
 
 async function crearNuevaNota() {
     try {
-        const res = await fetch(`${API_BASE}/notas-rapidas`, {
-            method: 'POST',
-            headers: getHeaders(),
-            body: JSON.stringify({ contenido: '' })
-        });
+        const res = await apiFetch('/api/notas-rapidas', { method: 'POST', body: { contenido: '' } });
 
         if (!res.ok) throw new Error('Error al crear nota');
 
@@ -219,10 +187,7 @@ async function eliminarNotaActual() {
     if (!confirmado) return;
 
     try {
-        const res = await fetch(`${API_BASE}/notas-rapidas/${notaActualId}`, {
-            method: 'DELETE',
-            headers: getHeaders()
-        });
+        const res = await apiFetch(`/api/notas-rapidas/${notaActualId}`, { method: 'DELETE' });
 
         if (!res.ok) throw new Error('Error al eliminar nota');
 
@@ -260,27 +225,3 @@ function actualizarBotonesNav() {
     btnSiguiente.disabled = notaPaginaActual >= notaTotalPaginas;
 }
 
-function cerrarSesion() {
-    localStorage.clear();
-    window.location.href = 'login.html';
-}
-
-// Función para decodificar el payload del JWT sin librerías externas
-function obtenerUsuarioDelToken() {
-    const token = localStorage.getItem('estudio_token');
-    if (!token) return null;
-
-    try {
-        // El JWT es: Header.Payload.Signature. Tomamos el Payload [1]
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-
-        return JSON.parse(jsonPayload);
-    } catch (e) {
-        console.error("Error al decodificar el token:", e);
-        return null;
-    }
-}

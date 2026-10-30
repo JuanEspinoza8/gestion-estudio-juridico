@@ -1,6 +1,5 @@
 // public/js/agenda.js
 
-const API = 'https://api-estudio-juridico-oma1.onrender.com';
 let calendar;                 // motor del calendario (FullCalendar)
 let todosLosTurnos = [];      // cache de todos los turnos del usuario
 
@@ -32,13 +31,7 @@ function iconoDeEvento(tipo) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('estudio_token');
-    const usuarioId = localStorage.getItem('usuario_id');
-
-    if (!token || !usuarioId) {
-        window.location.href = 'login.html';
-        return;
-    }
+    if (!requerirSesion()) return;
 
     renderLeyenda();
     cargarTurnos();
@@ -101,11 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const res = await fetch(`${API}/api/turnos`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(nuevoTurno)
-            });
+            const res = await apiFetch('/api/turnos', { method: 'POST', body: nuevoTurno });
 
             if (res.ok) {
                 modalNuevo.style.display = 'none';
@@ -159,11 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const res = await fetch(`${API}/api/turnos/${id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(datos)
-            });
+            const res = await apiFetch(`/api/turnos/${id}`, { method: 'PUT', body: datos });
 
             if (res.ok) {
                 modalEditar.style.display = 'none';
@@ -189,12 +174,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 
 async function cargarTurnos() {
-    const token = localStorage.getItem('estudio_token');
-
     try {
-        const res = await fetch(`${API}/api/turnos`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await apiFetch('/api/turnos');
 
         if (!res.ok) throw new Error('Error del servidor');
         todosLosTurnos = await res.json();
@@ -403,19 +384,13 @@ function abrirDetalle(id) {
 }
 
 async function cambiarEstadoTurno(id, estado) {
-    const token = localStorage.getItem('estudio_token');
-
     if (estado === 'cancelado') {
         const ok = await Alertas.confirmar('¿Cancelar turno?', 'El turno pasará a estado cancelado.', 'Sí, cancelar');
         if (!ok) return;
     }
 
     try {
-        const res = await fetch(`${API}/api/turnos/${id}/estado`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ estado })
-        });
+        const res = await apiFetch(`/api/turnos/${id}/estado`, { method: 'PUT', body: { estado } });
 
         if (res.ok) {
             localStorage.removeItem('ultima_vigilancia_api');
@@ -485,12 +460,8 @@ async function abrirModalEditar(id) {
 async function eliminarTurno(id) {
     const confirmado = await Alertas.confirmar('¿Eliminar turno?', 'Esta acción no se puede deshacer.', 'Sí, eliminar');
     if (!confirmado) return;
-    const token = localStorage.getItem('estudio_token');
     try {
-        const res = await fetch(`${API}/api/turnos/${id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await apiFetch(`/api/turnos/${id}`, { method: 'DELETE' });
         if (res.ok) {
             localStorage.removeItem('ultima_vigilancia_api');
             document.getElementById('modalDetalleTurno').style.display = 'none';
@@ -506,12 +477,9 @@ async function eliminarTurno(id) {
 // ==========================================
 
 async function cargarDesplegableClientes(selectId) {
-    const token = localStorage.getItem('estudio_token');
     const select = document.getElementById(selectId);
     try {
-        const res = await fetch(`${API}/api/clientes`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await apiFetch('/api/clientes');
         if (res.ok) {
             const clientes = await res.json();
             select.innerHTML = '<option value="">Sin cliente asociado (Tarea interna)</option>' +
@@ -523,11 +491,8 @@ async function cargarDesplegableClientes(selectId) {
 }
 
 async function poblarFiltroClientes() {
-    const token = localStorage.getItem('estudio_token');
     try {
-        const res = await fetch(`${API}/api/clientes`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await apiFetch('/api/clientes');
         if (!res.ok) return;
         const clientes = await res.json();
         const sel = document.getElementById('filtroCliente');
@@ -540,7 +505,6 @@ async function poblarFiltroClientes() {
 
 // Carga las causas de un cliente en un <select>. Si no hay cliente, lo deshabilita.
 async function cargarCausasDeCliente(clienteId, causaSelectId, causaIdPreSel = '') {
-    const token = localStorage.getItem('estudio_token');
     const select = document.getElementById(causaSelectId);
 
     if (!clienteId) {
@@ -553,9 +517,7 @@ async function cargarCausasDeCliente(clienteId, causaSelectId, causaIdPreSel = '
     select.innerHTML = '<option value="">Cargando expedientes...</option>';
 
     try {
-        const res = await fetch(`${API}/api/causas/cliente/${clienteId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await apiFetch(`/api/causas/cliente/${clienteId}`);
         const causas = res.ok ? await res.json() : [];
         select.innerHTML = '<option value="">Sin expediente asociado</option>' +
             causas.map(c => `<option value="${escapeHtml(c.id)}">${escapeHtml(c.caratula || 'Sin carátula')}${c.nro_expediente ? ` (Nro ${escapeHtml(c.nro_expediente)})` : ''}</option>`).join('');
@@ -607,7 +569,3 @@ function fmtFechaLarga(fechaStr) {
     return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
 }
 
-function cerrarSesion() {
-    localStorage.clear();
-    window.location.href = 'login.html';
-}

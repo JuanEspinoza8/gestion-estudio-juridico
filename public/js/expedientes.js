@@ -1,19 +1,11 @@
-const API = 'https://api-estudio-juridico-oma1.onrender.com';
-const token = localStorage.getItem('estudio_token');
-
-if (!token) {
-    window.location.href = 'login.html';
-}
-
-const headers = {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json'
-};
+// public/js/expedientes.js
+// Expedientes judiciales (en la API: /api/causas) y sus documentos PDF.
 
 let expedientesActuales = [];
 let expedienteSeleccionado = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (!requerirSesion()) return;
     cargarExpedientes();
     cargarClientesEnSelect();
 
@@ -23,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function cargarExpedientes() {
     try {
-        const res = await fetch(`${API}/api/causas`, { headers });
+        const res = await apiFetch('/api/causas');
         const causas = await res.json();
         expedientesActuales = causas;
         renderizarLista(causas);
@@ -34,7 +26,7 @@ async function cargarExpedientes() {
 
 async function cargarClientesEnSelect() {
     try {
-        const res = await fetch(`${API}/api/clientes`, { headers });
+        const res = await apiFetch('/api/clientes');
         const clientes = await res.json();
         const select = document.getElementById('clienteId');
         select.innerHTML = '<option value="">Seleccionar cliente...</option>' + 
@@ -113,15 +105,11 @@ async function guardarExpediente(e) {
     };
 
     const idEdit = document.getElementById('expedienteIdForm').value;
-    const url = idEdit ? `${API}/api/causas/${idEdit}` : `${API}/api/causas`;
+    const ruta = idEdit ? `/api/causas/${idEdit}` : '/api/causas';
     const method = idEdit ? 'PUT' : 'POST';
 
     try {
-        const res = await fetch(url, {
-            method,
-            headers,
-            body: JSON.stringify(datos)
-        });
+        const res = await apiFetch(ruta, { method, body: datos });
 
         if (res.ok) {
             cerrarModal();
@@ -132,7 +120,7 @@ async function guardarExpediente(e) {
             }
             cargarExpedientes();
         } else {
-            Alertas.mensaje('Error', 'Error al guardar el expediente', 'error');
+            Alertas.mensaje('Error', await mensajeDeError(res, 'Error al guardar el expediente'), 'error');
         }
     } catch (error) {
         console.error('Error:', error);
@@ -144,10 +132,7 @@ async function eliminarExpediente() {
     const confirmado = await Alertas.confirmar('¿Eliminar expediente?', 'Esta acción borrará todos sus documentos.', 'Sí, eliminar');
     if (!confirmado) return;
     try {
-        const res = await fetch(`${API}/api/causas/${expedienteSeleccionado.id}`, {
-            method: 'DELETE',
-            headers
-        });
+        const res = await apiFetch(`/api/causas/${expedienteSeleccionado.id}`, { method: 'DELETE' });
         if (res.ok) {
             document.getElementById('estadoVacioDetalle').style.display = 'block';
             document.getElementById('contenidoDetalle').style.display = 'none';
@@ -209,7 +194,7 @@ async function cargarDocumentos(causaId) {
     listaDocs.innerHTML = '<li style="color:#64748b; font-size:0.9rem;">Cargando documentos...</li>';
     
     try {
-        const res = await fetch(`${API}/api/documentos/causa/${causaId}`, { headers });
+        const res = await apiFetch(`/api/documentos/causa/${causaId}`);
         if (!res.ok) throw new Error('No implementado o error');
         const docs = await res.json();
         
@@ -237,7 +222,7 @@ async function abrirDocumento(id) {
     const pestana = window.open('', '_blank');
     if (pestana) pestana.opener = null;
     try {
-        const res = await fetch(`${API}/api/documentos/${id}/url`, { headers });
+        const res = await apiFetch(`/api/documentos/${id}/url`);
         if (!res.ok) throw new Error('No se pudo obtener el enlace');
         const { url } = await res.json();
         if (pestana) pestana.location.href = url;
@@ -267,21 +252,14 @@ async function subirDocumento(e) {
     document.getElementById('uploadProgress').style.display = 'block';
 
     try {
-        const res = await fetch(`${API}/api/documentos`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-                // NO incluir Content-Type, el navegador lo auto-asigna para form-data con el boundary
-            },
-            body: formData
-        });
+        // Con FormData el navegador arma el Content-Type (multipart con boundary)
+        const res = await apiFetch('/api/documentos', { method: 'POST', body: formData });
 
         if (res.ok) {
             // Recargar lista
             cargarDocumentos(expedienteSeleccionado.id);
         } else {
-            const err = await res.json();
-            Alertas.mensaje('Error', 'Error al subir: ' + (err.error || 'Desconocido'), 'error');
+            Alertas.mensaje('Error', 'Error al subir: ' + (await mensajeDeError(res, 'Desconocido')), 'error');
         }
     } catch (error) {
         console.error('Error al subir documento:', error);
@@ -299,10 +277,7 @@ async function eliminarDocumento(id) {
     const confirmado = await Alertas.confirmar('¿Eliminar archivo?', 'Esta acción no se puede deshacer.', 'Sí, eliminar');
     if (!confirmado) return;
     try {
-        const res = await fetch(`${API}/api/documentos/${id}`, {
-            method: 'DELETE',
-            headers
-        });
+        const res = await apiFetch(`/api/documentos/${id}`, { method: 'DELETE' });
         if (res.ok) {
             cargarDocumentos(expedienteSeleccionado.id);
         } else {
@@ -313,5 +288,3 @@ async function eliminarDocumento(id) {
     }
 }
 
-// Modal functions (reemplazadas arriba)
-function cerrarSesion() { localStorage.clear(); window.location.href = 'login.html'; }
