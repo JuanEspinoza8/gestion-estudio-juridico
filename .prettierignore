@@ -1,0 +1,8 @@
+node_modules/
+coverage/
+package-lock.json
+estudio-juridico-capturas/
+docs/screenshots/
+# Pendiente: formatear el frontend en un PR aparte, coordinado con quien esté
+# trabajando en public/, para no generar conflictos con cambios en curso.
+public/

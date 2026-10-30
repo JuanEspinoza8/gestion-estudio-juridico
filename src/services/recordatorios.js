@@ -4,11 +4,18 @@
 // /api/cron/recordatorios (pingeado por un servicio externo tipo UptimeRobot).
 const Turno = require('../models/Turno');
 const { enviarEmail } = require('../config/mailer');
+const escapeHtml = require('../utils/escapeHtml');
 
 function formatearAnticipacion(min) {
     if (!min || min <= 0) return '';
-    if (min % 1440 === 0) { const d = min / 1440; return d === 1 ? '1 día' : `${d} días`; }
-    if (min % 60 === 0) { const h = min / 60; return h === 1 ? '1 hora' : `${h} horas`; }
+    if (min % 1440 === 0) {
+        const d = min / 1440;
+        return d === 1 ? '1 día' : `${d} días`;
+    }
+    if (min % 60 === 0) {
+        const h = min / 60;
+        return h === 1 ? '1 hora' : `${h} horas`;
+    }
     return `${min} minutos`;
 }
 
@@ -38,16 +45,17 @@ function armarEmail(turno) {
         'Estudio Jurídico'
     ].join('\n');
 
+    // Los datos vienen de lo que cargan los usuarios: se escapan antes de ir al HTML
     const html = `
         <div style="font-family: Arial, sans-serif; color:#1e293b; max-width:520px;">
             <h2 style="color:#2563eb; margin-bottom:4px;">Recordatorio de turno</h2>
-            <p style="color:#64748b; margin-top:0;">Hola ${turno.usuario_nombre || ''}, tenés un turno próximo${anticipacion ? ` (aviso ${anticipacion} antes)` : ''}.</p>
+            <p style="color:#64748b; margin-top:0;">Hola ${escapeHtml(turno.usuario_nombre)}, tenés un turno próximo${anticipacion ? ` (aviso ${anticipacion} antes)` : ''}.</p>
             <table style="border-collapse:collapse; width:100%; margin-top:12px;">
-                <tr><td style="padding:6px 10px; color:#64748b;">Evento</td><td style="padding:6px 10px; font-weight:600;">${evento}</td></tr>
-                <tr><td style="padding:6px 10px; color:#64748b;">Tipo</td><td style="padding:6px 10px;">${turno.tipo_evento || '—'}</td></tr>
-                <tr><td style="padding:6px 10px; color:#64748b;">Fecha y hora</td><td style="padding:6px 10px; font-weight:600;">${fecha} — ${hora} hs</td></tr>
-                <tr><td style="padding:6px 10px; color:#64748b;">Cliente</td><td style="padding:6px 10px;">${cliente}</td></tr>
-                <tr><td style="padding:6px 10px; color:#64748b;">Expediente / Causa</td><td style="padding:6px 10px;">${causa}</td></tr>
+                <tr><td style="padding:6px 10px; color:#64748b;">Evento</td><td style="padding:6px 10px; font-weight:600;">${escapeHtml(evento)}</td></tr>
+                <tr><td style="padding:6px 10px; color:#64748b;">Tipo</td><td style="padding:6px 10px;">${escapeHtml(turno.tipo_evento || '—')}</td></tr>
+                <tr><td style="padding:6px 10px; color:#64748b;">Fecha y hora</td><td style="padding:6px 10px; font-weight:600;">${escapeHtml(fecha)} — ${escapeHtml(hora)} hs</td></tr>
+                <tr><td style="padding:6px 10px; color:#64748b;">Cliente</td><td style="padding:6px 10px;">${escapeHtml(cliente)}</td></tr>
+                <tr><td style="padding:6px 10px; color:#64748b;">Expediente / Causa</td><td style="padding:6px 10px;">${escapeHtml(causa)}</td></tr>
             </table>
             <p style="color:#94a3b8; font-size:12px; margin-top:20px;">Estudio Jurídico · recordatorio automático</p>
         </div>`;
@@ -61,7 +69,9 @@ function armarEmail(turno) {
  */
 async function enviarRecordatoriosPendientes() {
     const pendientes = await Turno.obtenerPendientesRecordatorio();
-    let enviados = 0, omitidos = 0, errores = 0;
+    let enviados = 0,
+        omitidos = 0,
+        errores = 0;
     const detalleErrores = [];
 
     for (const turno of pendientes) {

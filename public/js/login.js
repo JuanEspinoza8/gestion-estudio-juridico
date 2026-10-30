@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = document.getElementById('password').value;
 
         try {
-            const respuesta = await fetch('https://api-estudio-juridico-oma1.onrender.com/api/auth/login', {
+            const respuesta = await fetch(`${API_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })

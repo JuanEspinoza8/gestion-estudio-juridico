@@ -1,55 +1,111 @@
 # ⚖️ Gestión de Estudio Jurídico
 
-**Sistema integral para estudios de abogados** — Plataforma MVC con panel de control, gestión de clientes y arquitectura PWA.
+Sistema web para administrar un estudio jurídico: clientes, expedientes judiciales con sus PDFs, honorarios en cuotas, pagos y una agenda de audiencias con recordatorios por email.
 
-Digitaliza la administración diaria del estudio: centraliza clientes, expedientes, agenda de audiencias y finanzas con un robusto sistema de pagos ciegos y planes de cuotas desde cualquier dispositivo.
+**Está en uso por un estudio jurídico real.** Por eso no hay una demo pública: los datos son de clientes reales. El proyecto se puede levantar localmente con datos ficticios en unos minutos (ver [Cómo correrlo localmente](#cómo-correrlo-localmente)).
 
-![Version](https://img.shields.io/badge/version-1.0.0-red?style=flat-square)
+![CI](https://github.com/JuanEspinoza8/gestion-estudio-juridico/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
-![Status](https://img.shields.io/badge/status-Production-brightgreen?style=flat-square)
+
+<table>
+  <tr>
+    <td width="72%"><img src="docs/screenshots/cuenta-cliente.webp" alt="Cuenta corriente de un cliente" /></td>
+    <td><img src="docs/screenshots/celular-cuenta.webp" alt="Cuenta corriente en el celular" /></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/agenda.webp" alt="Agenda semanal" /></td>
+    <td><img src="docs/screenshots/celular-agenda.webp" alt="Agenda en el celular" /></td>
+  </tr>
+</table>
+
+<details>
+<summary>Más capturas</summary>
+
+![Listado de clientes](docs/screenshots/clientes.webp)
+![Expediente judicial con documentos (modo oscuro)](docs/screenshots/expediente.webp)
+
+</details>
+
+Las capturas usan datos de demostración.
 
 ---
 
 ## Funcionalidades
 
-- Dashboard analítico con cálculo de capital "en la calle" y ranking de deudores
-- Gestión financiera con honorarios, pagos ciegos y deducción automática
-- Planes de cuotas automáticos según ingresos
-- Relación cliente-expediente y módulo de subida de documentos probatorios PDF
-- Agenda interactiva de audiencias y vencimientos procesales
-- Sistema de notas rápidas por expediente
-- Autenticación segura (JWT, Bcrypt) y logs de auditoría de usuarios
-- Instalable como App Nativa (PWA) con diseño responsivo mobile
-
----
+- **Clientes**: alta, edición y baja (con todos sus datos en cascada), búsqueda sin importar acentos ni puntos del DNI y orden por columnas.
+- **Cuenta corriente**: honorarios divididos en cuotas, pagos aplicados a un honorario, saldo deudor, cuota en curso y progreso del plan.
+- **Expedientes judiciales**: carátula, juzgado, estado procesal y PDFs adjuntos, guardados en un bucket privado y abiertos con URLs firmadas.
+- **Agenda**: vista mes, semana y día (FullCalendar), filtros por cliente y tipo de evento, estados (pendiente, completado, cancelado) y recordatorios por email configurables.
+- **Dashboard**: clientes, turnos del día, ingresos del mes, notas rápidas y actividad reciente (log de auditoría).
+- **PWA** instalable, diseño responsive y modo oscuro.
 
 ## Stack
 
-### Frontend
-<p>
-  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5" />
-  <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3" />
-  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
-  <img src="https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA" />
-</p>
-
-### Backend
-<p>
-  <img src="https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white" alt="Node.js" />
-  <img src="https://img.shields.io/badge/Express.js-404D59?style=for-the-badge&logo=express&logoColor=white" alt="Express" />
-  <img src="https://img.shields.io/badge/Multer-FF4154?style=for-the-badge" alt="Multer" />
-  <img src="https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=JSON%20web%20tokens" alt="JWT" />
-</p>
-
-### Base de Datos & Cloud
-<p>
-  <img src="https://img.shields.io/badge/Supabase-3FCF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
-  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
-</p>
+| Capa            | Tecnologías                                                                 |
+| --------------- | --------------------------------------------------------------------------- |
+| Frontend        | HTML, CSS y JavaScript vanilla, FullCalendar, SweetAlert2, PWA              |
+| Backend         | Node.js, Express 5, JWT, bcrypt, zod, helmet, express-rate-limit, node-cron |
+| Datos           | PostgreSQL y Supabase Storage                                               |
+| Calidad         | Jest, Supertest, PGlite, ESLint, Prettier, GitHub Actions                   |
+| Infraestructura | Render (API), Vercel (frontend), Supabase (base y archivos)                 |
 
 ---
 
-## Setup
+## Arquitectura
+
+```
+public/  (HTML + CSS + JS, PWA)
+   │  fetch con JWT  (js/api.js)
+   ▼
+Express ─ src/app.js
+   ├─ middlewares   helmet + CSP, CORS, rate limit, verificarToken (JWT),
+   │                validar (zod) y manejo central de errores
+   ├─ routes/       validan la entrada, llaman al modelo y arman la respuesta
+   ├─ models/       consultas SQL parametrizadas (pg); transacciones donde hace falta
+   └─ services/     Supabase Storage (URLs firmadas) y recordatorios por email
+        │
+        ├──► PostgreSQL (Supabase)
+        └──► Supabase Storage (bucket privado "documentos")
+```
+
+```
+├── server.js            Arranque: .env, conexión, cron de recordatorios y servidor HTTP
+├── src/
+│   ├── app.js           App de Express (middlewares y rutas), sin levantar el servidor
+│   ├── config/          Base de datos, mailer y zona horaria del estudio
+│   ├── middlewares/     Autenticación, validación y manejo de errores
+│   ├── models/          Acceso a datos (una clase por tabla)
+│   ├── routes/          Endpoints REST
+│   ├── services/        Storage y recordatorios
+│   └── validators/      Esquemas zod de lo que reciben las rutas
+├── public/              Frontend
+├── db/                  schema.sql, seed.sql y migrations/
+├── scripts/             crear-usuario.js
+└── tests/               Jest + Supertest
+```
+
+**Modelo de datos.** Todos los usuarios de una instalación comparten los clientes, expedientes, honorarios y pagos del estudio. La agenda, las notas rápidas y la actividad reciente son personales de cada usuario. El usuario siempre sale del JWT, nunca de la URL ni del body.
+
+**Nombres heredados.** La tabla `expedientes` (y la ruta `/api/expedientes`) guarda los **honorarios** de un cliente, y `causas_judiciales` (`/api/causas`) son los **expedientes judiciales**. Los nombres vienen de la primera versión. Renombrarlos requiere una migración coordinada en producción y está pendiente.
+
+El diagrama entidad-relación original está en [`docs/DER-Estudio-Juridico.png`](docs/DER-Estudio-Juridico.png). El esquema actual está en [`db/schema.sql`](db/schema.sql).
+
+## Seguridad
+
+- Contraseñas con bcrypt y sesiones con JWT (HS256, 8 horas).
+- Rate limit en el login: 10 intentos fallidos por IP cada 15 minutos.
+- Cada ruta que escribe valida su entrada con zod. Las consultas son parametrizadas.
+- Los turnos y la actividad se filtran por el usuario del token, así que nadie puede ver ni modificar la agenda de otro.
+- Todo dato dinámico se escapa antes de insertarlo en el HTML.
+- helmet con Content Security Policy. CORS limitado a los orígenes configurados.
+- Los PDFs están en un bucket privado. Se abren con una URL firmada que dura 60 segundos, se valida que el archivo sea realmente un PDF y, al borrar una causa o un cliente, se borran también sus archivos.
+- RLS activado en todas las tablas: bloquea la API REST pública de Supabase. El backend se conecta directo a Postgres.
+
+---
+
+## Cómo correrlo localmente
+
+**Requisitos:** Node.js 20 o superior y PostgreSQL 14 o superior (local, o un proyecto gratuito de Supabase).
 
 ```bash
 git clone https://github.com/JuanEspinoza8/gestion-estudio-juridico.git
@@ -57,24 +113,110 @@ cd gestion-estudio-juridico
 npm install
 ```
 
-Crear `.env` con las credenciales de Supabase y variables de entorno:
+**1. Crear la base con datos de demostración**
+
+Con un Postgres local:
+
+```bash
+createdb estudio
+psql -d estudio -f db/schema.sql
+psql -d estudio -f db/seed.sql
+```
+
+Con Supabase: pegá `db/schema.sql` y después `db/seed.sql` en el SQL Editor de un proyecto **nuevo**.
+
+> `db/seed.sql` crea un usuario con contraseña conocida: es solo para desarrollo, nunca para una base real.
+
+**2. Configurar el entorno**
+
+```bash
+cp .env.example .env
+```
+
+Para un Postgres local alcanza con completar:
 
 ```env
-PORT=3000
-SUPABASE_URL=https://tu-proyecto.supabase.co
-SUPABASE_KEY=tu-anon-key
-JWT_SECRET=tu_secreto_super_seguro
+JWT_SECRET=cualquier-texto-largo-y-aleatorio
+DB_HOST=localhost
+DB_USER=postgres
+DB_PASSWORD=tu-contraseña
+DB_NAME=estudio
+DB_SSL=false
 ```
+
+**3. Levantar el servidor**
 
 ```bash
 npm run dev
 ```
 
-Acceder a la plataforma en `http://localhost:3000/login.html`
+Abrí http://localhost:3000/login.html y entrá con **demo@estudio.test / demo1234**. Express sirve también el frontend, y `public/js/config.js` apunta solo al backend local cuando la página se abre desde `localhost`.
+
+Para subir PDFs hace falta Supabase Storage: un bucket privado llamado `documentos` y las variables `SUPABASE_URL` y `SUPABASE_SERVICE_KEY`. Sin ellas, todo lo demás funciona y la subida responde que el almacenamiento no está configurado.
+
+**Crear usuarios.** No hay registro público. Para crear un usuario (la contraseña se pide por consola y se guarda hasheada):
+
+```bash
+npm run crear-usuario -- "Nombre Apellido" email@estudio.com
+```
+
+### Variables de entorno
+
+| Variable               | Para qué                                                                                   |
+| ---------------------- | ------------------------------------------------------------------------------------------ |
+| `PORT`                 | Puerto del servidor (3000 por defecto)                                                     |
+| `JWT_SECRET`           | Secreto para firmar los JWT. **Obligatoria**                                               |
+| `CORS_ORIGINS`         | Orígenes del frontend que pueden usar la API, separados por coma                           |
+| `DB_HOST` … `DB_NAME`  | Conexión a PostgreSQL                                                                      |
+| `DB_SSL` / `DB_SSL_CA` | `false` para un Postgres local / certificado CA de Supabase para verificar la conexión SSL |
+| `SUPABASE_URL`         | URL del proyecto de Supabase (Storage)                                                     |
+| `SUPABASE_SERVICE_KEY` | Clave `service_role` de Supabase. Solo en el backend                                       |
+| `SMTP_*`, `MAIL_FROM`  | Envío de recordatorios por email. Opcionales: sin ellas, los recordatorios se desactivan   |
+| `CRON_SECRET`          | Protege `/api/cron/recordatorios`                                                          |
+
+El detalle de cada una está en [`.env.example`](.env.example).
+
+## Tests y calidad
+
+```bash
+npm test          # Jest + Supertest
+npm run lint      # ESLint
+npm run format    # Prettier
+```
+
+Los tests cubren autenticación (login, token vencido o falsificado, rate limit), aislamiento entre usuarios, validación de pagos y del resto de las rutas, cálculo de saldos, documentos con URLs firmadas, CORS y headers de seguridad. [`tests/integracion.test.js`](tests/integracion.test.js) carga `schema.sql` y `seed.sql` en un PostgreSQL en memoria ([PGlite](https://pglite.dev)) y prueba la API con el SQL real, así el esquema, el seed y las consultas no se desincronizan.
+
+GitHub Actions corre lint, formato y tests en cada push a `main` y en cada pull request.
+
+## Deploy
+
+- **API**: Render, con deploy automático desde `main`.
+- **Frontend**: Vercel, que sirve `public/`.
+- **Base y archivos**: Supabase (PostgreSQL + Storage).
+- **Recordatorios**: un cron interno (`node-cron`) cada 5 minutos. Como Render free duerme el servicio, un monitor externo (UptimeRobot) llama a `/api/cron/recordatorios?secret=…`.
+- **Cambios de esquema**: los scripts de `db/migrations/` se corren a mano en Supabase **antes** de desplegar el código que los necesita. Son aditivos, así que la versión anterior sigue funcionando mientras tanto.
+
+## Limitaciones conocidas
+
+- El JWT se guarda en `localStorage`. Lo mitigan el escape de HTML y la CSP, pero lo ideal sería una cookie `httpOnly`.
+- El `rol` viaja en el JWT pero no se verifica: todos los usuarios tienen los mismos permisos, incluido borrar clientes con todos sus datos.
+- El HTML usa atributos `onclick="..."`, lo que obliga a permitir `script-src-attr 'unsafe-inline'` en la CSP. Además, la CSP solo se aplica cuando Express sirve el frontend: Vercel todavía no envía esos headers.
+- Una instalación atiende a un solo estudio (no es multi-tenant).
+- Los nombres de las tablas `expedientes` y `causas_judiciales` son confusos (ver arriba).
+- El saldo y la cuota en curso se calculan sobre el total de honorarios del cliente, no por cada honorario.
+- El rate limit guarda los intentos en memoria: alcanza para una sola instancia.
+- El frontend no tiene build, tests automatizados ni formato con Prettier (está pendiente para no generar conflictos con cambios en curso).
+- `db/schema.sql` se reconstruyó a partir del código y del DER: puede diferir en detalles de la base de producción.
 
 ---
 
-## Equipo
+## Trabajo en equipo
+
+Lo desarrollamos entre dos personas con un flujo de trabajo de equipo:
+
+- Tablero Kanban con **user stories** numeradas (por ejemplo `US2.4 – Implementación SQL en métodos POO`, `US3.1 – Login y JWT`) organizadas en sprints.
+- Una rama por historia o arreglo (`feature/us…`, `fix/…`, `sprint-N-…`) y un **pull request** para integrar cada cambio a `main` (37 mergeados hasta ahora, de los dos).
+- Commits con [Conventional Commits](https://www.conventionalcommits.org/es/) en español.
 
 <table>
   <tr>
@@ -96,3 +238,7 @@ Acceder a la plataforma en `http://localhost:3000/login.html`
     </td>
   </tr>
 </table>
+
+## Licencia
+
+[MIT](LICENSE)

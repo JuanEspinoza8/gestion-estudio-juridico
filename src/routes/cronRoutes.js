@@ -3,13 +3,21 @@
 // propio (CRON_SECRET) que puede viajar en el header 'x-cron-secret' o como query
 // (?secret=...), para ser compatible con pingers externos como UptimeRobot free,
 // que sólo hacen GET y no permiten headers personalizados.
+const crypto = require('crypto');
 const express = require('express');
 const router = express.Router();
 const { enviarRecordatoriosPendientes } = require('../services/recordatorios');
 
+// Compara en tiempo constante para no filtrar el secreto por diferencias de tiempo
+function mismoSecreto(recibido, esperado) {
+    const a = Buffer.from(String(recibido || ''));
+    const b = Buffer.from(esperado);
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
 function verificarSecretoCron(req, res, next) {
     const secret = req.header('x-cron-secret') || req.query.secret;
-    if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
+    if (!process.env.CRON_SECRET || !mismoSecreto(secret, process.env.CRON_SECRET)) {
         return res.status(403).json({ error: 'No autorizado' });
     }
     next();

@@ -1,4 +1,21 @@
 /* =========================================
+   SEGURIDAD: ESCAPAR HTML
+   ========================================= */
+
+// Convierte un dato en texto seguro para insertarlo en un template HTML
+// (contenido o atributo entre comillas). Todo dato que venga de la API o del
+// usuario y termine en un innerHTML tiene que pasar por acá; si es un solo
+// valor, mejor usar textContent directamente.
+function escapeHtml(valor) {
+    return (valor === null || valor === undefined ? '' : String(valor))
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/* =========================================
    HELPERS DE BÚSQUEDA (normalización de texto)
    ========================================= */
 
@@ -41,14 +58,15 @@ const Alertas = {
                 toast.addEventListener('mouseleave', Swal.resumeTimer)
             }
         });
-        Toast.fire({ icon: icono, title: mensaje });
+        // titleText (y no title) para que el mensaje se muestre como texto, no como HTML
+        Toast.fire({ icon: icono, titleText: mensaje });
     },
 
     // 2. Alerta de Éxito o Error (Grande, con botón de OK)
     mensaje: (titulo, texto, icono = 'success') => {
         const isDark = document.body.classList.contains('dark-mode');
         Swal.fire({
-            title: titulo,
+            titleText: titulo,
             text: texto,
             icon: icono,
             background: isDark ? '#1e293b' : '#fff',
@@ -62,7 +80,7 @@ const Alertas = {
     confirmar: async (titulo, texto, botonConfirmar = 'Sí, borrar') => {
         const isDark = document.body.classList.contains('dark-mode');
         const resultado = await Swal.fire({
-            title: titulo,
+            titleText: titulo,
             text: texto,
             icon: 'warning',
             showCancelButton: true,
@@ -76,29 +94,6 @@ const Alertas = {
         });
         return resultado.isConfirmed;
     }
-};
-
-// --- INTERCEPTOR GLOBAL DE SESIÓN EXPIRADA ---
-// Sobreescribimos el fetch nativo para capturar respuestas 401 en cualquier lugar de la app
-const _fetchOriginal = window.fetch;
-window.fetch = async function (...args) {
-    const response = await _fetchOriginal.apply(this, args);
-    if (response.status === 401) {
-        localStorage.clear();
-        const isDark = document.body.classList.contains('dark-mode');
-        await Swal.fire({
-            icon: 'info',
-            title: 'Sesión expirada',
-            text: 'Tu sesión ha expirado. Por favor, iniciá sesión nuevamente.',
-            background: isDark ? '#1e293b' : '#fff',
-            color: isDark ? '#f8fafc' : '#1e293b',
-            confirmButtonColor: '#3b82f6',
-            confirmButtonText: 'Ir al Login',
-            allowOutsideClick: false
-        });
-        window.location.href = 'login.html';
-    }
-    return response;
 };
 
 // --- MENU HAMBURGUESA (MOBILE) ---
@@ -147,9 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function vigilarTurnosProximos() {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
-    const token = localStorage.getItem('estudio_token');
-    const usuarioId = localStorage.getItem('usuario_id');
-    if (!token || !usuarioId) return;
+    if (!obtenerToken()) return;
 
     let turnos = [];
     const ahoraMs = new Date().getTime();
@@ -158,9 +151,7 @@ async function vigilarTurnosProximos() {
     // OPTIMIZACIÓN: Solo consultamos la API cada 15 minutos para no gastar cuota de Supabase
     if (!ultimaRevision || (ahoraMs - parseInt(ultimaRevision)) > 15 * 60 * 1000) {
         try {
-            const res = await fetch(`https://api-estudio-juridico-oma1.onrender.com/api/turnos/usuario/${usuarioId}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            const res = await apiFetch('/api/turnos');
 
             if (!res.ok) return;
             turnos = await res.json();

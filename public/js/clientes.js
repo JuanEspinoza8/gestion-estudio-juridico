@@ -1,7 +1,5 @@
 // public/js/clientes.js
 
-const API_CLIENTES = 'https://api-estudio-juridico-oma1.onrender.com/api/clientes';
-
 // Guardamos todos los clientes en memoria para filtrar sin hacer fetch extra
 let todosLosClientes = [];
 
@@ -10,11 +8,7 @@ let sortColumn = null;   // 'nombre_completo' | 'dni' | 'telefono'
 let sortDir = 'asc';     // 'asc' | 'desc'
 
 document.addEventListener('DOMContentLoaded', () => {
-    const token = localStorage.getItem('estudio_token');
-    if (!token) {
-        window.location.href = 'login.html';
-        return;
-    }
+    if (!requerirSesion()) return;
 
     cargarClientes();
 
@@ -50,12 +44,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('formNuevoCliente').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('estudio_token');
 
-        // --- MEJORA UX-01: Aspiradora de puntos para el DNI ---
+        // El DNI se guarda sin puntos aunque el usuario los escriba
         const dniCrudo = document.getElementById('dni').value;
-        const dniLimpio = dniCrudo.replace(/\./g, ''); // Elimina todos los puntos
-        // ------------------------------------------------------
+        const dniLimpio = dniCrudo.replace(/\./g, '');
 
         const nuevoCliente = {
             nombre_completo: document.getElementById('nombre').value,
@@ -66,14 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const respuesta = await fetch('https://api-estudio-juridico-oma1.onrender.com/api/clientes', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(nuevoCliente)
-            });
+            const respuesta = await apiFetch('/api/clientes', { method: 'POST', body: nuevoCliente });
 
             if (respuesta.ok) {
                 modal.style.display = 'none';
@@ -82,30 +67,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('searchInput').value = '';
                 cargarClientes();
             } else {
-                let errorMessage = "Verifique los datos";
-                try {
-                    const errorData = await respuesta.json();
-                    errorMessage = errorData.error || errorData.message || errorMessage;
-                } catch (parseError) {
-                    errorMessage = "El servidor está inactivo o devolvió un error inesperado. Intente de nuevo en 1 minuto.";
-                }
-                Alertas.mensaje('Error', "Error al guardar: " + errorMessage, 'error');
+                const errorMessage = await mensajeDeError(respuesta, 'Verifique los datos');
+                Alertas.mensaje('Error', 'Error al guardar: ' + errorMessage, 'error');
             }
         } catch (error) {
             Alertas.toast("No se pudo conectar con el servidor.", 'error');
         }
     });
-}); // <--- Ahora sí, cerramos el bloque principal donde corresponde
+});
 
 async function cargarClientes() {
-    const token = localStorage.getItem('estudio_token');
     const tbody = document.getElementById('tbodyClientes');
     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b">Cargando...</td></tr>`;
 
     try {
-        const respuesta = await fetch('https://api-estudio-juridico-oma1.onrender.com/api/clientes', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const respuesta = await apiFetch('/api/clientes');
 
         if (respuesta.ok) {
             todosLosClientes = await respuesta.json();
@@ -190,18 +166,18 @@ function renderizarTabla(clientes) {
     tbody.innerHTML = clientes.map(c => `
         <tr>
             <td data-label="Nombre y Apellido">
-                <strong>${c.nombre_completo}</strong>
-                ${c.email ? `<br><small style="color:#64748b">${c.email}</small>` : ''}
+                <strong>${escapeHtml(c.nombre_completo)}</strong>
+                ${c.email ? `<br><small style="color:#64748b">${escapeHtml(c.email)}</small>` : ''}
             </td>
-            <td data-label="DNI">${c.dni ? String(c.dni).replace(/\B(?=(\d{3})+(?!\d))/g, ".") : '-'}</td>
-            <td data-label="Teléfono">${c.telefono || '-'}</td>
+            <td data-label="DNI">${c.dni ? escapeHtml(String(c.dni).replace(/\B(?=(\d{3})+(?!\d))/g, ".")) : '-'}</td>
+            <td data-label="Teléfono">${escapeHtml(c.telefono || '-')}</td>
             <td data-label="Acciones">
                 <div class="acciones-cell">
-                    <button class="btn-ver-cuenta" onclick="verCuenta(${c.id})">Ver Cuenta</button>
-                    <button class="btn-icono-tabla editar" title="Editar cliente" onclick="editarCliente(${c.id})">
+                    <button class="btn-ver-cuenta" onclick="verCuenta(${Number(c.id)})">Ver Cuenta</button>
+                    <button class="btn-icono-tabla editar" title="Editar cliente" onclick="editarCliente(${Number(c.id)})">
                         <span class="material-symbols-outlined">edit</span>
                     </button>
-                    <button class="btn-icono-tabla eliminar" title="Eliminar cliente" onclick="eliminarCliente(${c.id})">
+                    <button class="btn-icono-tabla eliminar" title="Eliminar cliente" onclick="eliminarCliente(${Number(c.id)})">
                         <span class="material-symbols-outlined">delete</span>
                     </button>
                 </div>
@@ -227,7 +203,6 @@ function editarCliente(id) {
 
 async function guardarEdicionCliente(e) {
     e.preventDefault();
-    const token = localStorage.getItem('estudio_token');
     const id = document.getElementById('editarClienteId').value;
 
     const datos = {
@@ -239,24 +214,14 @@ async function guardarEdicionCliente(e) {
     };
 
     try {
-        const respuesta = await fetch(`${API_CLIENTES}/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify(datos)
-        });
+        const respuesta = await apiFetch(`/api/clientes/${id}`, { method: 'PUT', body: datos });
 
         if (respuesta.ok) {
             document.getElementById('modalEditarCliente').style.display = 'none';
             Alertas.toast('Cliente actualizado correctamente.', 'success');
             cargarClientes();
         } else {
-            let errorMessage = 'Verifique los datos';
-            try {
-                const errorData = await respuesta.json();
-                errorMessage = errorData.error || errorData.message || errorMessage;
-            } catch (parseError) {
-                errorMessage = 'El servidor está inactivo o devolvió un error inesperado. Intente de nuevo en 1 minuto.';
-            }
+            const errorMessage = await mensajeDeError(respuesta, 'Verifique los datos');
             Alertas.mensaje('Error', 'Error al actualizar: ' + errorMessage, 'error');
         }
     } catch (error) {
@@ -276,32 +241,18 @@ async function eliminarCliente(id) {
     );
     if (!confirmado) return;
 
-    const token = localStorage.getItem('estudio_token');
     try {
-        const respuesta = await fetch(`${API_CLIENTES}/${id}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const respuesta = await apiFetch(`/api/clientes/${id}`, { method: 'DELETE' });
 
         if (respuesta.ok) {
             Alertas.toast('Cliente eliminado correctamente.', 'success');
             cargarClientes();
         } else {
-            let errorMessage = 'No se pudo eliminar el cliente';
-            try {
-                const errorData = await respuesta.json();
-                errorMessage = errorData.error || errorMessage;
-            } catch (parseError) { /* respuesta sin cuerpo JSON */ }
-            Alertas.mensaje('Error', errorMessage, 'error');
+            Alertas.mensaje('Error', await mensajeDeError(respuesta, 'No se pudo eliminar el cliente'), 'error');
         }
     } catch (error) {
         Alertas.toast('No se pudo conectar con el servidor.', 'error');
     }
-}
-
-function cerrarSesion() {
-    localStorage.removeItem('estudio_token');
-    window.location.href = 'login.html';
 }
 
 function verCuenta(id) {

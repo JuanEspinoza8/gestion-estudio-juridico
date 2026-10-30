@@ -1,7 +1,5 @@
 // public/js/dashboard.js
 
-const API_BASE = 'https://api-estudio-juridico-oma1.onrender.com/api';
-
 // Estado global de notas rápidas
 let notaActualId = null;
 let notaPaginaActual = 1;
@@ -9,40 +7,26 @@ let notaTotalPaginas = 0;
 let guardarTimeout = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const token = localStorage.getItem('estudio_token');
-    const usuarioId = localStorage.getItem('usuario_id');
+    if (!requerirSesion()) return;
 
-    if (!token || !usuarioId) {
-        window.location.href = 'login.html';
-        return;
-    }
-
-    // --- MEJORA UI-01: Saludo Dinámico ---
+    // Saludo con el nombre del usuario
     const usuarioNombre = localStorage.getItem('usuario_nombre');
     const subtitle = document.querySelector('.subtitle');
     if (subtitle) {
         subtitle.textContent = `Bienvenido, ${usuarioNombre || 'Usuario'}`;
     }
-    // -------------------------------------
 
     cargarResumenGeneral();
     initNotasRapidas();
 });
 
 async function cargarResumenGeneral() {
-    const token = localStorage.getItem('estudio_token');
-    const usuarioId = localStorage.getItem('usuario_id');
-    const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-    };
-
     try {
         const [resClientes, resTurnosHoy, resIngresos, resActividad] = await Promise.all([
-            fetch(`${API_BASE}/clientes`, { headers }),
-            fetch(`${API_BASE}/turnos/usuario/${usuarioId}/hoy`, { headers }),
-            fetch(`${API_BASE}/pagos/mes-actual`, { headers }),
-            fetch(`${API_BASE}/actividad/usuario/${usuarioId}`, { headers })
+            apiFetch('/api/clientes'),
+            apiFetch('/api/turnos/hoy'),
+            apiFetch('/api/pagos/mes-actual'),
+            apiFetch('/api/actividad')
         ]);
 
         const clientes = await resClientes.json();
@@ -63,10 +47,10 @@ async function cargarResumenGeneral() {
         } else {
             listaTurnos.innerHTML = turnosHoy.map(t => `
                 <li>
-                    <span class="hora">${t.hora.substring(0, 5)}</span>
+                    <span class="hora">${escapeHtml(t.hora.substring(0, 5))}</span>
                     <div class="detalle">
-                        <strong>${t.nombre_completo}</strong>
-                        <span>${t.motivo}</span>
+                        <strong>${escapeHtml(t.nombre_completo || 'Sin cliente (tarea interna)')}</strong>
+                        <span>${escapeHtml(t.motivo || t.tipo_evento)}</span>
                     </div>
                 </li>
             `).join('');
@@ -85,9 +69,9 @@ async function cargarResumenGeneral() {
                 <li style="align-items:flex-start;">
                     <span class="material-symbols-outlined" style="color:#3b82f6;">notifications_active</span>
                     <div class="detalle">
-                        <strong>${accionLimpia} ${a.cliente_nombre ? `(${a.cliente_nombre})` : ''}</strong>
-                        <span>${a.detalles || ''}</span>
-                        <span style="color:#94a3b8; font-size:0.8rem;">${fechaFormateada}</span>
+                        <strong>${escapeHtml(accionLimpia)} ${a.cliente_nombre ? `(${escapeHtml(a.cliente_nombre)})` : ''}</strong>
+                        <span>${escapeHtml(a.detalles)}</span>
+                        <span style="color:#94a3b8; font-size:0.8rem;">${escapeHtml(fechaFormateada)}</span>
                     </div>
                 </li>`;
             }).join('');
@@ -101,14 +85,6 @@ async function cargarResumenGeneral() {
 // ===========================================
 // NOTAS RÁPIDAS
 // ===========================================
-
-function getHeaders() {
-    const token = localStorage.getItem('estudio_token');
-    return {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-    };
-}
 
 async function initNotasRapidas() {
     const textarea = document.getElementById('notaRapidaTexto');
@@ -143,9 +119,7 @@ async function initNotasRapidas() {
 
 async function cargarNotaRapida(page) {
     try {
-        const res = await fetch(`${API_BASE}/notas-rapidas?page=${page}`, {
-            headers: getHeaders()
-        });
+        const res = await apiFetch(`/api/notas-rapidas?page=${page}`);
 
         if (!res.ok) throw new Error('Error al cargar nota');
 
@@ -182,11 +156,7 @@ async function cargarNotaRapida(page) {
 
 async function guardarNotaRapida(id, contenido) {
     try {
-        await fetch(`${API_BASE}/notas-rapidas/${id}`, {
-            method: 'PUT',
-            headers: getHeaders(),
-            body: JSON.stringify({ contenido })
-        });
+        await apiFetch(`/api/notas-rapidas/${id}`, { method: 'PUT', body: { contenido } });
     } catch (error) {
         console.error('Error al guardar nota rápida:', error);
     }
@@ -194,11 +164,7 @@ async function guardarNotaRapida(id, contenido) {
 
 async function crearNuevaNota() {
     try {
-        const res = await fetch(`${API_BASE}/notas-rapidas`, {
-            method: 'POST',
-            headers: getHeaders(),
-            body: JSON.stringify({ contenido: '' })
-        });
+        const res = await apiFetch('/api/notas-rapidas', { method: 'POST', body: { contenido: '' } });
 
         if (!res.ok) throw new Error('Error al crear nota');
 
@@ -220,10 +186,7 @@ async function eliminarNotaActual() {
     if (!confirmado) return;
 
     try {
-        const res = await fetch(`${API_BASE}/notas-rapidas/${notaActualId}`, {
-            method: 'DELETE',
-            headers: getHeaders()
-        });
+        const res = await apiFetch(`/api/notas-rapidas/${notaActualId}`, { method: 'DELETE' });
 
         if (!res.ok) throw new Error('Error al eliminar nota');
 
@@ -261,27 +224,3 @@ function actualizarBotonesNav() {
     btnSiguiente.disabled = notaPaginaActual >= notaTotalPaginas;
 }
 
-function cerrarSesion() {
-    localStorage.clear();
-    window.location.href = 'login.html';
-}
-
-// Función para decodificar el payload del JWT sin librerías externas
-function obtenerUsuarioDelToken() {
-    const token = localStorage.getItem('estudio_token');
-    if (!token) return null;
-
-    try {
-        // El JWT es: Header.Payload.Signature. Tomamos el Payload [1]
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-
-        return JSON.parse(jsonPayload);
-    } catch (e) {
-        console.error("Error al decodificar el token:", e);
-        return null;
-    }
-}

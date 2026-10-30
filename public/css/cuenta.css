@@ -1,0 +1,445 @@
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #64748b;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    font-weight: 600;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tab-btn.activo {
+    color: #3b82f6;
+    border-bottom-color: #3b82f6;
+}
+
+.tab-btn:hover {
+    color: #1e293b;
+}
+
+/* En modo oscuro el hover debe aclararse para contrastar con el fondo */
+body.dark-mode .tabs {
+    border-bottom-color: #334155;
+}
+
+body.dark-mode .tab-btn {
+    color: #94a3b8;
+}
+
+body.dark-mode .tab-btn:hover {
+    color: #f8fafc;
+}
+
+body.dark-mode .tab-btn.activo {
+    color: #60a5fa;
+    border-bottom-color: #60a5fa;
+}
+
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.activo {
+    display: block;
+}
+
+.resumen-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.resumen-card {
+    background: white;
+    border-radius: 8px;
+    padding: 16px 18px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.resumen-card h4 {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 6px;
+    letter-spacing: 0.4px;
+}
+
+.resumen-card .valor {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.resumen-card .valor.rojo {
+    color: #ef4444;
+}
+
+.resumen-card .valor.verde {
+    color: #10b981;
+}
+
+.info-cliente {
+    background: white;
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+}
+
+.info-campo label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    color: #94a3b8;
+    letter-spacing: 0.4px;
+}
+
+.info-campo p {
+    font-size: 0.95rem;
+    color: #1e293b;
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+body.dark-mode .resumen-card,
+body.dark-mode .info-cliente {
+    background: #1e293b;
+}
+
+body.dark-mode .resumen-card .valor,
+body.dark-mode .info-campo p {
+    color: #f8fafc;
+}
+
+.estado-vacio {
+    text-align: center;
+    padding: 30px;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+/* LISTAS Y ELEMENTOS */
+.expediente-item {
+    background: white;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    border-left: 3px solid #ef4444;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.expediente-info {
+    flex: 1;
+}
+
+.expediente-info strong {
+    color: #1e293b;
+}
+
+.expediente-info p {
+    color: #94a3b8;
+    font-size: 0.82rem;
+    margin-top: 3px;
+}
+
+.expediente-monto {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #ef4444;
+    white-space: nowrap;
+}
+
+.notas-lista {
+    list-style: none;
+    padding: 0;
+}
+
+.nota-item {
+    background: white;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    border-left: 3px solid #3b82f6;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.nota-contenido {
+    flex: 1;
+}
+
+.nota-contenido p {
+    color: #1e293b;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+}
+
+.nota-fecha {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-top: 6px;
+}
+
+.btn-eliminar-chico {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #cbd5e1;
+    font-size: 1rem;
+    padding: 2px 4px;
+    transition: color 0.2s;
+    flex-shrink: 0;
+}
+
+.btn-eliminar-chico:hover {
+    color: #ef4444;
+}
+
+.add-nota-form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.add-nota-form textarea {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    resize: vertical;
+    min-height: 64px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.add-nota-form textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.add-nota-form button {
+    align-self: flex-end;
+    white-space: nowrap;
+}
+
+.acciones-grupo {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-rojo {
+    background: #ef4444 !important;
+}
+
+/* TARJETA FINANCIERA DE CUOTAS (PREMIUM) */
+.finance-card {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 24px;
+    color: #f8fafc;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    margin-bottom: 24px;
+}
+
+.finance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+}
+
+.finance-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.finance-title h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.icon-blue {
+    color: #3b82f6;
+    font-size: 28px;
+}
+
+.finance-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.finance-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+}
+
+.finance-label {
+    color: #94a3b8;
+}
+
+.finance-value {
+    font-weight: 600;
+}
+
+.highlight-row {
+    background-color: rgba(59, 130, 246, 0.1);
+    padding: 12px;
+    border-radius: 6px;
+    border-left: 4px solid #3b82f6;
+}
+
+.text-blue {
+    color: #60a5fa;
+}
+
+body:not(.dark-mode) .finance-card {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+    color: #1e293b;
+}
+
+body:not(.dark-mode) .finance-header {
+    border-bottom-color: #cbd5e1;
+}
+
+body:not(.dark-mode) .finance-label {
+    color: #64748b;
+}
+
+/* --- ESTILOS CONTROL DE CUOTAS PREMIUM --- */
+/* 1. Ocultamos las flechas feas del navegador */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* 2. Creamos la "píldora" moderna */
+.cuotas-control {
+    display: flex;
+    align-items: center;
+    background: #0f172a;
+    /* Fondo más oscuro */
+    border: 1px solid #334155;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.btn-cuota {
+    background: transparent;
+    color: #94a3b8;
+    border: none;
+    padding: 12px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-cuota:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+.cuotas-control input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: white;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    outline: none;
+}
+
+/* Adaptación para el modo claro */
+body:not(.dark-mode) .cuotas-control {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+body:not(.dark-mode) .cuotas-control input {
+    color: #1e293b;
+}
+
+/* --- BARRA DE PROGRESO --- */
+.progress-track {
+    width: 100%; 
+    height: 8px; 
+    background-color: #334155; 
+    border-radius: 4px; 
+    overflow: hidden;
+    margin-top: 5px;
+}
+body:not(.dark-mode) .progress-track {
+    background-color: #e2e8f0;
+}
+.progress-bar {
+    width: 0%; 
+    height: 100%; 
+    background: linear-gradient(90deg, #3b82f6, #10b981); 
+    border-radius: 4px; 
+    transition: width 0.5s ease-in-out;
+}
+
+/* --- MOBILE TWEAKS --- */
+@media (max-width: 600px) {
+    .finance-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    .finance-card {
+        padding: 15px;
+    }
+    .info-cliente {
+        gap: 15px;
+        padding: 15px;
+    }
+    .add-nota-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .add-nota-form button {
+        align-self: stretch;
+    }
+}

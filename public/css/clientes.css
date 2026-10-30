@@ -346,7 +346,7 @@ tbody tr:hover {
     align-items: center;
     z-index: 1000;
 
-    /* TODO: En la Fase 3, Lucas usará JS para cambiar esto a display: flex cuando hagan clic en el botón */
+    /* Oculto por defecto: el JS lo muestra con display: flex */
     display: none;
 }
 
