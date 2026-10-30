@@ -47,7 +47,7 @@ const causaEdicion = causa.omit({ cliente_id: true });
 
 const honorario = z.object({
     cliente_id: id,
-    descripcion: textoOpcional(300),
+    descripcion: z.string().trim().min(1, 'El concepto es obligatorio').max(300),
     honorarios_totales: monto,
     cuotas_totales: z.coerce.number().int().min(1).max(36).default(1)
 });
