@@ -9,7 +9,8 @@
     "test": "jest",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "crear-usuario": "node scripts/crear-usuario.js"
   },
   "repository": {
     "type": "git",
