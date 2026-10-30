@@ -1,9 +1,9 @@
 const db = require('../config/db');
 
-// Zona horaria del estudio. La fecha/hora de los turnos se guarda como hora local
-// (wall-clock) de Argentina; la usamos para calcular la ventana de recordatorio
-// correctamente sin importar en qué timezone corra el servidor (Render usa UTC).
-const TZ_ESTUDIO = 'America/Argentina/Buenos_Aires';
+// La fecha/hora de los turnos se guarda como hora local (wall-clock) de
+// Argentina; la zona se usa para calcular "hoy" y la ventana de recordatorio
+// sin importar en qué timezone corran el servidor y la base (UTC).
+const { TZ_ESTUDIO } = require('../config/zonaHoraria');
 
 class Turno {
     constructor(turno) {
@@ -110,10 +110,10 @@ class Turno {
             SELECT t.*, c.nombre_completo
             FROM turnos t
             LEFT JOIN clientes c ON t.cliente_id = c.id
-            WHERE t.usuario_id = $1 AND t.fecha = CURRENT_DATE AND t.estado = 'pendiente'
+            WHERE t.usuario_id = $1 AND t.fecha = (NOW() AT TIME ZONE $2)::date AND t.estado = 'pendiente'
             ORDER BY t.hora ASC;
         `;
-        const { rows } = await db.query(query, [usuarioId]);
+        const { rows } = await db.query(query, [usuarioId, TZ_ESTUDIO]);
         return rows;
     }
 

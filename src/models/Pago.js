@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { TZ_ESTUDIO, hoyEnEstudio } = require('../config/zonaHoraria');
 
 class Pago {
     constructor(pago) {
@@ -6,7 +7,7 @@ class Pago {
         this.cliente_id = pago.cliente_id;
         this.expediente_id = pago.expediente_id || null;
         this.monto = parseFloat(pago.monto);
-        this.fecha_pago = pago.fecha_pago || new Date().toISOString().split('T')[0];
+        this.fecha_pago = pago.fecha_pago || hoyEnEstudio();
         this.metodo_pago = pago.metodo_pago || null;
         this.recibo_url = pago.recibo_url || null;
     }
@@ -39,14 +40,14 @@ class Pago {
         return rows.map(row => new Pago(row));
     }
 
+    // Total cobrado en el mes calendario actual del estudio
     static async obtenerIngresosDelMes() {
         const query = `
             SELECT COALESCE(SUM(monto), 0) AS total_ingresos
             FROM pagos
-            WHERE EXTRACT(MONTH FROM fecha_pago) = EXTRACT(MONTH FROM CURRENT_DATE)
-              AND EXTRACT(YEAR FROM fecha_pago) = EXTRACT(YEAR FROM CURRENT_DATE);
+            WHERE date_trunc('month', fecha_pago) = date_trunc('month', (NOW() AT TIME ZONE $1)::date);
         `;
-        const { rows } = await db.query(query);
+        const { rows } = await db.query(query, [TZ_ESTUDIO]);
         return parseFloat(rows[0].total_ingresos);
     }
 }
